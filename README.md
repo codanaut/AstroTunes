@@ -2,7 +2,9 @@
 
 **Shoot for the stars with your music library.**
 
-AstroTunes is a sleek, lightweight frontend for Subsonic-compatible servers (like Navidrome and Airsonic). While traditional Subsonic interfaces are often "sub"-terranean, we’re taking your music to the stratosphere with a modern, fast, and visually stunning player—available both as a web app and a lightweight desktop application.
+AstroTunes is a sleek, lightweight frontend for Subsonic-compatible servers (like Navidrome and Airsonic). While traditional Subsonic interfaces are often "sub"-terranean, we’re taking your music to the stratosphere with a modern, fast, and visually stunning player, available both as a web app and a lightweight desktop application.
+
+<img src="./astrotunes-screenshot.PNG" alt="AstroTunes Screenshot" width="600">
 
 ## 🛰️ My Goal
 The goal is simple: **Speed, Aesthetics, and Simplicity.**
@@ -23,16 +25,17 @@ The goal is simple: **Speed, Aesthetics, and Simplicity.**
 ## 🧪 Development Status & "Vibe Coding"
 This project is currently a **Work in Progress**. 
 
-AstroTunes was partially **vibe coded**. It started as a personal project before I decided to try out Google’s new Antigravity IDE agent manager.
+AstroTunes was partially **vibe coded**. It started as a personal project I was coding myself before I decided to try out Google’s new Antigravity IDE agent manager. Which worked much better than I expected!
 
 **Note:** As the project evolves, the focus is on "de-slopping" the codebase to remove any leftover junk from AI, standardizing functions across Svelte components, and ensuring the architecture is as clean as the UI. Expect frequent changes and potential redesigns!
 
 ## 🛰 Tech Stack
-* **Framework:** Svelte
+* **Framework:** Svelte 5
 * **Styling:** Tailwind CSS
 * **Icons:** Lucide Svelte
 * **Audio:** Howler.js
 * **Build Tool:** Vite
+* **Desktop App:** Tauri
 
 ---
 *Built with ❤️ for the self-hosted music community.*
