@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		%sveltekit.head%
+		<script>
+			try {
+				const stored = localStorage.getItem('theme_state');
+				if (stored) {
+					const state = JSON.parse(stored);
+					const root = document.documentElement;
+					if (state.mode) root.setAttribute('data-mode', state.mode);
+					if (state.accent) root.setAttribute('data-accent', state.accent);
+					if (state.trueBlack) root.setAttribute('data-true-black', 'true');
+				}
+			} catch (e) {
+				console.error('Failed to load theme', e);
+			}
+		</script>
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+:root {
+    /* --- Base Variables (Default to Dark) --- */
+    --bg-main: #111827; /* gray-900 */
+    --bg-sidebar: #030712; /* gray-950 */
+    --bg-card: #1f2937; /* gray-800 */
+    --bg-hover: #374151; /* gray-700 */
+    
+    --text-primary: #f9fafb; /* gray-50 */
+    --text-secondary: #9ca3af; /* gray-400 */
+    --text-muted: #6b7280; /* gray-500 */
+    
+    --border-primary: #1f2937; /* gray-800 */
+    --border-secondary: #374151; /* gray-700 */
+
+    /* Default Accent (Green) */
+    --accent: #22c55e;
+    --accent-fg: #000000;
+}
+
+/* --- Modes --- */
+
+[data-mode='light'] {
+    --bg-main: #f3f4f6; /* gray-100 - slightly darker background for contrast with cards */
+    --bg-sidebar: #ffffff;
+    --bg-card: #ffffff;
+    --bg-hover: #e5e7eb; /* gray-200 */
+    
+    --text-primary: #111827; /* gray-900 */
+    --text-secondary: #4b5563; /* gray-600 */
+    --text-muted: #6b7280; /* gray-500 */
+    
+    --border-primary: #d1d5db; /* gray-300 - darker border for visibility */
+    --border-secondary: #e5e7eb; /* gray-200 */
+    
+    --accent-fg: #ffffff;
+}
+
+/* Explicit Dark Mode (re-asserts defaults if needed, or allows switching) */
+[data-mode='dark'] {
+    --bg-main: #111827;
+    --bg-sidebar: #030712;
+    --bg-card: #1f2937;
+    --bg-hover: #374151;
+    
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    --border-primary: #1f2937;
+    --border-secondary: #374151;
+}
+
+/* --- True Black Modifier (Only affects Dark Mode) --- */
+[data-mode='dark'][data-true-black='true'] {
+    --bg-main: #000000;
+    --bg-sidebar: #000000;
+    --bg-card: #121212;
+    --bg-hover: #18181b; /* zinc-900 */
+    --border-primary: #18181b;
+}
+
+/* --- Accent Colors --- */
+
+[data-accent='green'] {
+    --accent: #22c55e; /* green-500 */
+    --accent-fg: #000000;
+}
+[data-mode='light'][data-accent='green'] { --accent-fg: #ffffff; }
+
+[data-accent='red'] {
+    --accent: #ef4444; /* red-500 */
+    --accent-fg: #ffffff;
+}
+
+[data-accent='blue'] {
+    --accent: #3b82f6; /* blue-500 */
+    --accent-fg: #ffffff;
+}
+
+[data-accent='orange'] {
+    --accent: #f97316; /* orange-500 */
+    --accent-fg: #ffffff;
+}
+
+[data-accent='purple'] {
+    --accent: #a855f7; /* purple-500 */
+    --accent-fg: #ffffff;
+}
+
+[data-accent='pink'] {
+    --accent: #ec4899; /* pink-500 */
+    --accent-fg: #ffffff;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    overflow: hidden;
+    transition: background-color 0.2s, color 0.2s;
+}

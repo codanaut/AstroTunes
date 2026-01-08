@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+src-tauri/target/
+
+# Svelte / Build Output
+.svelte-kit/
+/build/
+/dist/
+
+# Logs & Debugging
+*.log
+npm-debug.log*
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Tauri generated code (only if you don't edit it manually)
+src-tauri/gen/
