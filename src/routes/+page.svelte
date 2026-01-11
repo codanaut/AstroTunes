@@ -11,6 +11,8 @@
   let favlist = [];
   /** @type {any[]} */
   let recentlyAddedAlbums = [];
+  /** @type {any[]} */
+  let topAlbums = [];
 
   onMount(async () => {
     const data = await subsonicFetch("getAlbumList", "&type=random&size=5");
@@ -31,6 +33,17 @@
       recentlyAddedAlbumsData.albumList.album
     ) {
       recentlyAddedAlbums = recentlyAddedAlbumsData.albumList.album;
+    }
+    const topAlbumsData = await subsonicFetch(
+      "getAlbumList",
+      "&type=frequent&size=5",
+    );
+    if (
+      topAlbumsData &&
+      topAlbumsData.albumList &&
+      topAlbumsData.albumList.album
+    ) {
+      topAlbums = topAlbumsData.albumList.album;
     }
     startSyncLoop();
   });
@@ -64,6 +77,19 @@
         recentlyAddedAlbums = recentlyAddedAlbumsData.albumList.album;
       }
 
+      // Sync Top Played Albums
+      const topAlbumsData = await subsonicFetch(
+        "getAlbumList",
+        "&type=frequent&size=5",
+      );
+      if (
+        topAlbumsData &&
+        topAlbumsData.albumList &&
+        topAlbumsData.albumList.album
+      ) {
+        topAlbums = topAlbumsData.albumList.album;
+      }
+
       // Note: We don't sync 'random' albums because fetching them again would change the albums shown.
     }, 10000);
   }
@@ -94,6 +120,14 @@
       </a>
     </div>
   {:else}
+    <SectionWrapper
+      title="Top Played Albums"
+      items={topAlbums}
+      type="album"
+      showAllLink="/albums/top"
+      enableViewToggle={true}
+    />
+
     <SectionWrapper
       title="Favorite Albums"
       items={favlist}
