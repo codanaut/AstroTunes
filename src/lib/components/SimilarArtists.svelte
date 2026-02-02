@@ -8,14 +8,36 @@
 
     /** @type {any[]} */
     let similarArtists = [];
-    let loading = true;
+    let loading = false;
+    /** @type {string | null} */
+    let loadedArtistId = null;
+    /** @type {HTMLElement} */
+    let element;
+    let intersecting = false;
 
-    $: if (artistId) {
+    $: if (artistId && intersecting && artistId !== loadedArtistId) {
         loadSimilarArtists();
     }
 
+    onMount(() => {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                intersecting = true;
+            }
+        });
+
+        if (element) {
+            observer.observe(element);
+        }
+
+        return () => {
+            observer.disconnect();
+        };
+    });
+
     async function loadSimilarArtists() {
         loading = true;
+        loadedArtistId = artistId; // Prevent multiple fetches
         similarArtists = [];
         try {
             const artists = await getSimilarArtists(artistId, 5);
@@ -31,13 +53,15 @@
     }
 </script>
 
-{#if !loading && similarArtists.length > 0}
-    <div class="container mx-auto">
-        <h1 class="text-2xl font-bold mt-6 mb-6">Similar Artists</h1>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {#each similarArtists as artist (artist.id)}
-                <ArtistCard {artist} />
-            {/each}
+<div bind:this={element} class="min-h-[50px]">
+    {#if !loading && similarArtists.length > 0}
+        <div class="container mx-auto">
+            <h1 class="text-2xl font-bold mt-6 mb-6">Similar Artists</h1>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {#each similarArtists as artist (artist.id)}
+                    <ArtistCard {artist} />
+                {/each}
+            </div>
         </div>
-    </div>
-{/if}
+    {/if}
+</div>
