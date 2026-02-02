@@ -52,6 +52,12 @@
         { id: "format", label: "Format", alwaysVisible: false, sortable: true },
         { id: "genre", label: "Genre", alwaysVisible: false, sortable: true },
         {
+            id: "playCount",
+            label: "Plays",
+            alwaysVisible: false,
+            sortable: true,
+        },
+        {
             id: "duration",
             label: "",
             icon: Clock,
@@ -78,6 +84,7 @@
         "bitrate",
         "format",
         "genre",
+        "playCount",
     ];
 
     // Basic Logic for defaults
@@ -261,6 +268,7 @@
         ${isColumnVisible("bitrate") ? "5rem" : ""} 
         ${isColumnVisible("format") ? "4rem" : ""} 
         ${isColumnVisible("genre") ? "minmax(100px, 1.5fr)" : ""} 
+        ${isColumnVisible("playCount") ? "4rem" : ""} 
         ${isColumnVisible("starred") ? "2rem" : ""} 
         ${isColumnVisible("duration") ? "auto" : ""}
     `
@@ -343,6 +351,9 @@
                 >Format</span
             >{/if}
         {#if isColumnVisible("genre")}<span class="hidden md:block">Genre</span
+            >{/if}
+        {#if isColumnVisible("playCount")}<span
+                class="hidden md:block text-right">Plays</span
             >{/if}
         {#if isColumnVisible("starred")}<span
                 class="text-center hidden md:block"><Heart size={16} /></span
@@ -494,6 +505,14 @@
                         <span
                             class="truncate text-[var(--text-muted)] hidden md:block"
                             >{song.genre || "-"}</span
+                        >
+                    {/if}
+
+                    <!-- Play Count -->
+                    {#if isColumnVisible("playCount")}
+                        <span
+                            class="text-[var(--text-muted)] text-xs font-mono hidden md:block text-right pr-2"
+                            >{song.playCount || 0}</span
                         >
                     {/if}
 
