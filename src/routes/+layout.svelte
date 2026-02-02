@@ -206,6 +206,50 @@
       }
     }
   });
+
+  // Media Session
+  $effect(() => {
+    if ("mediaSession" in navigator && $currentTrack) {
+      // 1. Update Metadata
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: $currentTrack.title,
+        artist: $currentTrack.artist,
+        album: $currentTrack.album,
+        artwork: [
+          {
+            src: getCoverArtUrl($currentTrack.id, 512),
+            sizes: "512x512",
+            type: "image/png",
+          },
+        ],
+      });
+
+      // 2. Define actions with explicit types to satisfy the compiler
+      /** @type {Array<[MediaSessionAction, () => void]>} */
+      const actions = [
+        ["play", togglePlay],
+        ["pause", togglePlay],
+        ["previoustrack", playPrev],
+        ["nexttrack", playNext],
+      ];
+
+      // 3. Register handlers
+      for (const [action, handler] of actions) {
+        try {
+          navigator.mediaSession.setActionHandler(action, handler);
+        } catch (error) {
+          // Ignore actions not supported by the current browser
+        }
+      }
+    }
+  });
+
+  // 4. Update Playback State reactively
+  $effect(() => {
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = $isPlaying ? "playing" : "paused";
+    }
+  });
 </script>
 
 <svelte:body
