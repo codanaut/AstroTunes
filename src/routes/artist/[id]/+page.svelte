@@ -26,6 +26,8 @@
   let artist = null;
   /** @type {any[]} */
   let topSongs = [];
+  /** @type {any[]} */
+  let appearsOnAlbums = [];
   let loading = true;
   /** @type {any} */
   let syncInterval;
@@ -41,6 +43,7 @@
   async function loadArtist(artistId) {
     loading = true;
     artist = null; // Reset artist
+    appearsOnAlbums = [];
     const data = await subsonicFetch("getArtist", `&id=${artistId}`);
     if (data && data.artist) {
       artist = data.artist;
@@ -51,6 +54,28 @@
         topSongs = Array.isArray(topSongsData.topSongs.song)
           ? topSongsData.topSongs.song
           : [topSongsData.topSongs.song];
+
+        // Process Appears On Albums
+        const ownAlbumIds = new Set(
+          (artist.album || []).map((/** @type {{ id: any; }} */ a) => a.id),
+        );
+        const appearsOnMap = new Map();
+
+        topSongs.forEach((song) => {
+          if (song.albumId && !ownAlbumIds.has(song.albumId)) {
+            if (!appearsOnMap.has(song.albumId)) {
+              appearsOnMap.set(song.albumId, {
+                id: song.albumId,
+                title: song.album,
+                artist: song.artist, // Note: This might be the song artist
+                artistId: song.artistId,
+                coverArt: song.coverArt, // Song object usually has this
+              });
+            }
+          }
+        });
+
+        appearsOnAlbums = Array.from(appearsOnMap.values());
       }
     }
     loading = false;
@@ -238,14 +263,28 @@
     {/if}
 
     <!-- Album List -->
-    <div class="container mx-auto">
-      <h1 class="text-2xl font-bold mt-6 mb-6">All Albums</h1>
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {#each artist.album as album, i}
-          <AlbumCard bind:album={artist.album[i]} />
-        {/each}
+    {#if artist.album && artist.album.length > 0}
+      <div class="container mx-auto">
+        <h1 class="text-2xl font-bold mt-6 mb-6">All Albums</h1>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {#each artist.album as album, i}
+            <AlbumCard bind:album={artist.album[i]} />
+          {/each}
+        </div>
       </div>
-    </div>
+    {/if}
+
+    <!-- Appears On -->
+    {#if appearsOnAlbums.length > 0}
+      <div class="container mx-auto">
+        <h1 class="text-2xl font-bold mt-6 mb-6">Appears On</h1>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {#each appearsOnAlbums as album}
+            <AlbumCard {album} />
+          {/each}
+        </div>
+      </div>
+    {/if}
 
     <!-- Similar Artists -->
     <SimilarArtists artistId={artist.id} />
