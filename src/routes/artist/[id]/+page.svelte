@@ -20,6 +20,7 @@
   import BackButton from "../../../lib/components/BackButton.svelte";
   import SongList from "../../../lib/components/SongList.svelte";
   import AlbumCard from "../../../lib/components/AlbumCard.svelte";
+  import SimilarArtists from "../../../lib/components/SimilarArtists.svelte";
 
   /** @type {any} */
   let artist = null;
@@ -29,8 +30,17 @@
   /** @type {any} */
   let syncInterval;
 
-  onMount(async () => {
-    const artistId = $page.params.id;
+  // Reactively load artist data when the ID changes
+  $: if ($page.params.id) {
+    loadArtist($page.params.id);
+  }
+
+  /**
+   * @param {string} artistId
+   */
+  async function loadArtist(artistId) {
+    loading = true;
+    artist = null; // Reset artist
     const data = await subsonicFetch("getArtist", `&id=${artistId}`);
     if (data && data.artist) {
       artist = data.artist;
@@ -45,6 +55,10 @@
     }
     loading = false;
     startSyncLoop();
+  }
+
+  onMount(() => {
+    // Initial sync is handled by the reactive statement since $page.params.id is available
   });
 
   onDestroy(() => {
@@ -232,6 +246,9 @@
         {/each}
       </div>
     </div>
+
+    <!-- Similar Artists -->
+    <SimilarArtists artistId={artist.id} />
   </div>
 {:else}
   <div class="text-center text-red-500">Artist not found</div>
