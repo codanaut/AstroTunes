@@ -61,6 +61,7 @@
   import { onMount } from "svelte";
   import { subsonicFetch } from "../lib/subsonic";
   import { theme } from "../lib/stores/theme";
+  import { parseArtistString } from "../lib/utils/artistUtils";
 
   let { children } = $props();
 
@@ -400,12 +401,22 @@
             <div
               class="flex items-center gap-2 text-xs md:text-sm text-[var(--text-secondary)] truncate"
             >
-              <a
-                class="hover:text-[var(--accent)] transition-colors truncate"
-                href={`/artist/${$currentTrack.artistId}`}
-              >
-                {$currentTrack.artist}
-              </a>
+              <span class="truncate">
+                {#each parseArtistString($currentTrack.artist, $currentTrack.artistId, $currentTrack.artists) as part}
+                  {#if part.type === "artist"}
+                    <a
+                      href={part.id
+                        ? `/artist/${part.id}`
+                        : `/search?q=${encodeURIComponent(part.name)}`}
+                      class="hover:text-[var(--accent)] transition-colors"
+                    >
+                      {part.name}
+                    </a>
+                  {:else}
+                    <span>{part.name}</span>
+                  {/if}
+                {/each}
+              </span>
               <span class="text-[var(--text-muted)]">•</span>
               <a
                 class="hover:text-[var(--accent)] transition-colors truncate"

@@ -40,6 +40,7 @@
     } from "lucide-svelte";
     import BackButton from "../../lib/components/BackButton.svelte";
     import { fade, slide } from "svelte/transition";
+    import { parseArtistString } from "../../lib/utils/artistUtils";
 
     let showQueuePanel = false;
 
@@ -94,11 +95,22 @@
                     <div
                         class="text-base md:text-lg text-[var(--text-secondary)] truncate flex items-center justify-center gap-2 px-4"
                     >
-                        <a
-                            href="/artist/{$currentTrack.artistId}"
-                            class="hover:text-[var(--text-primary)] hover:underline"
-                            >{$currentTrack.artist}</a
-                        >
+                        <span>
+                            {#each parseArtistString($currentTrack.artist, $currentTrack.artistId, $currentTrack.artists) as part}
+                                {#if part.type === "artist"}
+                                    <a
+                                        href={part.id
+                                            ? `/artist/${part.id}`
+                                            : `/search?q=${encodeURIComponent(part.name)}`}
+                                        class="hover:text-[var(--text-primary)] hover:underline"
+                                    >
+                                        {part.name}
+                                    </a>
+                                {:else}
+                                    <span>{part.name}</span>
+                                {/if}
+                            {/each}
+                        </span>
                     </div>
                     <div
                         class="text-xs md:text-sm text-[var(--text-muted)] mt-1 flex items-center justify-center gap-2"

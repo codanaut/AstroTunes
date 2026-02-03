@@ -17,6 +17,7 @@
         Play,
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
+    import { parseArtistString } from "../utils/artistUtils.js";
 
     /** @type {any[]} */
     export let songs = [];
@@ -433,10 +434,24 @@
                         </span>
                         <!-- Show Artist/Album on mobile if hidden from columns -->
                         <div class="flex gap-2 md:hidden">
-                            <span
-                                class="text-xs text-[var(--text-muted)] truncate"
-                                >{song.artist}</span
+                            <div
+                                class="text-xs text-[var(--text-muted)] truncate flex items-center"
                             >
+                                {#each parseArtistString(song.artist, song.artistId, song.artists) as part}
+                                    {#if part.type === "artist"}
+                                        <a
+                                            href={part.id
+                                                ? `/artist/${part.id}`
+                                                : `/search?q=${encodeURIComponent(part.name)}`}
+                                            class="hover:text-[var(--text-primary)] hover:underline"
+                                        >
+                                            {part.name}
+                                        </a>
+                                    {:else}
+                                        <span>{part.name}</span>
+                                    {/if}
+                                {/each}
+                            </div>
                             {#if song.album && context !== "album"}
                                 <span class="text-xs text-[var(--text-muted)]"
                                     >•</span
@@ -451,12 +466,26 @@
 
                     <!-- Artist -->
                     {#if isColumnVisible("artist")}
-                        <a
-                            href="/artist/{song.artistId}"
-                            class="truncate hover:underline hidden md:block text-[var(--text-secondary)] hover:text-[var(--text-primary)] z-10"
+                        <div
+                            class="truncate hidden md:block text-[var(--text-secondary)] z-10 w-full"
                         >
-                            {song.artist}
-                        </a>
+                            {#each parseArtistString(song.artist, song.artistId, song.artists) as part}
+                                {#if part.type === "artist"}
+                                    <a
+                                        href={part.id
+                                            ? `/artist/${part.id}`
+                                            : `/search?q=${encodeURIComponent(part.name)}`}
+                                        class="hover:text-[var(--text-primary)] hover:underline"
+                                    >
+                                        {part.name}
+                                    </a>
+                                {:else}
+                                    <span class="text-[var(--text-muted)]"
+                                        >{part.name}</span
+                                    >
+                                {/if}
+                            {/each}
+                        </div>
                     {/if}
 
                     <!-- Album -->
