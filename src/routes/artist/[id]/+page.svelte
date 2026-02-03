@@ -50,25 +50,29 @@
       artist = data.artist;
       // Fetch top songs
       const topSongsData = await getTopSongs(artist.name);
-      console.log(topSongsData);
+      //console.log(topSongsData);
       if (topSongsData && topSongsData.topSongs && topSongsData.topSongs.song) {
         topSongs = Array.isArray(topSongsData.topSongs.song)
           ? topSongsData.topSongs.song
           : [topSongsData.topSongs.song];
+      } else {
+        topSongs = [];
+      }
 
-        // Process Appears On Albums
-        const artistAlbums = artist.album
-          ? Array.isArray(artist.album)
-            ? artist.album
-            : [artist.album]
-          : [];
+      // Process Appears On Albums
+      const artistAlbums = artist.album
+        ? Array.isArray(artist.album)
+          ? artist.album
+          : [artist.album]
+        : [];
 
-        const ownAlbumIds = new Set(
-          artistAlbums.map((/** @type {{ id: any; }} */ a) => String(a.id)),
-        );
-        const appearsOnMap = new Map();
+      const ownAlbumIds = new Set(
+        artistAlbums.map((/** @type {{ id: any; }} */ a) => String(a.id)),
+      );
+      const appearsOnMap = new Map();
 
-        // 1. Check Top Songs for features (existing logic)
+      // 1. Check Top Songs for features (existing logic)
+      if (topSongs.length > 0) {
         topSongs.forEach((song) => {
           if (song.albumId && !ownAlbumIds.has(song.albumId)) {
             if (!appearsOnMap.has(song.albumId)) {
@@ -82,70 +86,71 @@
             }
           }
         });
+      }
 
-        // 2. Comprehensive Search for Features
-        // We search for the artist name to find songs where they might be "featured"
-        // This is necessary because getArtist only returns albums where they are the ALBUM ARTIST
-        try {
-          // Fetch more results to increase chance of finding features
-          const searchResults = await search(artist.name, 0, 500);
+      // 2. Comprehensive Search for Features
+      // We search for the artist name to find songs where they might be "featured"
+      // This is necessary because getArtist only returns albums where they are the ALBUM ARTIST
+      try {
+        // Fetch more results to increase chance of finding features
+        const searchResults = await search(artist.name, 0, 500);
+        console.log(searchResults);
 
-          if (
-            searchResults &&
-            searchResults.searchResult3 &&
-            searchResults.searchResult3.song
-          ) {
-            const rawSongs = searchResults.searchResult3.song;
-            const songs = Array.isArray(rawSongs) ? rawSongs : [rawSongs];
+        if (
+          searchResults &&
+          searchResults.searchResult3 &&
+          searchResults.searchResult3.song
+        ) {
+          const rawSongs = searchResults.searchResult3.song;
+          const songs = Array.isArray(rawSongs) ? rawSongs : [rawSongs];
 
-            songs.forEach((/** @type {any} */ song) => {
-              if (song.albumId && !ownAlbumIds.has(song.albumId)) {
-                // Avoid duplicates
-                if (!appearsOnMap.has(song.albumId)) {
-                  // ROBUST CHECK:
-                  // Check if 'artists' array exists and contains our artist ID
-                  let isFeatured = false;
+          songs.forEach((/** @type {any} */ song) => {
+            if (song.albumId && !ownAlbumIds.has(song.albumId)) {
+              // Avoid duplicates
+              if (!appearsOnMap.has(song.albumId)) {
+                // ROBUST CHECK:
+                // Check if 'artists' array exists and contains our artist ID
+                let isFeatured = false;
 
-                  // 1. Precise ID Check
-                  if (song.artists && Array.isArray(song.artists)) {
-                    if (
-                      song.artists.some(
-                        (/** @type {{ id: any; }} */ a) => a.id === artist.id,
-                      )
-                    ) {
-                      isFeatured = true;
-                    }
-                  }
-
-                  // 2. Fallback / Supplemental String Check
-                  // (Crucial for cases where metadata might be incomplete or the search returned song objects without populated artists array)
-                  if (!isFeatured) {
-                    const artistNameLower = artist.name.toLowerCase();
-                    const songArtistLower = (song.artist || "").toLowerCase();
-                    if (songArtistLower.includes(artistNameLower)) {
-                      isFeatured = true;
-                    }
-                  }
-
-                  if (isFeatured) {
-                    appearsOnMap.set(song.albumId, {
-                      id: song.albumId,
-                      title: song.album,
-                      artist: song.artist,
-                      artistId: song.artistId,
-                      coverArt: song.coverArt,
-                    });
+                // 1. Precise ID Check
+                if (song.artists && Array.isArray(song.artists)) {
+                  if (
+                    song.artists.some(
+                      (/** @type {{ id: any; }} */ a) => a.id === artist.id,
+                    )
+                  ) {
+                    isFeatured = true;
                   }
                 }
-              }
-            });
-          }
-        } catch (e) {
-          console.error("Failed to fetch comprehensive appears on:", e);
-        }
 
-        appearsOnAlbums = Array.from(appearsOnMap.values());
+                // 2. Fallback / Supplemental String Check
+                // (Crucial for cases where metadata might be incomplete or the search returned song objects without populated artists array)
+                if (!isFeatured) {
+                  const artistNameLower = artist.name.toLowerCase();
+                  const songArtistLower = (song.artist || "").toLowerCase();
+                  if (songArtistLower.includes(artistNameLower)) {
+                    isFeatured = true;
+                  }
+                }
+
+                if (isFeatured) {
+                  appearsOnMap.set(song.albumId, {
+                    id: song.albumId,
+                    title: song.album,
+                    artist: song.artist,
+                    artistId: song.artistId,
+                    coverArt: song.coverArt,
+                  });
+                }
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Failed to fetch comprehensive appears on:", e);
       }
+
+      appearsOnAlbums = Array.from(appearsOnMap.values());
     }
     loading = false;
     startSyncLoop();
