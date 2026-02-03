@@ -3,18 +3,21 @@
     import { getAlbums } from "../../../lib/subsonic.js";
     import BackButton from "../../../lib/components/BackButton.svelte";
     import SectionWrapper from "../../../lib/components/SectionWrapper.svelte";
+    import { onMount, onDestroy } from "svelte";
 
     /** @type {any[]} */
     let albums = [];
     let loading = true;
     const limit = 50;
     const baseUrl = "/albums/recent";
+    /** @type {any} */
+    let syncInterval;
 
     $: currentPage = Number($page.url.searchParams.get("page")) || 1;
     $: offset = (currentPage - 1) * limit;
 
-    async function loadAlbums() {
-        loading = true;
+    async function loadAlbums(silent = false) {
+        if (!silent) loading = true;
         try {
             const albumsData = await getAlbums(offset, limit, "newest");
 
@@ -30,12 +33,29 @@
         } catch (e) {
             console.error("Error loading albums:", e);
         } finally {
-            loading = false;
+            if (!silent) loading = false;
         }
     }
 
-    $: if (currentPage) {
+    function startSyncLoop() {
+        if (syncInterval) clearInterval(syncInterval);
+        syncInterval = setInterval(() => {
+            loadAlbums(true);
+        }, 10000);
+    }
+
+    onMount(() => {
         loadAlbums();
+        startSyncLoop();
+    });
+
+    onDestroy(() => {
+        if (syncInterval) clearInterval(syncInterval);
+    });
+
+    $: if (currentPage) {
+        // When page changes, we want to show loading state
+        loadAlbums(false);
     }
 </script>
 
