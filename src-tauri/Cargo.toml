@@ -1,6 +1,6 @@
 [package]
 name = "AstroTunes"
-version = "0.0.1"
+version = "0.0.2"
 description = "AstroTunes is a sleek, lightweight frontend for Subsonic-compatible servers"
 authors = ["Codanaut <cody@codanaut.com>"]
 license = ""
