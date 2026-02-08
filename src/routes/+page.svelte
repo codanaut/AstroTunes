@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from "svelte";
   import { subsonicFetch } from "../lib/subsonic.js";
-  import { PlugZap, Disc, Mic2, Music } from "lucide-svelte";
+  import { PlugZap, Disc, Mic2, Music, ListMusic } from "lucide-svelte";
   import { auth } from "../lib/auth";
   import SectionWrapper from "../lib/components/SectionWrapper.svelte";
 
@@ -120,19 +120,102 @@
       </a>
     </div>
   {:else}
-    <h2 class="text-3xl font-bold text-[var(--accent)] mb-2 text-center">
-      Favorites
-    </h2>
-    <div class="flex flex-row gap-4 justify-center my-6">
-      <a href="/favorites/songs">
-        <Music size={48} class="text-[var(--accent)]" />
-      </a>
-      <a href="/favorites/albums">
-        <Disc size={48} class="text-[var(--accent)]" />
-      </a>
-      <a href="/favorites/artists">
-        <Mic2 size={48} class="text-[var(--accent)]" />
-      </a>
+    <div class="w-full px-6 py-8">
+      <!-- Section Title
+      <h2 class="text-2xl font-bold text-[var(--accent)] mb-6">
+        Your Collections
+      </h2>
+      -->
+
+      <!-- Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Favorite Songs Card -->
+        <a
+          href="/favorites/songs"
+          class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+        >
+          <div class="flex items-center justify-between relative z-10">
+            <div>
+              <h3 class="text-xl font-bold text-white mb-1">Favorite Songs</h3>
+              <p class="text-sm text-gray-400">All your liked tracks</p>
+            </div>
+            <div
+              class="text-[var(--accent)] group-hover:scale-110 transition-transform duration-300"
+            >
+              <Music size={32} />
+            </div>
+          </div>
+          <!-- Subtle Glow Effect on Hover -->
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          ></div>
+        </a>
+
+        <!-- Favorite Albums Card -->
+        <a
+          href="/favorites/albums"
+          class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+        >
+          <div class="flex items-center justify-between relative z-10">
+            <div>
+              <h3 class="text-xl font-bold text-white mb-1">Favorite Albums</h3>
+              <p class="text-sm text-gray-400">Saved full-length records</p>
+            </div>
+            <div
+              class="text-[var(--accent)] group-hover:scale-110 transition-transform duration-300"
+            >
+              <Disc size={32} />
+            </div>
+          </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          ></div>
+        </a>
+
+        <!-- Favorite Artists Card -->
+        <a
+          href="/favorites/artists"
+          class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+        >
+          <div class="flex items-center justify-between relative z-10">
+            <div>
+              <h3 class="text-xl font-bold text-white mb-1">
+                Favorite Artists
+              </h3>
+              <p class="text-sm text-gray-400">Your top performers</p>
+            </div>
+            <div
+              class="text-[var(--accent)] group-hover:scale-110 transition-transform duration-300"
+            >
+              <Mic2 size={32} />
+            </div>
+          </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          ></div>
+        </a>
+
+        <!-- Playlists Card -->
+        <a
+          href="/playlists"
+          class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+        >
+          <div class="flex items-center justify-between relative z-10">
+            <div>
+              <h3 class="text-xl font-bold text-white mb-1">Playlists</h3>
+              <p class="text-sm text-gray-400">Your playlists</p>
+            </div>
+            <div
+              class="text-[var(--accent)] group-hover:scale-110 transition-transform duration-300"
+            >
+              <ListMusic size={32} />
+            </div>
+          </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          ></div>
+        </a>
+      </div>
     </div>
 
     <SectionWrapper
