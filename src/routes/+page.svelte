@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from "svelte";
   import { subsonicFetch } from "../lib/subsonic.js";
-  import { PlugZap } from "lucide-svelte";
+  import { PlugZap, Disc, Mic2, Music } from "lucide-svelte";
   import { auth } from "../lib/auth";
   import SectionWrapper from "../lib/components/SectionWrapper.svelte";
 
@@ -95,7 +95,7 @@
   }
 </script>
 
-<div class="container mx-auto">
+<div class="container mx-auto pb-[15%] md:pb-[7%]">
   {#if !$auth.isConnected}
     <div
       class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
@@ -120,6 +120,21 @@
       </a>
     </div>
   {:else}
+    <h2 class="text-3xl font-bold text-[var(--accent)] mb-2 text-center">
+      Favorites
+    </h2>
+    <div class="flex flex-row gap-4 justify-center my-6">
+      <a href="/favorites/songs">
+        <Music size={48} class="text-[var(--accent)]" />
+      </a>
+      <a href="/favorites/albums">
+        <Disc size={48} class="text-[var(--accent)]" />
+      </a>
+      <a href="/favorites/artists">
+        <Mic2 size={48} class="text-[var(--accent)]" />
+      </a>
+    </div>
+
     <SectionWrapper
       title="Top Played Albums"
       items={topAlbums}
@@ -128,13 +143,14 @@
       enableViewToggle={true}
     />
 
+    <!--
     <SectionWrapper
       title="Favorite Albums"
       items={favlist}
       type="album"
       showAllLink="/favorites/albums"
       enableViewToggle={true}
-    />
+    />-->
 
     <SectionWrapper
       title="Recently Added Albums"

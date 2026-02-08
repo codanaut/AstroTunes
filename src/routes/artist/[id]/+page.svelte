@@ -260,7 +260,7 @@
     Loading...
   </div>
 {:else if artist}
-  <div class="flex flex-col gap-8">
+  <div class="flex flex-col gap-8 pb-[30%] md:pb-[10%]">
     <!-- BACK BUTTON -->
     <BackButton />
 

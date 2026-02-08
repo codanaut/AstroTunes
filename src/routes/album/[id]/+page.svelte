@@ -158,7 +158,7 @@
     Loading...
   </div>
 {:else if album}
-  <div class="flex flex-col gap-8">
+  <div class="flex flex-col gap-8 pb-[25%] md:pb-[7%]">
     <!-- BACK BUTTON -->
     <div>
       <BackButton />

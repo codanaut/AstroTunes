@@ -87,7 +87,7 @@
     }
 </script>
 
-<div class="container mx-auto p-6">
+<div class="container mx-auto p-6 pb-[30%] md:pb-[10%]">
     <!-- FAVORITE SONGS SECTION -->
     <div class="flex items-center justify-between mt-6 mb-6">
         <div class="flex items-center gap-4">

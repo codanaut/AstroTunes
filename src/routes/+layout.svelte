@@ -364,10 +364,12 @@
     {#if $currentTrack}
       {console.log($currentTrack)}
       <div
-        class="h-20 md:h-24 bg-[var(--bg-main)] border-t border-[var(--border-primary)] {$page
-          .url.pathname === '/now-playing'
-          ? 'hidden md:flex'
-          : 'flex'} items-center px-4 md:px-6 justify-between shrink-0 z-50 gap-2 md:gap-4 relative"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[98%] max-w-5xl
+         h-20 md:h-24 px-6 gap-4 z-50
+         flex items-center justify-between
+         bg-[var(--bg-main)]/80 backdrop-blur-xl border border-white/10
+         rounded-2xl shadow-2xl
+         {$page.url.pathname === '/now-playing' ? 'hidden md:flex' : 'flex'}"
       >
         <!-- Mobile Expand Touch Target -->
         <a
