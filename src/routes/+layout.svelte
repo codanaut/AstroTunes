@@ -21,11 +21,6 @@
     toggleQueue,
     closePlayer,
     queue,
-    playQueue,
-    removeFromQueue,
-    moveInQueue,
-    clearQueue,
-    shuffleCurrentQueue,
     context,
   } from "../lib/player.js";
   import { getCoverArtUrl } from "../lib/subsonic.js";
@@ -34,7 +29,6 @@
     Pause,
     SkipForward,
     SkipBack,
-    Square,
     Home,
     Mic2,
     Disc,
@@ -49,20 +43,15 @@
     Search,
     Menu,
     Settings,
-    Wifi,
-    Trash2,
-    Shuffle,
     Maximize2,
-    GripVertical,
   } from "lucide-svelte";
-  import { dndzone } from "svelte-dnd-action";
-  import { flip } from "svelte/animate";
   import { goto } from "$app/navigation";
   import { auth } from "../lib/auth";
   import { onMount } from "svelte";
   import { subsonicFetch } from "../lib/subsonic";
   import { theme } from "../lib/stores/theme";
   import { parseArtistString } from "../lib/utils/artistUtils";
+  import QueuePanel from "../lib/components/QueuePanel.svelte";
 
   let { children } = $props();
 
@@ -252,50 +241,6 @@
       navigator.mediaSession.playbackState = $isPlaying ? "playing" : "paused";
     }
   });
-
-  /** @type {any[]} */
-  let items = $state([]);
-
-  $effect(() => {
-    // Ensure unique IDs for dndzone even if source has duplicates
-    items = $queue.map((track) => {
-      // If track already has unique queueId, use it
-      if (track.queueId) {
-        return { ...track, id: track.queueId, originalId: track.id };
-      }
-      // Otherwise generate one (and persist it if possible? No, can't easily persist back to store array here without full update)
-      // Ideally we update the store, but for now let's just make the local view safe
-      return {
-        ...track,
-        id: crypto.randomUUID(), // This will cause re-render if queue changes, but safe from crash
-        originalId: track.id,
-      };
-    });
-  });
-
-  /**
-   * @typedef {Object} DndEvent
-   * @property {any[]} items
-   */
-
-  /**
-   * @param {CustomEvent<DndEvent>} e
-   */
-  function handleDndConsider(e) {
-    items = e.detail.items;
-  }
-
-  /**
-   * @param {CustomEvent<DndEvent>} e
-   */
-  function handleDndFinalize(e) {
-    items = e.detail.items;
-    const newQueue = items.map((track) => ({
-      ...track,
-      id: track.originalId,
-    }));
-    queue.set(newQueue);
-  }
 </script>
 
 <svelte:body
@@ -652,131 +597,6 @@
 
   <!-- QUEUE PANEL (RIGHT SIDE) -->
   {#if $showQueue}
-    <aside
-      class="fixed inset-0 z-40 md:static w-full md:w-80 bg-[var(--bg-sidebar)] border-l border-[var(--border-primary)] flex flex-col overflow-hidden"
-    >
-      <div
-        class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center mt-16 md:mt-0"
-      >
-        <div>
-          <h2 class="text-xl font-bold">Queue</h2>
-          <p class="text-sm text-[var(--text-secondary)]">
-            {$queue.length} tracks
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <button
-            onclick={shuffleCurrentQueue}
-            class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            title="Shuffle Queue"
-          >
-            <Shuffle size={18} />
-          </button>
-          <button
-            onclick={clearQueue}
-            class="p-2 text-[var(--text-secondary)] hover:text-red-500"
-            title="Clear Queue"
-          >
-            <Trash2 size={18} />
-          </button>
-          <button
-            onclick={toggleQueue}
-            class="md:hidden p-2 text-[var(--text-secondary)]"
-          >
-            <X />
-          </button>
-        </div>
-      </div>
-      <div
-        class="flex-1 overflow-y-auto"
-        use:dndzone={{
-          items: items,
-          flipDurationMs: 300,
-          dropTargetStyle: {},
-        }}
-        onconsider={handleDndConsider}
-        onfinalize={handleDndFinalize}
-      >
-        {#each items as track, index (track.id)}
-          <div
-            class="group relative p-3 border-b border-[var(--border-primary)] hover:bg-[var(--bg-card)] transition-colors flex gap-3 items-center
-              {$currentTrack?.id === track.originalId
-              ? 'bg-[var(--bg-card)] border-l-4 border-l-[var(--accent)]'
-              : ''}"
-          >
-            <!-- DRAG HANDLE -->
-            <div
-              class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-              aria-label="drag-handle"
-            >
-              <GripVertical size={16} />
-            </div>
-
-            <div
-              class="flex-1 min-w-0 cursor-pointer flex items-start gap-3"
-              role="button"
-              tabindex="0"
-              onkeydown={(e) =>
-                (e.key === "Enter" || e.key === " ") &&
-                (() => {
-                  const newQueue = items.map((t) => ({
-                    ...t,
-                    id: t.originalId,
-                  }));
-                  playQueue(newQueue, index);
-                })()}
-              onclick={() => {
-                const newQueue = items.map((t) => ({ ...t, id: t.originalId }));
-                playQueue(newQueue, index);
-              }}
-            >
-              <span
-                class="text-sm text-[var(--text-muted)] w-6 shrink-0 text-center"
-                >{index + 1}</span
-              >
-              <div class="flex-1 min-w-0 text-left">
-                <div
-                  class="font-medium truncate {$currentTrack?.id ===
-                  track.originalId
-                    ? 'text-[var(--accent)]'
-                    : 'text-[var(--text-primary)]'}"
-                >
-                  {track.title}
-                </div>
-                <div class="text-sm text-[var(--text-secondary)] truncate">
-                  {track.artist}
-                </div>
-                <div class="text-xs text-[var(--text-muted)] truncate">
-                  {track.album}
-                </div>
-              </div>
-              {#if track.duration}
-                <span
-                  class="text-xs text-[var(--text-muted)] shrink-0 self-center"
-                >
-                  {new Date(track.duration * 1000).toISOString().substr(14, 5)}
-                </span>
-              {/if}
-            </div>
-
-            <!-- HOVER ACTIONS -->
-            <div
-              class="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1 bg-[var(--bg-card)] shadow-md rounded-md p-1"
-            >
-              <button
-                onclick={(e) => {
-                  e.stopPropagation();
-                  removeFromQueue(index);
-                }}
-                class="p-1 text-[var(--text-secondary)] hover:text-red-500"
-                title="Remove"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
-    </aside>
+    <QueuePanel />
   {/if}
 </div>
