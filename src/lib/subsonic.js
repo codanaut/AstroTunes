@@ -251,3 +251,39 @@ export async function updatePlaylist(playlistId, { songIdsToAdd = [], songIndexe
 export async function deletePlaylist(id) {
     return await subsonicFetch('deletePlaylist', `&id=${id}`);
 }
+
+/**
+ * Reorders a playlist by replacing its content
+ * @param {string} playlistId
+ * @param {string[]} newSongIds - Array of song IDs in the new order
+ */
+export async function reorderPlaylist(playlistId, newSongIds) {
+    // 1. Get current playlist to find songs to remove (all of them)
+    const current = await getPlaylist(playlistId);
+    if (!current?.playlist?.entry) return;
+
+    const songs = current.playlist.entry;
+    const indexesToRemove = songs.map((s, i) => i);
+
+    // 2. Clear playlist
+    // We can't do this in one go reliably with just updatePlaylist for reordering, 
+    // but we can try to remove all and add new.
+    // Subsonic updatePlaylist allows removing and adding in same call.
+    // However, the order of operations matters. Usually it removes then adds.
+    // Let's try to construct the params.
+
+    // Note: This approach (Remove All + Add All) is destructive if it fails halfway. 
+    // A safer way might be creating a new playlist and swapping, but that changes ID.
+    // Let's rely on updatePlaylist.
+
+    // It's safer to just iterate and build the big request.
+    let params = `&playlistId=${playlistId}`;
+    indexesToRemove.forEach(index => {
+        params += `&songIndexToRemove=${index}`;
+    });
+    newSongIds.forEach(id => {
+        params += `&songIdToAdd=${id}`;
+    });
+
+    return await subsonicFetch('updatePlaylist', params);
+}

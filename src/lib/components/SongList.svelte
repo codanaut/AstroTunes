@@ -23,7 +23,12 @@
         Album,
     } from "lucide-svelte";
     import { slide, fade, scale } from "svelte/transition";
+
     import { parseArtistString } from "../utils/artistUtils.js";
+    import { dndzone } from "svelte-dnd-action";
+    import { flip } from "svelte/animate";
+    import { reorderPlaylist } from "../subsonic.js";
+    import { GripVertical } from "lucide-svelte";
 
     /** @type {any[]} */
     export let songs = [];
@@ -276,6 +281,7 @@
     }
 
     $: desktopGridColumns = `
+        ${context === "playlist" ? "2rem" : ""}
         ${isColumnVisible("track") ? "3rem" : ""} 
         minmax(200px, 3fr) 
         ${isColumnVisible("artist") ? "minmax(150px, 2fr)" : ""} 
@@ -332,6 +338,30 @@
 
     function handleWindowClick() {
         if (activeMenuSongId) closeMenu();
+    }
+
+    /** @param {CustomEvent<any>} e */
+    function handleDndConsider(e) {
+        songs = e.detail.items;
+    }
+
+    /** @param {CustomEvent<any>} e */
+    async function handleDndFinalize(e) {
+        songs = e.detail.items;
+        if (context === "playlist" && contextId) {
+            // Optimistic update done, now save
+            try {
+                // @ts-ignore
+                await reorderPlaylist(
+                    contextId,
+                    songs.map((s) => s.id),
+                );
+                // Notify parent to refresh if needed (e.g. sidebar)
+                dispatch("playlistUpdated");
+            } catch (err) {
+                console.error("Failed to reorder playlist:", err);
+            }
+        }
     }
 
     /** @param {any} song */
@@ -429,6 +459,7 @@
         class="song-grid gap-4 px-4 py-2 text-sm text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center"
         style="--desktop-cols: {desktopGridColumns};"
     >
+        {#if context === "playlist"}<span class="text-center"></span>{/if}
         {#if isColumnVisible("track")}<span class="text-center">#</span>{/if}
         <span>Title</span>
         {#if isColumnVisible("artist")}<span class="hidden md:block"
@@ -464,8 +495,18 @@
     </div>
 
     <!-- Rows -->
-    <div class="mt-2">
-        {#each groupedSongs as group}
+    <div
+        class="mt-2"
+        use:dndzone={{
+            items: songs,
+            flipDurationMs: 300,
+            dragDisabled: context !== "playlist",
+            dropTargetStyle: {},
+        }}
+        onconsider={handleDndConsider}
+        onfinalize={handleDndFinalize}
+    >
+        {#each groupedSongs as group (group.disc)}
             {#if useDiscGrouping && groupedSongs.length > 1}
                 <div
                     class="flex items-center gap-2 px-4 py-3 mt-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider bg-white/5 rounded-md"
@@ -475,10 +516,11 @@
                 </div>
             {/if}
 
-            {#each group.songs as song}
+            {#each group.songs as song (song.id)}
                 <div
                     role="button"
                     tabindex="0"
+                    animate:flip={{ duration: 300 }}
                     onkeydown={(e) =>
                         (e.key === "Enter" || e.key === " ") &&
                         playSong(song.globalIndex)}
@@ -498,6 +540,16 @@
                         : 'text-[var(--text-secondary)]'}"
                     style="--desktop-cols: {desktopGridColumns};"
                 >
+                    <!-- Drag Handle -->
+                    {#if context === "playlist"}
+                        <div
+                            class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)] flex justify-center"
+                            aria-label="drag-handle"
+                        >
+                            <GripVertical size={16} />
+                        </div>
+                    {/if}
+
                     <!-- Track # / Play Indicator -->
                     {#if isColumnVisible("track")}
                         <span

@@ -34,11 +34,17 @@ let starredCheckInterval = null;
  * @param {{ type: string, id: string, name: string } | null} queueContext
  */
 export function playQueue(newQueue, startIndex = 0, queueContext = null) {
-    queue.set(newQueue);
+    // Add unique ID for drag and drop operations if not present
+    const queueWithIds = newQueue.map(track => ({
+        ...track,
+        queueId: track.queueId || crypto.randomUUID()
+    }));
+
+    queue.set(queueWithIds);
     if (queueContext) {
         context.set(queueContext);
     }
-    playTrack(newQueue[startIndex]);
+    playTrack(queueWithIds[startIndex]);
 }
 
 /**
@@ -115,7 +121,9 @@ export function playNext() {
     // Safety check: ensure current track exists before finding index
     if (!curr) return;
 
-    const index = q.findIndex(s => s.id === curr.id);
+    const index = curr.queueId
+        ? q.findIndex(s => s.queueId === curr.queueId)
+        : q.findIndex(s => s.id === curr.id);
 
     if (index < q.length - 1) {
         playTrack(q[index + 1]);
@@ -132,7 +140,9 @@ export function playPrev() {
     // Safety check: ensure current track exists
     if (!curr) return;
 
-    const index = q.findIndex(s => s.id === curr.id);
+    const index = curr.queueId
+        ? q.findIndex(s => s.queueId === curr.queueId)
+        : q.findIndex(s => s.id === curr.id);
 
     // If we are more than 3 seconds in, just restart the song
     if (sound && sound.seek() > 3) {
@@ -207,7 +217,9 @@ export function shuffleCurrentQueue() {
     let playingTrack = null;
 
     if (curr) {
-        const index = q.findIndex(s => s.id === curr.id);
+        const index = curr.queueId
+            ? q.findIndex(s => s.queueId === curr.queueId)
+            : q.findIndex(s => s.id === curr.id);
         if (index !== -1) {
             // We only shuffle from index + 1 to end
             const upcoming = q.slice(index + 1);

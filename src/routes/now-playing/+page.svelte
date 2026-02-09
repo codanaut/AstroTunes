@@ -34,13 +34,14 @@
         Disc,
         Mic2,
         X,
-        ArrowUp,
-        ArrowDown,
         Music,
+        GripVertical,
     } from "lucide-svelte";
     import BackButton from "../../lib/components/BackButton.svelte";
     import { fade, slide } from "svelte/transition";
     import { parseArtistString } from "../../lib/utils/artistUtils";
+    import { dndzone } from "svelte-dnd-action";
+    import { flip } from "svelte/animate";
 
     let showQueuePanel = false;
 
@@ -53,6 +54,37 @@
         const x = e.clientX - rect.left;
         const percentage = x / rect.width;
         seek(percentage * $duration);
+    }
+
+    let items = [];
+
+    // Map queue to items with unique `id` for dndzone
+    $: {
+        items = $queue.map((track) => ({
+            ...track,
+            id: track.queueId || track.id, // dndzone needs unique 'id'
+            originalId: track.id, // Keep keep original ID
+        }));
+    }
+
+    /**
+     * @param {CustomEvent<any>} e
+     */
+    function handleDndConsider(e) {
+        items = e.detail.items;
+    }
+
+    /**
+     * @param {CustomEvent<any>} e
+     */
+    function handleDndFinalize(e) {
+        items = e.detail.items;
+        // Restore original IDs for the player
+        const newQueue = items.map((track) => ({
+            ...track,
+            id: track.originalId,
+        }));
+        queue.set(newQueue);
     }
 </script>
 
@@ -274,18 +306,36 @@
                     </button>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto">
-                {#each $queue as track, index}
+            <div
+                class="flex-1 overflow-y-auto"
+                use:dndzone={{
+                    items: items,
+                    flipDurationMs: 300,
+                    dropTargetStyle: {},
+                }}
+                onconsider={handleDndConsider}
+                onfinalize={handleDndFinalize}
+            >
+                {#each items as track, index (track.id)}
                     <div
                         class="group relative p-3 border-b border-[var(--border-primary)] hover:bg-[var(--bg-card)] transition-colors flex gap-3 items-center
-                        {$currentTrack?.id === track.id
+                        {$currentTrack?.id === track.originalId
                             ? 'bg-[var(--bg-card)] border-l-4 border-l-[var(--accent)]'
                             : ''}"
+                        animate:flip={{ duration: 300 }}
                     >
+                        <!-- DRAG HANDLE -->
+                        <div
+                            class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                            aria-label="drag-handle"
+                        >
+                            <GripVertical size={16} />
+                        </div>
+
                         <div
                             class="min-w-[1.5rem] text-center text-xs text-[var(--text-muted)]"
                         >
-                            {#if $currentTrack?.id === track.id}
+                            {#if $currentTrack?.id === track.originalId}
                                 <div
                                     class="w-2 h-2 rounded-full bg-[var(--accent)] mx-auto animate-pulse"
                                 ></div>
@@ -296,11 +346,17 @@
                         <button
                             type="button"
                             class="flex-1 min-w-0 cursor-pointer text-left bg-transparent border-0 p-0"
-                            onclick={() => playQueue($queue, index)}
+                            onclick={() => {
+                                const newQueue = items.map((t) => ({
+                                    ...t,
+                                    id: t.originalId,
+                                }));
+                                playQueue(newQueue, index);
+                            }}
                         >
                             <div
                                 class="truncate font-medium text-sm {$currentTrack?.id ===
-                                track.id
+                                track.originalId
                                     ? 'text-[var(--accent)]'
                                     : ''}"
                             >
@@ -343,24 +399,59 @@
                         <X size={24} />
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4">
-                    {#each $queue as track, index}
-                        <button
-                            type="button"
-                            class="mb-2 p-3 rounded-lg bg-[var(--bg-card)] flex gap-3 items-center w-full text-left
-                            {$currentTrack?.id === track.id
+                <div
+                    class="flex-1 overflow-y-auto p-4"
+                    use:dndzone={{
+                        items: items,
+                        flipDurationMs: 300,
+                        dropTargetStyle: {},
+                    }}
+                    onconsider={handleDndConsider}
+                    onfinalize={handleDndFinalize}
+                >
+                    {#each items as track, index (track.id)}
+                        <div
+                            class="mb-2 p-3 rounded-lg bg-[var(--bg-card)] flex gap-3 items-center w-full text-left relative
+                            {$currentTrack?.id === track.originalId
                                 ? 'border border-[var(--accent)]'
                                 : ''}"
-                            onclick={() => {
-                                playQueue($queue, index);
-                                showQueuePanel = false;
-                            }}
+                            animate:flip={{ duration: 300 }}
                         >
+                            <!-- DRAG HANDLE -->
+                            <div
+                                class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2"
+                                aria-label="drag-handle"
+                            >
+                                <GripVertical size={20} />
+                            </div>
+
                             <span
                                 class="text-sm font-mono text-[var(--text-muted)] w-6"
                                 >{index + 1}</span
                             >
-                            <div class="flex-1 min-w-0">
+                            <div
+                                class="flex-1 min-w-0"
+                                role="button"
+                                tabindex="0"
+                                onkeydown={(e) =>
+                                    (e.key === "Enter" || e.key === " ") &&
+                                    (() => {
+                                        const newQueue = items.map((t) => ({
+                                            ...t,
+                                            id: t.originalId,
+                                        }));
+                                        playQueue(newQueue, index);
+                                        showQueuePanel = false;
+                                    })()}
+                                onclick={() => {
+                                    const newQueue = items.map((t) => ({
+                                        ...t,
+                                        id: t.originalId,
+                                    }));
+                                    playQueue(newQueue, index);
+                                    showQueuePanel = false;
+                                }}
+                            >
                                 <div class="truncate font-bold text-sm">
                                     {track.title}
                                 </div>
@@ -370,7 +461,7 @@
                                     {track.artist}
                                 </div>
                             </div>
-                        </button>
+                        </div>
                     {/each}
                 </div>
             </div>
