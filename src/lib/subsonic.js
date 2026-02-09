@@ -203,3 +203,51 @@ export async function getPlaylists() {
 export async function getPlaylist(id) {
     return await subsonicFetch('getPlaylist', `&id=${id}`);
 }
+
+/**
+ * Creates a new playlist
+ * @param {string} name 
+ * @param {string[]} songIds 
+ */
+export async function createPlaylist(name, songIds = []) {
+    let params = `&name=${encodeURIComponent(name)}`;
+    songIds.forEach(id => {
+        params += `&songId=${id}`;
+    });
+    return await subsonicFetch('createPlaylist', params);
+}
+
+/**
+ * Updates a playlist (add/remove songs)
+ * @param {string} playlistId 
+ * @param {object} options
+ * @param {string[]} [options.songIdsToAdd]
+ * @param {number[]} [options.songIndexesToRemove]
+ * @param {string} [options.name]
+ * @param {string} [options.comment]
+ * @param {boolean} [options.public]
+ */
+export async function updatePlaylist(playlistId, { songIdsToAdd = [], songIndexesToRemove = [], name, comment, public: isPublic } = {}) {
+    let params = `&playlistId=${playlistId}`;
+    if (name) params += `&name=${encodeURIComponent(name)}`;
+    if (comment) params += `&comment=${encodeURIComponent(comment)}`;
+    if (isPublic !== undefined) params += `&public=${isPublic}`;
+
+    songIdsToAdd.forEach(id => {
+        params += `&songIdToAdd=${id}`;
+    });
+
+    songIndexesToRemove.forEach(index => {
+        params += `&songIndexToRemove=${index}`;
+    });
+
+    return await subsonicFetch('updatePlaylist', params);
+}
+
+/**
+ * Deletes a playlist
+ * @param {string} id 
+ */
+export async function deletePlaylist(id) {
+    return await subsonicFetch('deletePlaylist', `&id=${id}`);
+}

@@ -1,14 +1,17 @@
 <script>
     import { onMount } from "svelte";
-    import { getPlaylists, getPlaylist } from "$lib/subsonic";
+    import { getPlaylists, getPlaylist, deletePlaylist } from "$lib/subsonic";
     import { playQueue } from "$lib/player";
     import SongList from "$lib/components/SongList.svelte";
+    import CreatePlaylistModal from "$lib/components/CreatePlaylistModal.svelte";
     import {
         ListMusic,
         Loader2,
         Play,
         Shuffle,
         ChevronLeft,
+        Plus,
+        Trash2,
     } from "lucide-svelte";
     import { fade } from "svelte/transition";
 
@@ -20,29 +23,49 @@
     let selectedPlaylistSongs = [];
     let loading = true;
     let loadingSongs = false;
+    let showCreateModal = false;
 
     import { page } from "$app/stores";
 
     onMount(async () => {
+        await loadPlaylists();
+    });
+
+    async function loadPlaylists() {
+        loading = true;
         try {
             const res = await getPlaylists();
             if (res && res.playlists && res.playlists.playlist) {
                 playlists = res.playlists.playlist;
 
-                const playlistId = $page.url.searchParams.get("id");
-                if (playlistId) {
-                    const found = playlists.find((p) => p.id === playlistId);
+                // Re-select playlist if one was selected (to update song count etc)
+                if (selectedPlaylist) {
+                    const found = playlists.find(
+                        (p) => p.id === selectedPlaylist.id,
+                    );
                     if (found) {
-                        selectPlaylist(found);
+                        selectedPlaylist = found;
+                    }
+                } else {
+                    const playlistId = $page.url.searchParams.get("id");
+                    if (playlistId) {
+                        const found = playlists.find(
+                            (p) => p.id === playlistId,
+                        );
+                        if (found) {
+                            selectPlaylist(found);
+                        }
                     }
                 }
+            } else {
+                playlists = [];
             }
         } catch (error) {
             console.error("Failed to load playlists", error);
         } finally {
             loading = false;
         }
-    });
+    }
 
     /** @param {any} playlist */
     async function selectPlaylist(playlist) {
@@ -118,7 +141,37 @@
             });
         }
     }
+
+    async function handleDelete() {
+        if (
+            !confirm(
+                `Are you sure you want to delete playlist "${selectedPlaylist.name}"?`,
+            )
+        ) {
+            return;
+        }
+
+        try {
+            await deletePlaylist(selectedPlaylist.id);
+            playlists = playlists.filter((p) => p.id !== selectedPlaylist.id);
+            deselectPlaylist();
+        } catch (error) {
+            console.error("Failed to delete playlist", error);
+            alert("Failed to delete playlist");
+        }
+    }
+
+    function handleCreateSuccess() {
+        loadPlaylists();
+        showCreateModal = false;
+    }
 </script>
+
+<CreatePlaylistModal
+    isOpen={showCreateModal}
+    on:close={() => (showCreateModal = false)}
+    on:success={handleCreateSuccess}
+/>
 
 <div class="h-full flex overflow-hidden">
     <!-- Playlist Sidebar -->
@@ -128,13 +181,22 @@
             ? 'hidden md:flex'
             : 'flex'}"
     >
-        <div class="p-4 border-b border-[var(--border-primary)]">
+        <div
+            class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center"
+        >
             <h2
                 class="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2"
             >
                 <ListMusic class="text-[var(--accent)]" />
                 Playlists
             </h2>
+            <button
+                class="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                on:click={() => (showCreateModal = true)}
+                title="Create New Playlist"
+            >
+                <Plus size={20} />
+            </button>
         </div>
 
         <div
@@ -249,6 +311,13 @@
                         >
                             <Shuffle size={24} />
                         </button>
+                        <button
+                            class="bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-primary)] rounded-full p-3 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)] hover:text-red-500 hover:border-red-500"
+                            on:click={handleDelete}
+                            title="Delete Playlist"
+                        >
+                            <Trash2 size={24} />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -272,6 +341,8 @@
                         context="playlist"
                         contextId={selectedPlaylist.id}
                         contextName={selectedPlaylist.name}
+                        on:playlistUpdated={() =>
+                            selectPlaylist(selectedPlaylist)}
                     />
                 {/if}
             </div>
@@ -282,6 +353,12 @@
             >
                 <ListMusic size={64} class="mb-4 opacity-50" />
                 <p class="text-lg">Select a playlist to view songs</p>
+                <button
+                    class="mt-4 text-[var(--accent)] hover:underline"
+                    on:click={() => (showCreateModal = true)}
+                >
+                    Create New Playlist
+                </button>
             </div>
         {/if}
     </div>

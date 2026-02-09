@@ -6,7 +6,8 @@
         isPlaying,
         isFavorite,
     } from "../player.js";
-    import { starTrack, unstarTrack } from "../subsonic.js";
+    import { starTrack, unstarTrack, updatePlaylist } from "../subsonic.js";
+    import AddToPlaylistModal from "./AddToPlaylistModal.svelte";
     import {
         Heart,
         Clock,
@@ -15,8 +16,13 @@
         Settings2,
         Check,
         Play,
+        MoreVertical,
+        Plus,
+        Trash2,
+        User,
+        Album,
     } from "lucide-svelte";
-    import { slide } from "svelte/transition";
+    import { slide, fade, scale } from "svelte/transition";
     import { parseArtistString } from "../utils/artistUtils.js";
 
     /** @type {any[]} */
@@ -30,6 +36,8 @@
     export let contextId = null;
     /** @type {string|null} */
     export let contextName = null;
+
+    const dispatch = createEventDispatcher();
 
     // Column definitions
     const ALL_COLUMNS = [
@@ -72,6 +80,13 @@
             alwaysVisible: true,
             sortable: false,
         },
+        {
+            id: "options",
+            label: "",
+            icon: MoreVertical,
+            alwaysVisible: true,
+            sortable: false,
+        },
     ];
 
     // Determine default visible columns based on context
@@ -86,6 +101,7 @@
         "format",
         "genre",
         "playCount",
+        "options",
     ];
 
     // Basic Logic for defaults
@@ -272,10 +288,90 @@
         ${isColumnVisible("playCount") ? "4rem" : ""} 
         ${isColumnVisible("starred") ? "2rem" : ""} 
         ${isColumnVisible("duration") ? "auto" : ""}
+        ${isColumnVisible("options") ? "2rem" : ""}
     `
         .replace(/\s+/g, " ")
         .trim();
+
+    // Menu Logic
+    /** @type {string|null} */
+    let activeMenuSongId = null;
+    let menuPosition = { x: 0, y: 0 };
+    let showAddModal = false;
+    /** @type {any} */
+    let songToAdd = null;
+
+    $: activeMenuSong = activeMenuSongId
+        ? songs.find((s) => s.id === activeMenuSongId)
+        : null;
+
+    /**
+     * @param {MouseEvent} event
+     * @param {any} song
+     */
+    function openMenu(event, song) {
+        event.stopPropagation();
+        activeMenuSongId = song.id;
+
+        // Calculate position
+        const target = /** @type {HTMLElement} */ (event.target);
+        const rect = target.getBoundingClientRect();
+        const availableHeight = window.innerHeight - rect.bottom;
+        const menuHeight = 150; // Approx
+
+        if (availableHeight < menuHeight) {
+            menuPosition = { x: rect.right - 180, y: rect.top - menuHeight };
+        } else {
+            menuPosition = { x: rect.right - 180, y: rect.bottom };
+        }
+    }
+
+    function closeMenu() {
+        activeMenuSongId = null;
+    }
+
+    function handleWindowClick() {
+        if (activeMenuSongId) closeMenu();
+    }
+
+    /** @param {any} song */
+    function handleAddToPlaylist(song) {
+        songToAdd = song;
+        showAddModal = true;
+        closeMenu();
+    }
+
+    /** @param {any} song */
+    async function handleRemoveFromPlaylist(song) {
+        if (!contextId) return;
+
+        // Optimistic UI update could be tricky here with re-indexing, so we'll wait for server
+        try {
+            await updatePlaylist(contextId, {
+                songIndexesToRemove: [song.globalIndex],
+            });
+            // Notify parent to refresh
+            dispatch("playlistUpdated");
+        } catch (e) {
+            console.error("Failed to remove song from playlist", e);
+        }
+        closeMenu();
+    }
 </script>
+
+<svelte:window on:click={handleWindowClick} />
+
+<AddToPlaylistModal
+    isOpen={showAddModal}
+    songs={songToAdd ? [songToAdd] : []}
+    on:close={() => {
+        showAddModal = false;
+        songToAdd = null;
+    }}
+    on:success={() => {
+        // Optional: show toast or success message
+    }}
+/>
 
 <div class="w-full flex flex-col relative">
     <!-- Options Header -->
@@ -362,6 +458,9 @@
         {#if isColumnVisible("duration")}
             <span class="text-right flex justify-end"><Clock size={16} /></span
             >{/if}
+        {#if isColumnVisible("options")}
+            <span class="text-center"></span>
+        {/if}
     </div>
 
     <!-- Rows -->
@@ -384,10 +483,11 @@
                         (e.key === "Enter" || e.key === " ") &&
                         playSong(song.globalIndex)}
                     onclick={(e) => {
-                        // Prevent row click when clicking links to allow navigation
+                        // Prevent row click when clicking links or buttons
                         if (
                             e.target instanceof Element &&
-                            e.target.closest("a")
+                            (e.target.closest("a") ||
+                                e.target.closest("button"))
                         )
                             return;
                         playSong(song.globalIndex);
@@ -569,10 +669,88 @@
                             >{formatDuration(song.duration)}</span
                         >
                     {/if}
+
+                    <!-- Options -->
+                    {#if isColumnVisible("options")}
+                        <div class="flex justify-end relative">
+                            <button
+                                class="p-1.5 rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors opacity-100 md:opacity-0 group-hover:opacity-100"
+                                onclick={(e) => openMenu(e, song)}
+                            >
+                                <MoreVertical size={16} />
+                            </button>
+                        </div>
+                    {/if}
                 </div>
             {/each}
         {/each}
     </div>
+
+    <!-- Context Menu -->
+    {#if activeMenuSongId}
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+            class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
+            style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
+            transition:scale={{ duration: 150, start: 0.95 }}
+            onclick={(e) => e.stopPropagation()}
+        >
+            <!-- Add to Playlist -->
+            <button
+                class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+                onclick={() =>
+                    handleAddToPlaylist(
+                        songs.find((s) => s.id === activeMenuSongId),
+                    )}
+            >
+                <Plus size={16} />
+                Add to Playlist
+            </button>
+
+            <!-- Remove from Playlist (Context Dependent) -->
+            {#if context === "playlist"}
+                <button
+                    class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2"
+                    onclick={() =>
+                        handleRemoveFromPlaylist(
+                            songs.find((s) => s.id === activeMenuSongId),
+                        )}
+                >
+                    <Trash2 size={16} />
+                    Remove from Playlist
+                </button>
+            {/if}
+
+            <div class="h-px bg-[var(--border-secondary)] my-1 mx-2"></div>
+
+            <!-- Go to Artist -->
+            {#if activeMenuSong}
+                {#if activeMenuSong.artistId}
+                    <a
+                        href="/artist/{activeMenuSong.artistId}"
+                        class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+                        onclick={closeMenu}
+                    >
+                        <User size={16} />
+                        Go to Artist
+                    </a>
+                {/if}
+
+                <!-- Go to Album -->
+                {#if activeMenuSong.albumId}
+                    <a
+                        href="/album/{activeMenuSong.albumId}"
+                        class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+                        onclick={closeMenu}
+                    >
+                        <Album size={16} />
+                        Go to Album
+                    </a>
+                {/if}
+            {/if}
+        </div>
+    {/if}
 </div>
 
 <style>
