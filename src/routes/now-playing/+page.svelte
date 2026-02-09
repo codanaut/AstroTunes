@@ -56,6 +56,7 @@
         seek(percentage * $duration);
     }
 
+    /** @type {any[]} */
     let items = [];
 
     // Map queue to items with unique `id` for dndzone
