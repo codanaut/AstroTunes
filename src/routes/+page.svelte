@@ -244,7 +244,7 @@
     />
 
     <SectionWrapper
-      title="Random Albums"
+      title="Discover"
       items={albums}
       type="album"
       showAllLink="/albums/random"
