@@ -582,12 +582,11 @@
             <span class="font-semibold text-[var(--text-muted)] uppercase"
               >{$currentTrack.suffix}</span
             >
-            <span>
+            <span class="text-right">
               {#if $currentTrack.bitDepth}
                 {formatBitDepth($currentTrack.bitDepth)}
               {/if}
-              {#if $currentTrack.bitDepth && $currentTrack.samplingRate}/
-              {/if}
+              {#if $currentTrack.bitDepth && $currentTrack.samplingRate}{/if}
               {#if $currentTrack.samplingRate}
                 {formatSampleRate($currentTrack.samplingRate)}
               {/if}
