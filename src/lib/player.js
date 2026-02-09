@@ -27,6 +27,13 @@ let starredCheckInterval = null;
 
 // FUNCTIONS
 
+// Create a safe UUID fallback
+const generateId = () => {
+    return typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2, 11);
+};
+
 /**
  * Loads a list of songs and plays the first one (or specific index)
  * @param {Array<any>} newQueue - Array of song objects
@@ -37,7 +44,7 @@ export function playQueue(newQueue, startIndex = 0, queueContext = null) {
     // Add unique ID for drag and drop operations if not present
     const queueWithIds = newQueue.map(track => ({
         ...track,
-        queueId: track.queueId || crypto.randomUUID()
+        queueId: track.queueId || generateId()
     }));
 
     queue.set(queueWithIds);
