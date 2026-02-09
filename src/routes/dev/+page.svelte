@@ -1,5 +1,6 @@
 <script>
     import { subsonicFetch } from "$lib/subsonic";
+    import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
     let endpoint = "ping";
     let params = ""; // e.g., "&type=random"
@@ -33,6 +34,7 @@
 
 <div class="p-8 max-w-6xl mx-auto text-white">
     <h1 class="text-3xl font-bold mb-6">Subsonic API Playground</h1>
+    <p>Mobile: {isMobileDevice()}</p>
 
     <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
