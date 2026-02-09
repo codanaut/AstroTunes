@@ -48,6 +48,19 @@ export function playQueue(newQueue, startIndex = 0, queueContext = null) {
 }
 
 /**
+ * Adds a song to the end of the current queue
+ * @param {any} song - The song object to add
+ */
+export function addToQueue(song) {
+    const songWithId = {
+        ...song,
+        queueId: crypto.randomUUID()
+    };
+
+    queue.update(q => [...q, songWithId]);
+}
+
+/**
  * Internal function to handle Howler initialization
  * @param {any} track
  */

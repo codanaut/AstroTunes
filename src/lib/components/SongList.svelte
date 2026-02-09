@@ -5,6 +5,7 @@
         currentTrack,
         isPlaying,
         isFavorite,
+        addToQueue,
     } from "../player.js";
     import { starTrack, unstarTrack, updatePlaylist } from "../subsonic.js";
     import AddToPlaylistModal from "./AddToPlaylistModal.svelte";
@@ -21,6 +22,7 @@
         Trash2,
         User,
         Album,
+        ListPlus,
     } from "lucide-svelte";
     import { slide, fade, scale } from "svelte/transition";
 
@@ -747,6 +749,18 @@
             style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
             transition:scale={{ duration: 150, start: 0.95 }}
         >
+            <!-- Add to Queue -->
+            <button
+                class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+                onclick={() => {
+                    addToQueue(songs.find((s) => s.id === activeMenuSongId));
+                    closeMenu();
+                }}
+            >
+                <ListPlus size={16} />
+                Add to Queue
+            </button>
+
             <!-- Add to Playlist -->
             <button
                 class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
