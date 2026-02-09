@@ -694,7 +694,6 @@
             class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
             style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
             transition:scale={{ duration: 150, start: 0.95 }}
-            onclick={(e) => e.stopPropagation()}
         >
             <!-- Add to Playlist -->
             <button
