@@ -119,13 +119,17 @@
             isMuted = true;
         }
     }
+
+    let isNowPlayingPage = $derived($page.url.pathname === "/now-playing");
 </script>
 
 <div
-    class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[98%] max-w-5xl h-20 md:h-24 px-6 gap-4 z-50 flex items-center justify-between bg-[var(--bg-main)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl {$page
-        .url.pathname === '/now-playing'
-        ? 'hidden md:flex'
-        : 'flex'}"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[98%] max-w-5xl h-24 z-50
+         transition-all duration-500 ease-in-out
+         {isNowPlayingPage
+        ? 'translate-y-40 opacity-0 pointer-events-none'
+        : 'translate-y-0 opacity-100'}
+         flex items-center justify-between bg-[var(--bg-main)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl"
 >
     <a
         href="/now-playing"
