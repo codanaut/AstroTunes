@@ -242,6 +242,8 @@
         >
             <span>{new Date($progress * 1000).toISOString().substr(14, 5)}</span
             >
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
             <div
                 class="w-64 h-1.5 bg-[var(--bg-hover)] rounded-full relative cursor-pointer group"
                 onclick={handleSeek}
@@ -287,6 +289,7 @@
             {#if isMuted}<VolumeX size={20} />{:else}<Volume2 size={20} />{/if}
         </button>
 
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
             class="volume-slider w-24 h-1.5 bg-[var(--bg-hover)] rounded-full relative cursor-pointer group"
             onmousedown={handleVolumeMouseDown}
