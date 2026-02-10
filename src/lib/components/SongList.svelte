@@ -518,7 +518,7 @@
                 </div>
             {/if}
 
-            {#each group.songs as song (song.id)}
+            {#each group.songs as song, i (`${song.id}-${i}`)}
                 <div
                     role="button"
                     tabindex="0"
