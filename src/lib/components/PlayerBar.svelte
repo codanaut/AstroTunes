@@ -176,9 +176,29 @@
                     >{$currentTrack.album}</a
                 >
             </div>
+            {#if $context && $context.type && $context.name}
+                <div
+                    class="text-[10px] uppercase tracking-wider text-[var(--accent)] mt-0.5 truncate hidden md:block"
+                >
+                    Playing from:
+                    <a
+                        href={$context.type === "favorites"
+                            ? "/favorites"
+                            : $context.type === "search"
+                              ? `/search?q=${encodeURIComponent($context.id || "")}`
+                              : $context.type === "playlist"
+                                ? `/playlists?id=${encodeURIComponent($context.id || "")}`
+                                : `/${$context.type}/${encodeURIComponent($context.id || "")}`}
+                        class="hover:underline font-bold"
+                    >
+                        {$context.name}
+                    </a>
+                </div>
+            {/if}
         </div>
     </div>
 
+    <!-- Playback Controls -->
     <div class="flex flex-col items-center flex-none z-20 relative">
         <div class="flex items-center gap-2 md:gap-4 mb-0 md:mb-2">
             <button

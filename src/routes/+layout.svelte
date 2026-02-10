@@ -7,44 +7,13 @@
     togglePlay,
     playNext,
     playPrev,
-    progress,
     duration,
-    stop,
     seek,
     volume,
     setVolume,
-    repeatMode,
-    toggleRepeat,
-    isFavorite,
-    toggleFavorite,
     showQueue,
-    toggleQueue,
-    closePlayer,
-    queue,
-    context,
   } from "../lib/player.js";
   import { getCoverArtUrl } from "../lib/subsonic.js";
-  import {
-    Play,
-    Pause,
-    SkipForward,
-    SkipBack,
-    Home,
-    Mic2,
-    Disc,
-    Music,
-    ListMusic,
-    Volume2,
-    VolumeX,
-    Repeat,
-    Repeat1,
-    Heart,
-    X,
-    Search,
-    Menu,
-    Settings,
-    Maximize2,
-  } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import { auth } from "../lib/auth";
   import { onMount } from "svelte";
@@ -53,8 +22,20 @@
   import { parseArtistString } from "../lib/utils/artistUtils";
   import QueuePanel from "../lib/components/QueuePanel.svelte";
   import PlayerBar from "../lib/components/PlayerBar.svelte";
+  import TopBar from "../lib/components/TopBar.svelte";
+  import Sidebar from "../lib/components/Sidebar.svelte";
 
-  let playerRef;
+  let isSidebarOpen = $state(false);
+
+  function toggleSidebar() {
+    isSidebarOpen = !isSidebarOpen;
+  }
+
+  function closeSidebar() {
+    isSidebarOpen = false;
+  }
+
+  let playerRef = $state();
   let { children } = $props();
 
   /**
@@ -133,15 +114,6 @@
       isMuted = true;
     }
   }
-
-  const navItems = [
-    { label: "Home", href: "/", icon: Home },
-    { label: "Favorites", href: "/favorites", icon: Heart },
-    { label: "Artists", href: "/artists", icon: Mic2 },
-    { label: "Albums", href: "/albums", icon: Disc },
-    { label: "Songs", href: "/songs", icon: Music },
-    { label: "Playlists", href: "/playlists", icon: ListMusic },
-  ];
 
   /**
    * Format sample rate to human readable format
@@ -253,99 +225,11 @@
 <div
   class="h-screen flex bg-[var(--bg-main)] text-[var(--text-primary)] overflow-hidden relative"
 >
-  <!-- MOBILE OVERLAY -->
-  {#if isMobileMenuOpen}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-      class="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
-      onclick={closeMobileMenu}
-    ></div>
-  {/if}
-
-  <!-- SIDEBAR -->
-  <aside
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--bg-sidebar)] flex flex-col border-r border-[var(--border-primary)] transition-transform duration-300 ease-in-out md:relative md:translate-x-0
-    {isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}"
-  >
-    <div class="p-6">
-      <h1 class="text-2xl font-bold tracking-tight text-[var(--accent)]">
-        AstroTunes
-      </h1>
-    </div>
-
-    <nav class="flex-1 px-4 space-y-2">
-      {#each navItems as item}
-        <a
-          href={item.href}
-          onclick={closeMobileMenu}
-          class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200
-          {$page.url.pathname === item.href
-            ? 'bg-[var(--bg-card)] text-[var(--text-primary)]'
-            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}"
-        >
-          <item.icon size={20} />
-          <span class="font-medium">{item.label}</span>
-        </a>
-      {/each}
-    </nav>
-
-    <div class="p-4 border-t border-[var(--border-primary)]">
-      <a
-        href="/settings"
-        onclick={closeMobileMenu}
-        class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200
-        {$page.url.pathname === '/settings'
-          ? 'bg-[var(--bg-card)] text-[var(--text-primary)]'
-          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}"
-      >
-        <Settings size={20} />
-        <span class="font-medium">Settings</span>
-      </a>
-
-      <div
-        class="px-4 py-2 text-xs flex items-center gap-2 truncate text-[var(--text-secondary)]"
-      >
-        <div
-          class="w-2 h-2 rounded-full shrink-0 {$auth.isConnected
-            ? 'bg-green-500'
-            : 'bg-red-500'}"
-        ></div>
-        {#if $auth.isConnected && $auth.username}
-          <span class="truncate">Connected as {$auth.username}</span>
-        {:else}
-          <span>Disconnected</span>
-        {/if}
-      </div>
-    </div>
-  </aside>
+  <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
   <div class="flex-1 flex flex-col min-w-0">
     <!-- TOP BAR -->
-    <header
-      class="h-16 bg-[var(--bg-sidebar)]/50 backdrop-blur-md border-b border-[var(--border-primary)] flex items-center justify-center px-4 md:px-8 shrink-0 sticky top-0 z-40 gap-4"
-    >
-      <button
-        onclick={toggleMobileMenu}
-        class="md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-      >
-        <Menu size={24} />
-      </button>
-
-      <div class="relative flex-1 md:w-96 md:flex-none">
-        <Search
-          class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
-          size={18}
-        />
-        <input
-          type="text"
-          bind:value={searchQuery}
-          onkeydown={handleSearch}
-          placeholder="Search songs, artists, albums..."
-          class="w-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-full py-2 pl-10 pr-4 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all placeholder-[var(--text-muted)] text-sm"
-        />
-      </div>
-    </header>
+    <TopBar onToggle={toggleSidebar} />
 
     <!-- MAIN CONTENT AREA -->
     <main class="flex-1 overflow-y-auto p-4 md:p-8">
