@@ -19,6 +19,7 @@
   import { Play, Shuffle, Heart, Disc } from "lucide-svelte";
   import BackButton from "../../../lib/components/BackButton.svelte";
   import SongList from "../../../lib/components/SongList.svelte";
+  import { formatDuration } from "../../../lib/utils/formatDuration.js";
 
   /** @type {any} */
   let album = null;
@@ -194,6 +195,8 @@
           <span>{album.year || "Unknown Year"}</span>
           <span>•</span>
           <span>{album.songCount} songs</span>
+          <span>•</span>
+          <span>{formatDuration(album.duration)}</span>
         </div>
       </div>
     </div>
