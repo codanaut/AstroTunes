@@ -1,4 +1,4 @@
-name: Debug GitHub Pages
+name: Deploy To GitHub Pages
 on:
   workflow_dispatch:
 

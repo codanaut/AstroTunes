@@ -1,19 +1,27 @@
-name: Release
+name: Release & Deploy Site
+
 on:
+  # Trigger on version tags
   push:
     tags:
-      - 'v*' # Triggers on tags starting with 'v', e.g., v1.0.2
+      - 'v*' 
+  # Trigger manually whenever you want
+  workflow_dispatch:
 
 jobs:
-  release:
+  # ===================================================
+  # JOB 1: Build Windows Desktop App (Tauri)
+  # ===================================================
+  release-app:
+    name: Release Windows App
+    runs-on: ${{ matrix.platform }}
     permissions:
-      contents: write
+      contents: write # Needed to create the GitHub Release
     strategy:
       fail-fast: false
       matrix:
         platform: [windows-latest]
 
-    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,17 +42,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # Pulls version from your package.json
+          tagName: v__VERSION__
           releaseName: 'AstroTunes v__VERSION__'
           releaseBody: 'Automatic build of AstroTunes for Windows.'
           releaseDraft: false
           prerelease: false
 
+  # ===================================================
+  # JOB 2: Build & Push Docker Image
+  # ===================================================
   docker-build:
+    name: Build Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      packages: write # Needed to push to GHCR
     steps:
       - uses: actions/checkout@v4
 
@@ -68,5 +80,56 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-    
-          
+
+  # ===================================================
+  # JOB 3: Build Web Version (Svelte)
+  # ===================================================
+  build-site:
+    name: Build Static Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        env:
+          # Dynamically sets base path to /repo-name for GitHub Pages
+          BASE_PATH: '/${{ github.event.repository.name }}'
+        run: npm run build
+
+      - name: Disable Jekyll
+        # Necessary for the _app folder to be readable on Pages
+        run: touch build/.nojekyll
+
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build/'
+
+  # ===================================================
+  # JOB 4: Deploy to GitHub Pages
+  # ===================================================
+  deploy-site:
+    name: Deploy to Pages
+    needs: build-site # Waits for 'build-site' to finish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write      # Needed to publish to Pages
+      id-token: write   # Needed for OIDC authentication
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
