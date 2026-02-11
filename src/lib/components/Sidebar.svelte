@@ -14,6 +14,7 @@
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
     import { auth } from "../../lib/auth";
+    import { resolve } from "$app/paths";
 
     let { isOpen, onClose } = $props();
 
@@ -28,12 +29,12 @@
     }
 
     const navItems = [
-        { label: "Home", href: "/", icon: Home },
-        { label: "Favorites", href: "/favorites", icon: Heart },
-        { label: "Artists", href: "/artists", icon: Mic2 },
-        { label: "Albums", href: "/albums", icon: Disc },
-        { label: "Songs", href: "/songs", icon: Music },
-        { label: "Playlists", href: "/playlists", icon: ListMusic },
+        { label: "Home", href: resolve("/"), icon: Home },
+        { label: "Favorites", href: resolve("/favorites"), icon: Heart },
+        { label: "Artists", href: resolve("/artists"), icon: Mic2 },
+        { label: "Albums", href: resolve("/albums"), icon: Disc },
+        { label: "Songs", href: resolve("/songs"), icon: Music },
+        { label: "Playlists", href: resolve("/playlists"), icon: ListMusic },
     ];
 </script>
 

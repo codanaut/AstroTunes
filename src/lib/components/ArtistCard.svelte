@@ -1,6 +1,7 @@
 <script>
     import { Heart } from "lucide-svelte";
     import { getCoverArtUrl } from "../subsonic.js";
+    import { resolve } from "$app/paths";
 
     /** @type {any} */
     export let artist;
@@ -14,7 +15,7 @@
     }
 </script>
 
-<a href="/artist/{artist.id}" class="text-left group block my-4">
+<a href={resolve(`/artist/${artist.id}`)} class="text-left group block my-4">
     <div
         class="relative aspect-square mb-2 overflow-hidden rounded-lg bg-[var(--bg-card)]"
     >

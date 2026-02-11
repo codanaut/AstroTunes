@@ -20,6 +20,7 @@
   import BackButton from "../../../lib/components/BackButton.svelte";
   import SongList from "../../../lib/components/SongList.svelte";
   import { formatDuration } from "../../../lib/utils/formatDuration.js";
+  import { resolve } from "$app/paths";
 
   /** @type {any} */
   let album = null;
@@ -184,12 +185,12 @@
         </h1>
         <div class="flex items-center gap-2 text-[var(--text-secondary)]">
           {#if album.artist}
-            <a href={`/artist/${album.artistId}`}
-              ><span
+            <a href={resolve(`/artist/${album.artistId}`)}>
+              <span
                 class="font-semibold text-[var(--text-primary)] hover:underline"
                 >{album.artist}</span
-              ></a
-            >
+              >
+            </a>
             <span>•</span>
           {/if}
           <span>{album.year || "Unknown Year"}</span>

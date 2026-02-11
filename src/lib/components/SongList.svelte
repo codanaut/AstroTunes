@@ -31,6 +31,7 @@
     import { flip } from "svelte/animate";
     import { reorderPlaylist } from "../subsonic.js";
     import { GripVertical } from "lucide-svelte";
+    import { resolve } from "$app/paths";
 
     /** @type {any[]} */
     export let songs = [];
@@ -645,7 +646,7 @@
                     <!-- Album -->
                     {#if isColumnVisible("album")}
                         <a
-                            href="/album/{song.albumId}"
+                            href={resolve(`/album/${song.albumId}`)}
                             class="truncate text-[var(--text-secondary)] hidden md:block hover:text-[var(--text-primary)] hover:underline z-10"
                         >
                             {song.album}
@@ -793,7 +794,7 @@
             {#if activeMenuSong}
                 {#if activeMenuSong.artistId}
                     <a
-                        href="/artist/{activeMenuSong.artistId}"
+                        href={resolve(`/artist/${activeMenuSong.artistId}`)}
                         class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
                         onclick={closeMenu}
                     >
@@ -805,7 +806,7 @@
                 <!-- Go to Album -->
                 {#if activeMenuSong.albumId}
                     <a
-                        href="/album/{activeMenuSong.albumId}"
+                        href={resolve(`/album/${activeMenuSong.albumId}`)}
                         class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
                         onclick={closeMenu}
                     >

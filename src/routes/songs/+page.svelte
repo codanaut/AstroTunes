@@ -12,6 +12,7 @@
         ChevronRight,
         Disc, // Album icon
     } from "lucide-svelte";
+    import { resolve } from "$app/paths";
 
     /** @type {any[]} */
     let songs = [];
@@ -92,12 +93,12 @@
     }
 
     function nextPage() {
-        goto(`/songs?page=${currentPage + 1}`);
+        goto(resolve(`/songs`) + `?page=${currentPage + 1}`);
     }
 
     function prevPage() {
         if (currentPage > 1) {
-            goto(`/songs?page=${currentPage - 1}`);
+            goto(resolve(`/songs`) + `?page=${currentPage - 1}`);
         }
     }
 </script>

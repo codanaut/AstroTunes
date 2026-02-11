@@ -3,6 +3,7 @@
     import { search, getCoverArtUrl } from "../../lib/subsonic.js";
     import { playQueue, currentTrack, isPlaying } from "../../lib/player.js";
     import { Music } from "lucide-svelte";
+    import { resolve } from "$app/paths";
 
     /**
      * @typedef {Object} SearchResult
@@ -103,7 +104,10 @@
                     class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"
                 >
                     {#each results.artist as artist}
-                        <a href="/artist/{artist.id}" class="group block">
+                        <a
+                            href={resolve(`/artist/${artist.id}`)}
+                            class="group block"
+                        >
                             <div
                                 class="relative aspect-square mb-2 overflow-hidden rounded-full bg-gray-800"
                             >
@@ -134,7 +138,7 @@
                 >
                     {#each results.album as album}
                         <a
-                            href="/album/{album.id}"
+                            href={resolve(`/album/${album.id}`)}
                             class="text-left group block"
                         >
                             <div

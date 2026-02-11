@@ -1,6 +1,7 @@
 <script>
     import { Heart } from "lucide-svelte";
     import { getCoverArtUrl, starAlbum, unstarAlbum } from "../subsonic.js";
+    import { resolve } from "$app/paths";
 
     /** @type {any[]} */
     export let albums = [];
@@ -68,7 +69,7 @@
                 <tr class="hover:bg-[var(--bg-hover)] transition-colors group">
                     <td class="px-4 py-2">
                         <a
-                            href="/album/{album.id}"
+                            href={resolve(`/album/${album.id}`)}
                             class="block h-10 w-10 rounded overflow-hidden bg-[var(--bg-card)]"
                         >
                             <img
@@ -81,7 +82,7 @@
                     </td>
                     <td class="px-4 py-2 font-medium">
                         <a
-                            href="/album/{album.id}"
+                            href={resolve(`/album/${album.id}`)}
                             class="hover:text-[var(--accent)] hover:underline decoration-[var(--accent)]/50 block"
                         >
                             {album.title}
@@ -96,7 +97,7 @@
                         class="px-4 py-2 hidden md:table-cell text-[var(--text-secondary)]"
                     >
                         <a
-                            href="/artist/{album.artistId}"
+                            href={resolve(`/artist/${album.artistId}`)}
                             class="hover:text-[var(--text-primary)]"
                         >
                             {album.artist}

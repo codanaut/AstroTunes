@@ -17,6 +17,7 @@
     import { Play, Shuffle, Heart } from "lucide-svelte";
     import ShowAllButton from "../../lib/components/ShowAllButton.svelte";
     import SongList from "../../lib/components/SongList.svelte";
+    import { resolve } from "$app/paths";
 
     /** @type {any[]} */
     let favoriteAlbums = [];
@@ -92,7 +93,7 @@
     <div class="flex items-center justify-between mt-6 mb-6">
         <div class="flex items-center gap-4">
             <h1 class="text-2xl font-bold text-[var(--accent)]">
-                <a href="/favorites/songs">Favorite Songs</a>
+                <a href={resolve("/favorites/songs")}>Favorite Songs</a>
             </h1>
             {#if favoriteSongs.length > 0}
                 <div class="flex gap-2">
@@ -118,7 +119,7 @@
                 </div>
             {/if}
         </div>
-        <ShowAllButton href="/favorites/songs" label="Show All" />
+        <ShowAllButton href={resolve("/favorites/songs")} label="Show All" />
     </div>
     <div class="flex flex-col mb-12">
         <SongList
@@ -133,13 +134,16 @@
     <!-- FAVORITE ALBUMS SECTION -->
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-[var(--accent)]">
-            <a href="/favorites/albums">Favorite Albums</a>
+            <a href={resolve("/favorites/albums")}>Favorite Albums</a>
         </h1>
-        <ShowAllButton href="/favorites/albums" label="Show All" />
+        <ShowAllButton href={resolve("/favorites/albums")} label="Show All" />
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-12">
         {#each favoriteAlbums.slice(0, 10) as favoriteAlbum}
-            <a href="/album/{favoriteAlbum.id}" class="text-left group block">
+            <a
+                href={resolve(`/album/${favoriteAlbum.id}`)}
+                class="text-left group block"
+            >
                 <div
                     class="relative aspect-square mb-2 overflow-hidden rounded-lg bg-gray-800"
                 >
@@ -180,13 +184,16 @@
     <!-- FAVORITE ARTISTS SECTION -->
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-[var(--accent)]">
-            <a href="/favorites/artists">Favorite Artists</a>
+            <a href={resolve("/favorites/artists")}>Favorite Artists</a>
         </h1>
-        <ShowAllButton href="/favorites/artists" label="Show All" />
+        <ShowAllButton href={resolve("/favorites/artists")} label="Show All" />
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {#each favoriteArtists.slice(0, 10) as artist}
-            <a href="/artist/{artist.id}" class="text-left group block">
+            <a
+                href={resolve(`/artist/${artist.id}`)}
+                class="text-left group block"
+            >
                 <div
                     class="relative aspect-square mb-2 overflow-hidden rounded-full bg-gray-800"
                 >

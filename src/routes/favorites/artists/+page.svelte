@@ -3,6 +3,7 @@
     import { subsonicFetch, getCoverArtUrl } from "../../../lib/subsonic.js";
     import { ArrowLeft } from "lucide-svelte";
     import BackButton from "../../../lib/components/BackButton.svelte";
+    import { resolve } from "$app/paths";
 
     /** @type {any[]} */
     let favoriteArtists = [];
@@ -44,7 +45,10 @@
 
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {#each favoriteArtists as artist}
-            <a href="/artist/{artist.id}" class="text-left group block">
+            <a
+                href={resolve(`/artist/${artist.id}`)}
+                class="text-left group block"
+            >
                 <div
                     class="relative aspect-square mb-2 overflow-hidden rounded-full bg-gray-800"
                 >
