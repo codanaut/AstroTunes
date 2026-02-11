@@ -124,7 +124,7 @@
 </script>
 
 <div
-    class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[98%] max-w-5xl h-24 z-50
+    class="absolute bottom-6 left-1/2 -translate-x-1/2 w-[98%] max-w-5xl h-24 z-50
          transition-all duration-500 ease-in-out
          {isNowPlayingPage
         ? 'translate-y-40 opacity-0 pointer-events-none'
