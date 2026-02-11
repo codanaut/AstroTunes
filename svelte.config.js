@@ -4,12 +4,13 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
 	kit: {
 		adapter: adapter({
-			fallback: 'index.html' //
+			// Changed from index.html to 404.html to better handle 
+			// GitHub Pages' specific routing behavior
+			fallback: '404.html'
 		}),
 		paths: {
-			// This ensures the JS looks in /astrotunes/ instead of /
-			base: process.env.NODE_ENV === 'production' ? '/astrotunes' : '',
-			relative: true
+			// This reads the BASE_PATH set in your GitHub Action
+			base: process.argv.includes('dev') ? '' : process.env.BASE_PATH
 		}
 	}
 };

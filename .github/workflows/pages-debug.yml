@@ -8,37 +8,43 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build_site:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm install
 
       - name: Build
+        env:
+          # This dynamically sets /astrotunes as the base path
+          BASE_PATH: '/${{ github.event.repository.name }}'
         run: npm run build
 
-      - name: Fix for GitHub Pages
+      - name: Disable Jekyll
+        # Still necessary for the _app folder to be readable
         run: touch build/.nojekyll
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
+      - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'build/'
 
-      - name: Deploy to GitHub Pages
+  deploy:
+    needs: build_site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
