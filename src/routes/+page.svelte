@@ -4,6 +4,7 @@
   import { PlugZap, Disc, Mic2, Music, ListMusic } from "lucide-svelte";
   import { auth } from "../lib/auth";
   import SectionWrapper from "../lib/components/SectionWrapper.svelte";
+  import { resolve } from "$app/paths";
 
   /** @type {any[]} */
   let albums = [];
@@ -113,7 +114,7 @@
         playlists.
       </p>
       <a
-        href="/settings"
+        href={resolve("/settings")}
         class="bg-[var(--accent)] hover:opacity-90 text-[var(--accent-fg)] font-bold py-3 px-8 rounded-full transition-all inline-flex items-center gap-2 shadow-lg hover:scale-105"
       >
         Connect Now
@@ -131,7 +132,7 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <!-- Favorite Songs Card -->
         <a
-          href="/favorites/songs"
+          href={resolve("/favorites/songs")}
           class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
         >
           <div class="flex items-center justify-between relative z-10">
@@ -153,7 +154,7 @@
 
         <!-- Favorite Albums Card -->
         <a
-          href="/favorites/albums"
+          href={resolve("/favorites/albums")}
           class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
         >
           <div class="flex items-center justify-between relative z-10">
@@ -174,7 +175,7 @@
 
         <!-- Favorite Artists Card -->
         <a
-          href="/favorites/artists"
+          href={resolve("/favorites/artists")}
           class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
         >
           <div class="flex items-center justify-between relative z-10">
@@ -197,7 +198,7 @@
 
         <!-- Playlists Card -->
         <a
-          href="/playlists"
+          href={resolve("/playlists")}
           class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
         >
           <div class="flex items-center justify-between relative z-10">
@@ -222,7 +223,7 @@
       title="Top Played Albums"
       items={topAlbums}
       type="album"
-      showAllLink="/albums/top"
+      showAllLink={resolve("/albums/top")}
       enableViewToggle={true}
     />
 
@@ -231,7 +232,7 @@
       title="Favorite Albums"
       items={favlist}
       type="album"
-      showAllLink="/favorites/albums"
+      showAllLink={resolve("/favorites/albums")}
       enableViewToggle={true}
     />-->
 
@@ -239,7 +240,7 @@
       title="Recently Added Albums"
       items={recentlyAddedAlbums}
       type="album"
-      showAllLink="/albums/recent"
+      showAllLink={resolve("/albums/recent")}
       enableViewToggle={true}
     />
 
@@ -247,7 +248,7 @@
       title="Discover"
       items={albums}
       type="album"
-      showAllLink="/albums/random"
+      showAllLink={resolve("/albums/random")}
       enableViewToggle={true}
     />
   {/if}
