@@ -1,6 +1,7 @@
 <script>
     import { Menu, Search } from "lucide-svelte";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
 
     let { onToggle } = $props();
 
@@ -11,7 +12,7 @@
 
     function handleSearch(e) {
         if (e.key === "Enter" && searchQuery.trim()) {
-            goto(`/search?q=${encodeURIComponent(searchQuery)}`);
+            goto(resolve("/search") + `?q=${encodeURIComponent(searchQuery)}`);
         }
     }
 

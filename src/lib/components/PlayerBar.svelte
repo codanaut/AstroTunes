@@ -36,6 +36,7 @@
         X,
         Maximize2,
     } from "lucide-svelte";
+    import { resolve } from "$app/paths";
 
     // --- LOCAL UI STATE ---
     let isDraggingVolume = $state(false);
@@ -132,7 +133,7 @@
          flex items-center justify-between bg-[var(--bg-main)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-3 gap-4"
 >
     <a
-        href="/now-playing"
+        href={resolve("/now-playing")}
         class="md:hidden absolute inset-0 z-10 flex justify-center"
         aria-label="Open Now Playing"
     >
@@ -142,7 +143,10 @@
     <div
         class="flex items-center flex-1 min-w-0 gap-2 md:mr-4 z-20 relative pointer-events-none md:pointer-events-auto"
     >
-        <a href={`/album/${$currentTrack.albumId}`} class="pointer-events-auto">
+        <a
+            href={resolve(`/album/${$currentTrack.albumId}`)}
+            class="pointer-events-auto"
+        >
             <img
                 src={getCoverArtUrl($currentTrack.id)}
                 alt="Art"
@@ -163,8 +167,9 @@
                         {#if part.type === "artist"}
                             <a
                                 href={part.id
-                                    ? `/artist/${part.id}`
-                                    : `/search?q=${encodeURIComponent(part.name)}`}
+                                    ? resolve(`/artist/${part.id}`)
+                                    : resolve("/search") +
+                                      `?q=${encodeURIComponent(part.name)}`}
                                 class="hover:text-[var(--accent)] transition-colors"
                                 >{part.name}</a
                             >
@@ -176,7 +181,7 @@
                 <span class="text-[var(--text-muted)]">•</span>
                 <a
                     class="hover:text-[var(--accent)] transition-colors truncate"
-                    href={`/album/${$currentTrack.albumId}`}
+                    href={resolve(`/album/${$currentTrack.albumId}`)}
                     >{$currentTrack.album}</a
                 >
             </div>
@@ -187,12 +192,18 @@
                     Playing from:
                     <a
                         href={$context.type === "favorites"
-                            ? "/favorites"
+                            ? resolve("/favorites")
                             : $context.type === "search"
-                              ? `/search?q=${encodeURIComponent($context.id || "")}`
+                              ? resolve("/search") +
+                                `?q=${encodeURIComponent($context.id || "")}`
                               : $context.type === "playlist"
-                                ? `/playlists?id=${encodeURIComponent($context.id || "")}`
-                                : `/${$context.type}/${encodeURIComponent($context.id || "")}`}
+                                ? resolve("/playlists") +
+                                  `?id=${encodeURIComponent($context.id || "")}`
+                                : $context.type === "album"
+                                  ? resolve("/album") +
+                                    `/${encodeURIComponent($context.id || "")}`
+                                  : resolve("/artist") +
+                                    `/${encodeURIComponent($context.id || "")}`}
                         class="hover:underline font-bold"
                     >
                         {$context.name}
@@ -326,7 +337,7 @@
         </div>
 
         <a
-            href="/now-playing"
+            href={resolve("/now-playing")}
             class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors ml-2"
             title="Expand Player"><Maximize2 size={20} /></a
         >

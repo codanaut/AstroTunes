@@ -7,6 +7,7 @@
         subsonicFetch,
     } from "../subsonic.js";
     import { playQueue, playQueueShuffled } from "../player.js";
+    import { resolve } from "$app/paths";
 
     /** @type {any} */
     export let album;
@@ -87,7 +88,7 @@
 
 <div class="text-left group block relative my-4">
     <!-- Album Cover Link -->
-    <a href="/album/{album.id}">
+    <a href={resolve(`/album/${album.id}`)}>
         <div
             class="relative aspect-square mb-2 overflow-hidden rounded-lg bg-[var(--bg-card)]"
         >
@@ -153,7 +154,7 @@
         <div
             class="text-sm text-[var(--text-secondary)] truncate hover:text-[var(--accent)] transition-colors hover:underline"
         >
-            <a href="/artist/{album.artistId}">{album.artist}</a>
+            <a href={resolve(`/artist/${album.artistId}`)}>{album.artist}</a>
         </div>
     {/if}
 </div>

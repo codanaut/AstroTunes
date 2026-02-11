@@ -596,8 +596,9 @@
                                     {#if part.type === "artist"}
                                         <a
                                             href={part.id
-                                                ? `/artist/${part.id}`
-                                                : `/search?q=${encodeURIComponent(part.name)}`}
+                                                ? resolve(`/artist/${part.id}`)
+                                                : resolve("/search") +
+                                                  `?q=${encodeURIComponent(part.name)}`}
                                             class="hover:text-[var(--text-primary)] hover:underline"
                                         >
                                             {part.name}
@@ -628,8 +629,9 @@
                                 {#if part.type === "artist"}
                                     <a
                                         href={part.id
-                                            ? `/artist/${part.id}`
-                                            : `/search?q=${encodeURIComponent(part.name)}`}
+                                            ? resolve(`/artist/${part.id}`)
+                                            : resolve("/search") +
+                                              `?q=${encodeURIComponent(part.name)}`}
                                         class="hover:text-[var(--text-primary)] hover:underline"
                                     >
                                         {part.name}
