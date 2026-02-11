@@ -7,8 +7,8 @@ const config = {
 			fallback: 'index.html'
 		}),
 		paths: {
-			// Change 'astrotunes' to your exact GitHub repository name
-			base: process.env.NODE_ENV === 'production' ? '/astrotunes' : '',
+			// This prefix is required for GitHub Pages subfolder hosting
+			base: '/astrotunes',
 		}
 	}
 };
