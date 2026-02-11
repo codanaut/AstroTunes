@@ -42,6 +42,7 @@
     import { parseArtistString } from "../../lib/utils/artistUtils";
     import { dndzone } from "svelte-dnd-action";
     import { flip } from "svelte/animate";
+    import { resolve } from "$app/paths";
 
     let showQueuePanel = false;
 
@@ -133,8 +134,9 @@
                                 {#if part.type === "artist"}
                                     <a
                                         href={part.id
-                                            ? `/artist/${part.id}`
-                                            : `/search?q=${encodeURIComponent(part.name)}`}
+                                            ? resolve(`/artist/${part.id}`)
+                                            : resolve("/search") +
+                                              `?q=${encodeURIComponent(part.name)}`}
                                         class="hover:text-[var(--text-primary)] hover:underline"
                                     >
                                         {part.name}
@@ -149,7 +151,7 @@
                         class="text-xs md:text-sm text-[var(--text-muted)] mt-1 flex items-center justify-center gap-2"
                     >
                         <a
-                            href="/album/{$currentTrack.albumId}"
+                            href={resolve(`/album/${$currentTrack.albumId}`)}
                             class="hover:text-[var(--text-primary)] hover:underline"
                             >{$currentTrack.album}</a
                         >
@@ -159,24 +161,25 @@
                         <div
                             class="mt-3 text-[10px] md:text-xs font-mono uppercase tracking-wider text-[var(--accent)] bg-[var(--accent)]/10 px-3 py-1 rounded-full inline-block"
                         >
-                            Playing from {[
-                                "album",
-                                "artist",
-                                "playlist",
-                            ].includes($context.type || "")
-                                ? $context.type
-                                : ""}:
+                            Playing from
                             <a
                                 href={$context.type === "favorites"
-                                    ? "/favorites"
+                                    ? resolve("/favorites")
                                     : $context.type === "search"
-                                      ? `/search?q=${encodeURIComponent($context.id || "")}`
+                                      ? resolve("/search") +
+                                        `?q=${encodeURIComponent($context.id || "")}`
                                       : $context.type === "playlist"
-                                        ? `/playlists?id=${encodeURIComponent($context.id || "")}`
-                                        : `/${$context.type}/${encodeURIComponent($context.id || "")}`}
-                                class="hover:underline"
-                                >{$context.name || "Unknown"}</a
+                                        ? resolve("/playlists") +
+                                          `?id=${encodeURIComponent($context.id || "")}`
+                                        : $context.type === "album"
+                                          ? resolve("/album") +
+                                            `/${encodeURIComponent($context.id || "")}`
+                                          : resolve("/artist") +
+                                            `/${encodeURIComponent($context.id || "")}`}
+                                class="hover:underline font-bold"
                             >
+                                {$context.name}
+                            </a>
                         </div>
                     {/if}
                 </div>

@@ -121,7 +121,9 @@
         }
     }
 
-    let isNowPlayingPage = $derived($page.url.pathname === "/now-playing");
+    let isNowPlayingPage = $derived(
+        $page.url.pathname === resolve("/now-playing"),
+    );
 </script>
 
 <div
