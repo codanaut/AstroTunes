@@ -129,7 +129,7 @@
          {isNowPlayingPage
         ? 'translate-y-40 opacity-0 pointer-events-none'
         : 'translate-y-0 opacity-100'}
-         flex items-center justify-between bg-[var(--bg-main)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl"
+         flex items-center justify-between bg-[var(--bg-main)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-3 gap-4"
 >
     <a
         href="/now-playing"
@@ -140,7 +140,7 @@
     </a>
 
     <div
-        class="flex items-center flex-1 min-w-0 mr-2 md:mr-4 z-20 relative pointer-events-none md:pointer-events-auto"
+        class="flex items-center flex-1 min-w-0 gap-2 md:mr-4 z-20 relative pointer-events-none md:pointer-events-auto"
     >
         <a href={`/album/${$currentTrack.albumId}`} class="pointer-events-auto">
             <img

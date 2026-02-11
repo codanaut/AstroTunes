@@ -75,7 +75,7 @@
             </button>
             <button
                 on:click={toggleQueue}
-                class="md:hidden p-2 text-[var(--text-secondary)]"
+                class="p-2 text-[var(--text-secondary)]"
             >
                 <X />
             </button>
