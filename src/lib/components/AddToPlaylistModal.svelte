@@ -41,7 +41,15 @@
         try {
             const res = await getPlaylists();
             if (res && res.playlists && res.playlists.playlist) {
-                playlists = res.playlists.playlist;
+                /** @type {any[]} */
+                const rawPlaylists = res.playlists.playlist;
+
+                // Sort by 'created' date descending (newest first)
+                playlists = rawPlaylists.sort((a, b) => {
+                    const dateB = b.created ? new Date(b.created).getTime() : 0;
+                    const dateA = a.created ? new Date(a.created).getTime() : 0;
+                    return dateB - dateA;
+                });
             } else {
                 playlists = [];
             }
