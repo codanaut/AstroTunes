@@ -4,11 +4,12 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
 	kit: {
 		adapter: adapter({
-			fallback: 'index.html'
+			fallback: 'index.html' //
 		}),
 		paths: {
-			// This prefix is required for GitHub Pages subfolder hosting
-			base: '/astrotunes',
+			// This ensures the JS looks in /astrotunes/ instead of /
+			base: process.env.NODE_ENV === 'production' ? '/astrotunes' : '',
+			relative: true
 		}
 	}
 };
