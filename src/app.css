@@ -161,31 +161,80 @@ body {
 }
 
 
-/* --- Space / Glass Theme --- */
+/* Deep Space / Galactic Scene Theme */
 [data-mode='space'] {
-    /* 1. Make the main wrapper transparent so we can see the body's wallpaper */
+    /* --- Glass UI Variables --- */
     --bg-main: transparent;
+    --bg-sidebar: rgba(8, 12, 25, 0.6);
+    --bg-card: rgba(15, 20, 35, 0.5);
+    --bg-hover: rgba(56, 189, 248, 0.1);
 
-    /* 2. Semi-transparent colors for UI elements (R, G, B, Alpha) */
-    /* Dark Blue/Purple tint with 60% opacity */
-    --bg-sidebar: rgba(15, 23, 42, 0.6);
-    /* Slightly lighter for cards */
-    --bg-card: rgba(30, 41, 59, 0.5);
-    --bg-hover: rgba(51, 65, 85, 0.5);
+    --text-primary: #f0f9ff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
 
-    /* Text needs to be very bright to pop against the deep space background */
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    --border-primary: rgba(56, 189, 248, 0.15);
+    --border-secondary: rgba(56, 189, 248, 0.05);
 
-    --border-primary: rgba(255, 255, 255, 0.1);
-    /* Subtle white glass border */
-    --border-secondary: rgba(255, 255, 255, 0.05);
+    /* --- THE GALACTIC SCENE --- */
+    background-color: #02040a;
+    /* The Void */
 
-    background: linear-gradient(135deg, #0f172a 0%, #2834a1 50%, #1907b9 100%);
+    background-image:
+        /* 1. STARS: Layer 1 (Tiny, Distant) - High Density */
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, transparent 1.5px),
+
+        /* 2. STARS: Layer 2 (Medium, Closer) - Medium Density */
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, transparent 2.5px),
+
+        /* 3. STARS: Layer 3 (Bright, Occasional) - Low Density */
+        radial-gradient(circle at center, rgba(200, 230, 255, 1) 0%, transparent 3px),
+
+        /* 4. THE PLANET/SUN (Top Right Corner) */
+        /* A bright cyan/white core with a massive blue glow */
+        radial-gradient(circle at 100% 0%, rgba(165, 243, 252, 0.9) 0%, rgba(34, 211, 238, 0.4) 10%, rgba(6, 182, 212, 0.1) 40%, transparent 70%),
+
+        /* 5. NEBULA SWIRL (Bottom Left -> Center) */
+        /* A deep sweeping arm of indigo and purple */
+        radial-gradient(ellipse at 0% 100%, rgba(79, 70, 229, 0.5) 0%, rgba(30, 58, 138, 0.4) 40%, transparent 80%),
+
+        /* 6. NEBULA HIGHLIGHT (Center Right) */
+        /* A soft pink/purple gas cloud */
+        radial-gradient(circle at 80% 60%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+
+        /* 7. ATMOSPHERE FILL (Overall tint) */
+        linear-gradient(to bottom right, rgba(15, 23, 42, 0.5), transparent);
+
+    /* --- POSITIONING & SIZING --- */
+    background-size:
+        300px 300px,
+        /* Stars 1 (Small) */
+        450px 450px,
+        /* Stars 2 (Medium) */
+        700px 700px,
+        /* Stars 3 (Large) */
+        100% 100%,
+        /* Planet */
+        100% 100%,
+        /* Nebula Swirl */
+        100% 100%,
+        /* Highlight */
+        100% 100%;
+    /* Fill */
+
+    background-position:
+        0 0,
+        /* Stars 1 */
+        50px 120px,
+        /* Stars 2 (Offset to de-grid) */
+        150px 50px,
+        /* Stars 3 (Offset) */
+        0 0, 0 0, 0 0, 0 0;
+    /* Scene elements fixed */
+
     background-attachment: fixed;
-    /* Keeps the gradient still while you scroll */
-    background-size: cover;
+    /* Repeat stars, NO-Repeat scene elements */
+    background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
 }
 
 
