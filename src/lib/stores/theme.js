@@ -63,13 +63,26 @@ function createThemeStore() {
     };
 }
 
+/* src/lib/stores/theme.js */
+
 /**
  * @param {typeof DEFAULT_STATE} state
  */
 function applyTheme(state) {
     const root = document.documentElement;
     root.setAttribute('data-mode', state.mode);
-    root.setAttribute('data-accent', state.accent);
+
+    // Check if accent is a Hex Color (e.g. #ff0000) or a Preset Name (e.g. 'green')
+    if (state.accent.startsWith('#')) {
+        // It's a custom color! Set the variable directly.
+        root.style.setProperty('--accent', state.accent);
+        root.setAttribute('data-accent', 'custom');
+    } else {
+        // It's a preset. Remove inline style so CSS classes take over.
+        root.style.removeProperty('--accent');
+        root.setAttribute('data-accent', state.accent);
+    }
+
     root.setAttribute('data-true-black', String(state.trueBlack));
 }
 
