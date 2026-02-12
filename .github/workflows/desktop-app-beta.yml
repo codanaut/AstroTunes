@@ -1,0 +1,41 @@
+name: Test Desktop App
+
+on:
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  release-app:
+    name: Build Desktop App
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest]
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Svelte App and Tauri EXE
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'AstroTunes v__VERSION__'
+          releaseBody: 'Automatic build of AstroTunes for Windows.'
+          releaseDraft: false
+          prerelease: true
