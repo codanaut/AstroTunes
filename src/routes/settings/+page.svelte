@@ -7,13 +7,14 @@
         CloudRain,
         Coffee,
         Rocket,
+        Trees,
     } from "lucide-svelte";
     import { auth } from "$lib/auth";
     import { theme } from "$lib/stores/theme";
     import { subsonicFetch } from "$lib/subsonic";
     import { goto } from "$app/navigation";
     import { Loader2, Server, Music, Settings, Palette } from "lucide-svelte";
-    import ThemeColorPicker from "$lib/components/ThemeColorPicker.svelte";
+    import AccentColorPicker from "$lib/components/AccentColorPicker.svelte";
 
     let serverUrl = $state("");
     let username = $state("");
@@ -63,8 +64,7 @@
     const themes = [
         { id: "dark", name: "Dark", icon: Moon },
         { id: "light", name: "Light", icon: Sun },
-        { id: "midnight", name: "Midnight", icon: CloudRain },
-        { id: "retro", name: "Retro", icon: Coffee },
+        { id: "forest", name: "Forest", icon: Trees },
         { id: "space", name: "Space", icon: Rocket },
     ];
 </script>
@@ -238,7 +238,9 @@
                     </div>
                 </div>
 
-                {#if $theme.mode === "dark" || $theme.mode === "midnight"}
+                <!-- True Black Toggle -->
+                <!--{#if $theme.mode === "dark" || $theme.mode === "forest"}-->
+                {#if $theme.mode === "dark"}
                     <div
                         class="flex items-center justify-between border-t border-[var(--border-primary)] pt-4"
                     >
@@ -272,7 +274,7 @@
                     </div>
                 {/if}
 
-                <ThemeColorPicker />
+                <AccentColorPicker />
             </div>
         </section>
     </div>

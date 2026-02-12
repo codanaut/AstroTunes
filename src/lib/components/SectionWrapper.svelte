@@ -68,7 +68,9 @@
     $: totalPages = Math.ceil(totalItems / limit);
 </script>
 
-<div class="mb-6 mt-6">
+<div
+    class="mb-6 mt-6 p-4 backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl"
+>
     <div
         class="flex flex-col md:flex-row items-center justify-between mb-4 gap-4"
     >

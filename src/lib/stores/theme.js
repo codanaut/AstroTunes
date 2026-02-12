@@ -2,8 +2,8 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 const DEFAULT_STATE = {
-    mode: 'dark',
-    accent: 'green',
+    mode: 'space',
+    accent: 'white',
     trueBlack: false
 };
 

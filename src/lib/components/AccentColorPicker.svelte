@@ -9,6 +9,8 @@
         { id: "orange", color: "#f97316", name: "Orange" },
         { id: "purple", color: "#a855f7", name: "Purple" },
         { id: "pink", color: "#ec4899", name: "Pink" },
+        { id: "white", color: "#ffffff", name: "White" },
+        { id: "black", color: "#000000", name: "Black" },
     ];
 </script>
 
