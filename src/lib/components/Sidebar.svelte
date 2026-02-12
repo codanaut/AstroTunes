@@ -50,7 +50,7 @@
 
 <!-- SIDEBAR -->
 <aside
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--bg-sidebar)] flex flex-col border-r border-[var(--border-primary)] transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-transform duration-300 ease-in-out md:relative md:translate-x-0
     {isOpen ? 'translate-x-0' : '-translate-x-full'}"
 >
     <div class="p-6">

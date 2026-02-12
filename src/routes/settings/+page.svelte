@@ -1,5 +1,13 @@
 <script>
-    import { Moon, Sun, Check, Zap } from "lucide-svelte";
+    import {
+        Moon,
+        Sun,
+        Check,
+        Zap,
+        CloudRain,
+        Coffee,
+        Rocket,
+    } from "lucide-svelte";
     import { auth } from "$lib/auth";
     import { theme } from "$lib/stores/theme";
     import { subsonicFetch } from "$lib/subsonic";
@@ -59,9 +67,16 @@
         { id: "purple", color: "#a855f7", name: "Purple" },
         { id: "pink", color: "#ec4899", name: "Pink" },
     ];
+    const themes = [
+        { id: "dark", name: "Dark", icon: Moon },
+        { id: "light", name: "Light", icon: Sun },
+        { id: "midnight", name: "Midnight", icon: CloudRain },
+        { id: "retro", name: "Retro", icon: Coffee },
+        { id: "space", name: "Space", icon: Rocket },
+    ];
 </script>
 
-<div class="container mx-auto max-w-4xl p-8">
+<div class="container mx-auto max-w-4xl p-8 mb-20">
     <div class="flex items-center gap-4 mb-8">
         <div
             class="w-12 h-12 bg-[var(--bg-card)] rounded-full flex items-center justify-center"
@@ -205,39 +220,32 @@
                     Appearance
                 </h2>
             </div>
+
             <div class="p-6 space-y-8">
                 <div>
                     <p class="text-[var(--text-secondary)] text-sm mb-4">
                         Choose your preferred appearance mode.
                     </p>
-                    <div
-                        class="flex bg-[var(--bg-main)] p-1 rounded-lg border border-[var(--border-primary)] inline-flex"
-                    >
-                        <button
-                            class="flex items-center gap-2 px-4 py-2 rounded-md transition-all text-sm font-medium
-                            {$theme.mode === 'light'
-                                ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm border border-[var(--border-primary)]'
-                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-                            onclick={() =>
-                                theme.updateProperty("mode", "light")}
-                        >
-                            <Sun size={16} />
-                            Light
-                        </button>
-                        <button
-                            class="flex items-center gap-2 px-4 py-2 rounded-md transition-all text-sm font-medium
-                            {$theme.mode === 'dark'
-                                ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm border border-[var(--border-primary)]'
-                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-                            onclick={() => theme.updateProperty("mode", "dark")}
-                        >
-                            <Moon size={16} />
-                            Dark
-                        </button>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {#each themes as t}
+                            <button
+                                class="flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all text-sm font-medium border
+                                {$theme.mode === t.id
+                                    ? 'bg-[var(--bg-card)] text-[var(--accent)] border-[var(--accent)] shadow-sm'
+                                    : 'bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-primary)] hover:bg-[var(--bg-hover)]'}"
+                                onclick={() =>
+                                    theme.updateProperty("mode", t.id)}
+                                aria-label="Select {t.name} theme"
+                            >
+                                <t.icon size={18} />
+                                {t.name}
+                            </button>
+                        {/each}
                     </div>
                 </div>
 
-                {#if $theme.mode === "dark"}
+                {#if $theme.mode === "dark" || $theme.mode === "midnight"}
                     <div
                         class="flex items-center justify-between border-t border-[var(--border-primary)] pt-4"
                     >
@@ -251,7 +259,7 @@
                         </div>
                         <button
                             class="w-12 h-6 rounded-full transition-colors relative focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--bg-card)]
-                        {$theme.trueBlack
+                            {$theme.trueBlack
                                 ? 'bg-[var(--accent)]'
                                 : 'bg-[var(--bg-hover)]'}"
                             onclick={() =>
@@ -259,10 +267,13 @@
                                     "trueBlack",
                                     !$theme.trueBlack,
                                 )}
+                            aria-label="Toggle True Black mode"
                         >
                             <div
                                 class="absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform
-                        {$theme.trueBlack ? 'translate-x-6' : 'translate-x-0'}"
+                                {$theme.trueBlack
+                                    ? 'translate-x-6'
+                                    : 'translate-x-0'}"
                             ></div>
                         </button>
                     </div>
@@ -280,6 +291,7 @@
                                 onclick={() =>
                                     theme.updateProperty("accent", accent.id)}
                                 title={accent.name}
+                                aria-label="Select {accent.name} accent color"
                             >
                                 {#if $theme.accent === accent.id}
                                     <Check

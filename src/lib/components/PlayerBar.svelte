@@ -132,7 +132,7 @@
          {isNowPlayingPage
         ? 'translate-y-40 opacity-0 pointer-events-none'
         : 'translate-y-0 opacity-100'}
-         flex items-center justify-between bg-[var(--bg-main)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-3 gap-4"
+         flex items-center justify-between bg-[var(--bg-sidebar)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-3 gap-4"
 >
     <a
         href={resolve("/now-playing")}
@@ -236,13 +236,13 @@
 
             <button
                 onclick={playPrev}
-                class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                class="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
                 ><SkipBack size={20} class="md:w-6 md:h-6" /></button
             >
 
             <button
                 onclick={togglePlay}
-                class="p-2 md:p-3 bg-[var(--text-primary)] rounded-full text-[var(--bg-main)] hover:scale-105 transition-transform"
+                class="p-2 md:p-3 rounded-full text-[var(--bg-primary)] hover:scale-105 transition-transform"
             >
                 {#if $isPlaying}<Pause
                         size={20}
@@ -258,7 +258,7 @@
 
             <button
                 onclick={playNext}
-                class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                class="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
                 ><SkipForward size={20} class="md:w-6 md:h-6" /></button
             >
 

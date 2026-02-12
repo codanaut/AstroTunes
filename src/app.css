@@ -2,17 +2,26 @@
 
 :root {
     /* --- Base Variables (Default to Dark) --- */
-    --bg-main: #111827; /* gray-900 */
-    --bg-sidebar: #030712; /* gray-950 */
-    --bg-card: #1f2937; /* gray-800 */
-    --bg-hover: #374151; /* gray-700 */
-    
-    --text-primary: #f9fafb; /* gray-50 */
-    --text-secondary: #9ca3af; /* gray-400 */
-    --text-muted: #6b7280; /* gray-500 */
-    
-    --border-primary: #1f2937; /* gray-800 */
-    --border-secondary: #374151; /* gray-700 */
+    --bg-main: #111827;
+    /* gray-900 */
+    --bg-sidebar: #030712;
+    /* gray-950 */
+    --bg-card: #1f2937;
+    /* gray-800 */
+    --bg-hover: #374151;
+    /* gray-700 */
+
+    --text-primary: #f9fafb;
+    /* gray-50 */
+    --text-secondary: #9ca3af;
+    /* gray-400 */
+    --text-muted: #6b7280;
+    /* gray-500 */
+
+    --border-primary: #1f2937;
+    /* gray-800 */
+    --border-secondary: #374151;
+    /* gray-700 */
 
     /* Default Accent (Green) */
     --accent: #22c55e;
@@ -22,75 +31,70 @@
 /* --- Modes --- */
 
 [data-mode='light'] {
-    --bg-main: #f3f4f6; /* gray-100 - slightly darker background for contrast with cards */
+    --bg-main: #f3f4f6;
+    /* gray-100 - slightly darker background for contrast with cards */
     --bg-sidebar: #ffffff;
     --bg-card: #ffffff;
-    --bg-hover: #e5e7eb; /* gray-200 */
-    
-    --text-primary: #111827; /* gray-900 */
-    --text-secondary: #4b5563; /* gray-600 */
-    --text-muted: #6b7280; /* gray-500 */
-    
-    --border-primary: #d1d5db; /* gray-300 - darker border for visibility */
-    --border-secondary: #e5e7eb; /* gray-200 */
-    
+    --bg-hover: #e5e7eb;
+    /* gray-200 */
+
+    --text-primary: #111827;
+    /* gray-900 */
+    --text-secondary: #4b5563;
+    /* gray-600 */
+    --text-muted: #6b7280;
+    /* gray-500 */
+
+    --border-primary: #d1d5db;
+    /* gray-300 - darker border for visibility */
+    --border-secondary: #e5e7eb;
+    /* gray-200 */
+
     --accent-fg: #ffffff;
 }
 
-/* Explicit Dark Mode (re-asserts defaults if needed, or allows switching) */
-[data-mode='dark'] {
-    --bg-main: #111827;
-    --bg-sidebar: #030712;
-    --bg-card: #1f2937;
-    --bg-hover: #374151;
-    
-    --text-primary: #f9fafb;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
-    
-    --border-primary: #1f2937;
-    --border-secondary: #374151;
-}
 
-/* --- True Black Modifier (Only affects Dark Mode) --- */
-[data-mode='dark'][data-true-black='true'] {
-    --bg-main: #000000;
-    --bg-sidebar: #000000;
-    --bg-card: #121212;
-    --bg-hover: #18181b; /* zinc-900 */
-    --border-primary: #18181b;
-}
+
 
 /* --- Accent Colors --- */
 
 [data-accent='green'] {
-    --accent: #22c55e; /* green-500 */
+    --accent: #22c55e;
+    /* green-500 */
     --accent-fg: #000000;
 }
-[data-mode='light'][data-accent='green'] { --accent-fg: #ffffff; }
+
+[data-mode='light'][data-accent='green'] {
+    --accent-fg: #ffffff;
+}
 
 [data-accent='red'] {
-    --accent: #ef4444; /* red-500 */
+    --accent: #ef4444;
+    /* red-500 */
     --accent-fg: #ffffff;
 }
 
 [data-accent='blue'] {
-    --accent: #3b82f6; /* blue-500 */
+    --accent: #3b82f6;
+    /* blue-500 */
     --accent-fg: #ffffff;
 }
 
 [data-accent='orange'] {
-    --accent: #f97316; /* orange-500 */
+    --accent: #f97316;
+    /* orange-500 */
     --accent-fg: #ffffff;
 }
 
 [data-accent='purple'] {
-    --accent: #a855f7; /* purple-500 */
+    --accent: #a855f7;
+    /* purple-500 */
     --accent-fg: #ffffff;
 }
 
 [data-accent='pink'] {
-    --accent: #ec4899; /* pink-500 */
+    --accent: #ec4899;
+    /* pink-500 */
     --accent-fg: #ffffff;
 }
 
@@ -99,4 +103,89 @@ body {
     color: var(--text-primary);
     overflow: hidden;
     transition: background-color 0.2s, color 0.2s;
+}
+
+
+/* Add any theme here that supports True Black */
+[data-mode='dark'][data-true-black='true'],
+[data-mode='midnight'][data-true-black='true'] {
+    --bg-main: #000000;
+    --bg-sidebar: #000000;
+    --bg-card: #121212;
+    --bg-hover: #18181b;
+    --border-primary: #18181b;
+}
+
+/* Midnight Theme */
+[data-mode='midnight'] {
+    --bg-main: #0f172a;
+    /* slate-900 */
+    --bg-sidebar: #020617;
+    /* slate-950 */
+    --bg-card: #1e293b;
+    /* slate-800 */
+    --bg-hover: #334155;
+    /* slate-700 */
+
+    --text-primary: #e2e8f0;
+    /* slate-200 */
+    --text-secondary: #94a3b8;
+    /* slate-400 */
+    --text-muted: #64748b;
+    /* slate-500 */
+
+    --border-primary: #1e293b;
+    --border-secondary: #334155;
+
+    /* You can enforce specific accents for themes if you want, 
+       or let the user pick their accent as usual */
+}
+
+/* Retro / Coffee Theme */
+[data-mode='retro'] {
+    --bg-main: #292524;
+    /* stone-800 */
+    --bg-sidebar: #1c1917;
+    /* stone-900 */
+    --bg-card: #44403c;
+    /* stone-700 */
+    --bg-hover: #57534e;
+    /* stone-600 */
+
+    --text-primary: #f5f5f4;
+    /* stone-100 */
+    --text-secondary: #a8a29e;
+    /* stone-400 */
+    --text-muted: #78716c;
+    /* stone-500 */
+
+    --border-primary: #44403c;
+    --border-secondary: #57534e;
+}
+
+/* --- Space / Glass Theme --- */
+[data-mode='space'] {
+    /* 1. Make the main wrapper transparent so we can see the body's wallpaper */
+    --bg-main: transparent;
+
+    /* 2. Semi-transparent colors for UI elements (R, G, B, Alpha) */
+    /* Dark Blue/Purple tint with 60% opacity */
+    --bg-sidebar: rgba(15, 23, 42, 0.6);
+    /* Slightly lighter for cards */
+    --bg-card: rgba(30, 41, 59, 0.5);
+    --bg-hover: rgba(51, 65, 85, 0.5);
+
+    /* Text needs to be very bright to pop against the deep space background */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+
+    --border-primary: rgba(255, 255, 255, 0.1);
+    /* Subtle white glass border */
+    --border-secondary: rgba(255, 255, 255, 0.05);
+
+    background: linear-gradient(135deg, #0f172a 0%, #2834a1 50%, #1907b9 100%);
+    background-attachment: fixed;
+    /* Keeps the gradient still while you scroll */
+    background-size: cover;
 }

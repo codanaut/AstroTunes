@@ -406,7 +406,9 @@
     }}
 />
 
-<div class="w-full flex flex-col relative">
+<div
+    class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80"
+>
     <!-- Options Header -->
     <div class="flex justify-end mb-2 px-4 relative">
         <button

@@ -1,6 +1,5 @@
 <script>
   import "../app.css";
-  import { page } from "$app/stores";
   import {
     isPlaying,
     currentTrack,
@@ -18,8 +17,6 @@
   import { auth } from "../lib/auth";
   import { onMount } from "svelte";
   import { subsonicFetch } from "../lib/subsonic";
-  import { theme } from "../lib/stores/theme";
-  import { parseArtistString } from "../lib/utils/artistUtils";
   import QueuePanel from "../lib/components/QueuePanel.svelte";
   import PlayerBar from "../lib/components/PlayerBar.svelte";
   import TopBar from "../lib/components/TopBar.svelte";

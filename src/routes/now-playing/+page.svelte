@@ -241,7 +241,7 @@
                         </button>
                         <button
                             onclick={togglePlay}
-                            class="bg-[var(--text-primary)] text-[var(--bg-main)] rounded-full p-4 hover:scale-105 transition-transform shadow-lg"
+                            class="text-[var(--bg-accent)] rounded-full p-4 hover:scale-105 transition-transform"
                         >
                             {#if $isPlaying}
                                 <Pause size={32} fill="currentColor" />
