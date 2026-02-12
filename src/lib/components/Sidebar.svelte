@@ -77,7 +77,7 @@
 
     <div class="p-4 border-t border-[var(--border-primary)]">
         <a
-            href="/settings"
+            href={resolve("/settings")}
             onclick={closeMobileMenu}
             class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200
         {$page.url.pathname === '/settings'
