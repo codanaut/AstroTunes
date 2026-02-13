@@ -440,6 +440,9 @@
     // If the container (not the window) is smaller than 768px, switch to mobile view
     $: isMobile = containerWidth < 768;
 
+    // Tablet/Compact view (< 1200px) - Triggers when queue is open on laptops
+    $: isCompact = containerWidth < 1200;
+
     // 2. Define columns that should NEVER show on mobile (even if enabled)
     // Note: We hide 'artist' and 'album' here because they are shown under the Title on mobile
     const DESKTOP_ONLY_COLUMNS = [
@@ -454,10 +457,26 @@
         "playCount",
     ];
 
+    // Columns hidden on Compact Desktop (when queue is open)
+    const COMPACT_HIDDEN_COLUMNS = [
+        "year",
+        "quality",
+        "bitrate",
+        "format",
+        "bpm",
+        "playCount",
+        "genre",
+    ];
+
     // 3. Smart Visibility Check
     // This overrides the settings: if on mobile, force-hide the heavy columns
     $: isColumnVisible = (/** @type {string} */ id) => {
+        // Force hide on mobile
         if (isMobile && DESKTOP_ONLY_COLUMNS.includes(id)) return false;
+
+        // Force hide on compact/tablet (unless it's the specific context, e.g. don't hide artist if sorting by artist)
+        if (isCompact && COMPACT_HIDDEN_COLUMNS.includes(id)) return false;
+
         return visibleColumnIds.includes(id);
     };
 
@@ -596,7 +615,7 @@
 
 <div
     bind:clientWidth={containerWidth}
-    class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl overflow-hidden border border-[var(--border-primary)]"
+    class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl overflow-x-auto border border-[var(--border-primary)]"
 >
     {#if showToolbar}
         <div
