@@ -744,84 +744,84 @@
             {/each}
         {/each}
     </div>
+</div>
 
-    <!-- Context Menu -->
-    {#if activeMenuSongId}
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-            class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
-            style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
-            transition:scale={{ duration: 150, start: 0.95 }}
+<!-- Context Menu -->
+{#if activeMenuSongId}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
+        style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
+        transition:scale={{ duration: 150, start: 0.95 }}
+    >
+        <!-- Add to Queue -->
+        <button
+            class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+            onclick={() => {
+                addToQueue(songs.find((s) => s.id === activeMenuSongId));
+                closeMenu();
+            }}
         >
-            <!-- Add to Queue -->
-            <button
-                class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
-                onclick={() => {
-                    addToQueue(songs.find((s) => s.id === activeMenuSongId));
-                    closeMenu();
-                }}
-            >
-                <ListPlus size={16} />
-                Add to Queue
-            </button>
+            <ListPlus size={16} />
+            Add to Queue
+        </button>
 
-            <!-- Add to Playlist -->
+        <!-- Add to Playlist -->
+        <button
+            class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+            onclick={() =>
+                handleAddToPlaylist(
+                    songs.find((s) => s.id === activeMenuSongId),
+                )}
+        >
+            <Plus size={16} />
+            Add to Playlist
+        </button>
+
+        <!-- Remove from Playlist (Context Dependent) -->
+        {#if context === "playlist"}
             <button
-                class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+                class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2"
                 onclick={() =>
-                    handleAddToPlaylist(
+                    handleRemoveFromPlaylist(
                         songs.find((s) => s.id === activeMenuSongId),
                     )}
             >
-                <Plus size={16} />
-                Add to Playlist
+                <Trash2 size={16} />
+                Remove from Playlist
             </button>
+        {/if}
 
-            <!-- Remove from Playlist (Context Dependent) -->
-            {#if context === "playlist"}
-                <button
-                    class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2"
-                    onclick={() =>
-                        handleRemoveFromPlaylist(
-                            songs.find((s) => s.id === activeMenuSongId),
-                        )}
+        <div class="h-px bg-[var(--border-secondary)] my-1 mx-2"></div>
+
+        <!-- Go to Artist -->
+        {#if activeMenuSong}
+            {#if activeMenuSong.artistId}
+                <a
+                    href={resolve(`/artist/${activeMenuSong.artistId}`)}
+                    class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+                    onclick={closeMenu}
                 >
-                    <Trash2 size={16} />
-                    Remove from Playlist
-                </button>
+                    <User size={16} />
+                    Go to Artist
+                </a>
             {/if}
 
-            <div class="h-px bg-[var(--border-secondary)] my-1 mx-2"></div>
-
-            <!-- Go to Artist -->
-            {#if activeMenuSong}
-                {#if activeMenuSong.artistId}
-                    <a
-                        href={resolve(`/artist/${activeMenuSong.artistId}`)}
-                        class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
-                        onclick={closeMenu}
-                    >
-                        <User size={16} />
-                        Go to Artist
-                    </a>
-                {/if}
-
-                <!-- Go to Album -->
-                {#if activeMenuSong.albumId}
-                    <a
-                        href={resolve(`/album/${activeMenuSong.albumId}`)}
-                        class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
-                        onclick={closeMenu}
-                    >
-                        <Album size={16} />
-                        Go to Album
-                    </a>
-                {/if}
+            <!-- Go to Album -->
+            {#if activeMenuSong.albumId}
+                <a
+                    href={resolve(`/album/${activeMenuSong.albumId}`)}
+                    class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
+                    onclick={closeMenu}
+                >
+                    <Album size={16} />
+                    Go to Album
+                </a>
             {/if}
-        </div>
-    {/if}
-</div>
+        {/if}
+    </div>
+{/if}
 
 <style>
     .song-grid {
