@@ -629,7 +629,7 @@
                 <input
                     type="text"
                     bind:value={localSearchQuery}
-                    placeholder="Filter current view..."
+                    placeholder="Search Songs..."
                     class="w-full bg-[var(--bg-input)] border border-[var(--border-secondary)] rounded-full py-1.5 pl-9 pr-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
             </div>
