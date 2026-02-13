@@ -8,16 +8,16 @@
     export let type = "album";
 </script>
 
-<div class="flex flex-wrap justify-center gap-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 justify-items-center">
     {#if type === "album"}
         {#each items.slice(0, 3) as item (item.id)}
-            <div class="w-40 md:w-56 lg:w-64">
+            <div class="w-full max-w-[256px]">
                 <AlbumCard album={item} className="h-full" />
             </div>
         {/each}
     {:else if type === "artist"}
         {#each items.slice(0, 3) as item (item.id)}
-            <div class="w-40 md:w-56 lg:w-64">
+            <div class="w-full max-w-[256px]">
                 <ArtistCard artist={item} />
             </div>
         {/each}

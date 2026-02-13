@@ -219,7 +219,7 @@
       </div>
     </div>
 
-    <div class="w-full mx-auto">
+    <div class="w-full lg:max-w-[80%] mx-auto">
       <SectionWrapper
         title="Top Played Albums"
         items={topAlbums}
