@@ -146,10 +146,6 @@
         visibleColumnIds = [...visibleColumnIds, "year", "genre"];
     }
 
-    // Helper to check visibility
-    $: isColumnVisible = (/** @type {string} */ id) =>
-        visibleColumnIds.includes(id);
-
     // --- SORT & FILTER LOGIC ---
     /** @param {string} field */
     function handleSort(field) {
@@ -437,21 +433,41 @@
         }
     }
 
-    // Heuristic: If 'artist' column is hidden, we are in a compact/mobile view.
-    $: isCompact = !isColumnVisible("artist");
+    let windowWidth = 1024; // Default to desktop until mounted
+    $: isMobile = windowWidth < 768;
 
+    // 2. Define columns that should NEVER show on mobile (even if enabled)
+    // Note: We hide 'artist' and 'album' here because they are shown under the Title on mobile
+    const DESKTOP_ONLY_COLUMNS = [
+        "artist",
+        "album",
+        "year",
+        "quality",
+        "bitrate",
+        "format",
+        "genre",
+        "bpm",
+        "playCount",
+    ];
+
+    // 3. Smart Visibility Check
+    // This overrides the settings: if on mobile, force-hide the heavy columns
+    $: isColumnVisible = (/** @type {string} */ id) => {
+        if (isMobile && DESKTOP_ONLY_COLUMNS.includes(id)) return false;
+        return visibleColumnIds.includes(id);
+    };
+
+    // 4. Grid Generation
     $: desktopGridColumns = `
         ${context === "playlist" ? "2rem" : ""}
         ${isColumnVisible("track") ? "3rem" : ""} 
         
-        /* FIX: Reduced Title weight from 4fr to 2.5fr to prevent huge gaps */
-        ${isCompact ? "minmax(0, 1fr)" : "minmax(180px, 2.5fr)"}
+        /* Title: 1fr on Mobile (fills space), 2.5fr on Desktop */
+        ${isMobile ? "minmax(0, 1fr)" : "minmax(180px, 2.5fr)"}
         
-        /* FIX: Increased Artist/Album min-width (120->140px) and kept weight at 2fr */
-        /* This ensures they don't get squished by a long title */
+        /* Since isColumnVisible returns false on mobile for these, they effectively vanish from the grid definition */
         ${isColumnVisible("artist") ? "minmax(140px, 2fr)" : ""} 
         ${isColumnVisible("album") ? "minmax(140px, 2fr)" : ""} 
-        
         ${isColumnVisible("year") ? "4rem" : ""} 
         ${isColumnVisible("quality") ? "6rem" : ""} 
         ${isColumnVisible("bitrate") ? "5rem" : ""} 
@@ -557,7 +573,10 @@
     }
 </script>
 
-<svelte:window on:click={handleWindowClick} />
+<svelte:window
+    bind:innerWidth={windowWidth}
+    onclick={() => (activeMenuSongId = null)}
+/>
 
 <AddToPlaylistModal
     isOpen={showAddModal}
@@ -819,7 +838,7 @@
                         >{/if}
 
                     {#if isColumnVisible("starred")}
-                        <div class="hidden md:flex justify-center">
+                        <div class="flex justify-center">
                             <button
                                 class="hover:scale-110 transition-transform"
                                 onclick={(e) => toggleFavorite(song, e)}
