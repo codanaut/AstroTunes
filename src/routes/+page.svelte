@@ -219,7 +219,7 @@
       </div>
     </div>
 
-    <div class="md:w-2/3 md:mx-auto md:px-6 md:py-8">
+    <div class="w-full md:w-2/3 md:mx-auto md:px-6 md:py-8">
       <SectionWrapper
         title="Top Played Albums"
         items={topAlbums}
