@@ -55,7 +55,7 @@
 >
     <div class="p-6">
         <h1 class="text-2xl font-bold tracking-tight text-[var(--accent)]">
-            AstroTunes
+            <a href={resolve("/")} onclick={closeMobileMenu}>AstroTunes</a>
         </h1>
     </div>
 
