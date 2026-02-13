@@ -495,7 +495,7 @@
         ${isColumnVisible("quality") ? "6rem" : ""} 
         ${isColumnVisible("bitrate") ? "5rem" : ""} 
         ${isColumnVisible("format") ? "4rem" : ""} 
-        ${isColumnVisible("genre") ? "minmax(100px, 1.5fr)" : ""} 
+        ${isColumnVisible("genre") ? "minmax(50px, 1fr)" : ""} 
         ${isColumnVisible("playCount") ? "3.5rem" : ""} 
         ${isColumnVisible("bpm") ? "4rem" : ""}
         ${isColumnVisible("starred") ? "2rem" : ""} 
