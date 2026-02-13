@@ -219,13 +219,17 @@
       </div>
     </div>
 
-    <SectionWrapper
-      title="Top Played Albums"
-      items={topAlbums}
-      type="album"
-      showAllLink={resolve("/albums/top")}
-      enableViewToggle={true}
-    />
+    <div class="md:w-2/3 md:mx-auto md:px-6 md:py-8">
+      <SectionWrapper
+        title="Top Played Albums"
+        items={topAlbums}
+        type="album"
+        showAllLink={resolve("/albums/top")}
+        enableViewToggle={false}
+        layout="featured"
+        headerClass="justify-center"
+      />
+    </div>
 
     <!--
     <SectionWrapper
@@ -241,7 +245,7 @@
       items={recentlyAddedAlbums}
       type="album"
       showAllLink={resolve("/albums/recent")}
-      enableViewToggle={true}
+      enableViewToggle={false}
     />
 
     <SectionWrapper
@@ -249,7 +253,7 @@
       items={albums}
       type="album"
       showAllLink={resolve("/albums/random")}
-      enableViewToggle={true}
+      enableViewToggle={false}
     />
   {/if}
 </div>

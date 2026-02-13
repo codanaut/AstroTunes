@@ -8,6 +8,12 @@
     import ArtistList from "./ArtistList.svelte";
     import ShowAllButton from "./ShowAllButton.svelte";
     import { goto } from "$app/navigation";
+    import FeaturedLayout from "./layouts/FeaturedLayout.svelte";
+    import StandardGrid from "./layouts/StandardGrid.svelte";
+    import ListLayout from "./layouts/ListLayout.svelte";
+
+    /** @type {'standard' | 'featured'} */
+    export let layout = "standard";
 
     export let title = "";
     /** @type {any[]} */
@@ -27,6 +33,7 @@
     /** @type {string} */
     export let baseUrl = ""; // Base URL for pagination navigation (e.g. /albums)
     export let enableViewToggle = true;
+    export let headerClass = "";
 
     // View State
     let viewMode = "grid";
@@ -72,7 +79,7 @@
     class="mb-6 mt-6 p-4 backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl"
 >
     <div
-        class="flex flex-col md:flex-row items-center justify-between mb-4 gap-4"
+        class="flex flex-col md:flex-row items-center justify-between mb-4 gap-4 {headerClass}"
     >
         <h1 class="text-2xl font-bold text-[var(--accent)]">
             {#if showAllLink}
@@ -157,25 +164,36 @@
         <div class="text-center text-[var(--text-muted)] py-12">
             No items found.
         </div>
+    {:else if layout === "featured"}
+        <FeaturedLayout {items} />
     {:else if viewMode === "grid"}
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {#if type === "album"}
-                {#each items as item (item.id)}
-                    <AlbumCard album={item} />
-                {/each}
-            {:else if type === "artist"}
-                {#each items as item (item.id)}
-                    <ArtistCard artist={item} />
-                {/each}
-            {/if}
-        </div>
+        <StandardGrid {items} {type} />
     {:else}
-        <!-- List View -->
-        {#if type === "album"}
-            <AlbumList albums={items} />
-        {:else if type === "artist"}
-            <ArtistList artists={items} />
-        {/if}
+        <ListLayout {items} {type} />
+    {/if}
+
+    {#if !showAllLink && totalItems > 0 && baseUrl}
+        <div class="flex justify-center gap-2 mt-8">
+            <button
+                on:click={prevPage}
+                disabled={currentPage === 1}
+                class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                <ChevronLeft size={20} />
+            </button>
+            <span
+                class="flex items-center px-2 text-[var(--text-secondary)] text-sm"
+            >
+                Page {currentPage} of {totalPages}
+            </span>
+            <button
+                on:click={nextPage}
+                disabled={currentPage >= totalPages}
+                class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                <ChevronRight size={20} />
+            </button>
+        </div>
     {/if}
 
     <!-- Bottom Pagination (if paginated) -->

@@ -11,6 +11,7 @@
 
     /** @type {any} */
     export let album;
+    export let className = "";
 
     /**
      * @param {Event} event
