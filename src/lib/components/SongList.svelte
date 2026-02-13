@@ -437,18 +437,28 @@
         }
     }
 
+    // Heuristic: If 'artist' column is hidden, we are in a compact/mobile view.
+    $: isCompact = !isColumnVisible("artist");
+
     $: desktopGridColumns = `
         ${context === "playlist" ? "2rem" : ""}
         ${isColumnVisible("track") ? "3rem" : ""} 
-        minmax(200px, 3fr) 
-        ${isColumnVisible("artist") ? "minmax(150px, 2fr)" : ""} 
-        ${isColumnVisible("album") ? "minmax(150px, 2fr)" : ""} 
+        
+        /* FIX: Reduced Title weight from 4fr to 2.5fr to prevent huge gaps */
+        ${isCompact ? "minmax(0, 1fr)" : "minmax(180px, 2.5fr)"}
+        
+        /* FIX: Increased Artist/Album min-width (120->140px) and kept weight at 2fr */
+        /* This ensures they don't get squished by a long title */
+        ${isColumnVisible("artist") ? "minmax(140px, 2fr)" : ""} 
+        ${isColumnVisible("album") ? "minmax(140px, 2fr)" : ""} 
+        
         ${isColumnVisible("year") ? "4rem" : ""} 
         ${isColumnVisible("quality") ? "6rem" : ""} 
         ${isColumnVisible("bitrate") ? "5rem" : ""} 
         ${isColumnVisible("format") ? "4rem" : ""} 
         ${isColumnVisible("genre") ? "minmax(100px, 1.5fr)" : ""} 
-        ${isColumnVisible("playCount") ? "4rem" : ""} 
+        ${isColumnVisible("playCount") ? "3.5rem" : ""} 
+        ${isColumnVisible("bpm") ? "4rem" : ""}
         ${isColumnVisible("starred") ? "2rem" : ""} 
         ${isColumnVisible("duration") ? "auto" : ""}
         ${isColumnVisible("options") ? "2rem" : ""}
@@ -739,7 +749,7 @@
                         </span>
                     {/if}
 
-                    <div class="flex flex-col overflow-hidden">
+                    <div class="flex flex-col overflow-hidden min-w-0">
                         <span
                             class="font-medium truncate text-base {$currentTrack?.id ===
                             song.id
@@ -845,73 +855,77 @@
             {/each}
         {/each}
     </div>
-
-    {#if activeMenuSongId}
-        {@const activeSong = songs.find((s) => s.id === activeMenuSongId)}
-
-        <div
-            class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
-            style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
-            transition:scale={{ duration: 150, start: 0.95 }}
-        >
-            <button
-                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-                onclick={() => {
-                    addToQueue(activeSong);
-                    activeMenuSongId = null;
-                }}
-            >
-                <ListPlus size={16} /> Add to Queue
-            </button>
-
-            <button
-                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-                onclick={() => handleAddToPlaylist(activeSong)}
-            >
-                <Plus size={16} /> Add to Playlist
-            </button>
-
-            {#if context === "playlist"}
-                <button
-                    class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-red-500 flex items-center gap-2"
-                    onclick={() => handleRemoveFromPlaylist(activeSong)}
-                >
-                    <Trash2 size={16} /> Remove
-                </button>
-            {/if}
-
-            <div class="h-px bg-[var(--border-secondary)] my-1"></div>
-
-            {#if activeSong?.artistId}
-                <a
-                    href={resolve(`/artist/${activeSong.artistId}`)}
-                    class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-                >
-                    <User size={16} /> Go to Artist
-                </a>
-            {/if}
-
-            {#if activeSong?.albumId}
-                <a
-                    href={resolve(`/album/${activeSong.albumId}`)}
-                    class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-                >
-                    <Album size={16} /> Go to Album
-                </a>
-            {/if}
-        </div>
-    {/if}
 </div>
+
+{#if activeMenuSongId}
+    {@const activeSong = songs.find((s) => s.id === activeMenuSongId)}
+
+    <div
+        class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
+        style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
+        transition:scale={{ duration: 150, start: 0.95 }}
+    >
+        <button
+            class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+            onclick={() => {
+                addToQueue(activeSong);
+                activeMenuSongId = null;
+            }}
+        >
+            <ListPlus size={16} /> Add to Queue
+        </button>
+
+        <button
+            class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+            onclick={() => handleAddToPlaylist(activeSong)}
+        >
+            <Plus size={16} /> Add to Playlist
+        </button>
+
+        {#if context === "playlist"}
+            <button
+                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-red-500 flex items-center gap-2"
+                onclick={() => handleRemoveFromPlaylist(activeSong)}
+            >
+                <Trash2 size={16} /> Remove
+            </button>
+        {/if}
+
+        <div class="h-px bg-[var(--border-secondary)] my-1"></div>
+
+        {#if activeSong?.artistId}
+            <a
+                href={resolve(`/artist/${activeSong.artistId}`)}
+                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+            >
+                <User size={16} /> Go to Artist
+            </a>
+        {/if}
+
+        {#if activeSong?.albumId}
+            <a
+                href={resolve(`/album/${activeSong.albumId}`)}
+                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+            >
+                <Album size={16} /> Go to Album
+            </a>
+        {/if}
+    </div>
+{/if}
 
 <style>
     .song-grid {
         display: grid;
-        grid-template-columns: 3rem 1fr auto; /* Mobile Layout */
+        /* Use the calculated columns for ALL devices */
+        grid-template-columns: var(--desktop-cols);
+        gap: 0.5rem; /* Smaller gap on mobile */
+        align-items: center;
     }
 
     @media (min-width: 768px) {
         .song-grid {
-            grid-template-columns: var(--desktop-cols); /* Desktop Layout */
+            /* Larger gap on desktop */
+            gap: 1rem;
         }
     }
 </style>
