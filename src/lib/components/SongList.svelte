@@ -23,6 +23,9 @@
         User,
         Album,
         ListPlus,
+        ArrowUp,
+        ArrowDown,
+        Search,
     } from "lucide-svelte";
     import { slide, fade, scale } from "svelte/transition";
 
@@ -35,7 +38,7 @@
 
     /** @type {any[]} */
     export let songs = [];
-    /** @type {'album' | 'artist' | 'playlist' | 'showAll' | 'favorites'} */
+    /** @type {'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'songs'} */
     export let context = "playlist";
     /** @type {number} */
     export let limit = 0;
@@ -45,9 +48,15 @@
     /** @type {string|null} */
     export let contextName = null;
 
+    // --- SORTING & FILTERING STATE ---
+    let sortField = "original"; // 'original' means no sorting (respects track order/server order)
+    let sortDirection = "asc";
+    let localSearchQuery = "";
+
     const dispatch = createEventDispatcher();
 
     // Column definitions
+    // Columns Configuration
     const ALL_COLUMNS = [
         { id: "track", label: "#", alwaysVisible: true, sortable: true },
         { id: "title", label: "Title", alwaysVisible: true, sortable: true },
@@ -59,7 +68,7 @@
             label: "Quality",
             alwaysVisible: false,
             sortable: true,
-        }, // Bit depth / Samplerate
+        },
         {
             id: "bitrate",
             label: "Bitrate",
@@ -74,6 +83,7 @@
             alwaysVisible: false,
             sortable: true,
         },
+        { id: "bpm", label: "BPM", alwaysVisible: false, sortable: true },
         {
             id: "duration",
             label: "",
@@ -86,7 +96,7 @@
             label: "",
             icon: Heart,
             alwaysVisible: true,
-            sortable: false,
+            sortable: true,
         },
         {
             id: "options",
@@ -98,40 +108,98 @@
     ];
 
     // Determine default visible columns based on context
-    let visibleColumnIds = [
-        "track",
-        "title",
-        "duration",
-        "starred",
-        "year",
-        "quality",
-        "bitrate",
-        "format",
-        "genre",
-        "playCount",
-        "options",
-    ];
+    // Default Visible Columns
+    let visibleColumnIds = ["track", "title", "duration", "starred", "options"];
 
-    // Basic Logic for defaults
-    if (context !== "album") {
-        visibleColumnIds.push("album");
-    }
-    if (context !== "artist") {
-        visibleColumnIds.push("artist");
+    // Add context-specific columns
+    if (context !== "album") visibleColumnIds.splice(2, 0, "album");
+    if (context !== "artist") visibleColumnIds.splice(2, 0, "artist");
+    // Add extra details for the big lists
+    if (context === "songs" || context === "playlist") {
+        visibleColumnIds = [...visibleColumnIds, "year", "genre"];
     }
 
     // Helper to check visibility
     $: isColumnVisible = (/** @type {string} */ id) =>
         visibleColumnIds.includes(id);
 
-    $: displayedSongs = limit > 0 ? songs.slice(0, limit) : songs;
+    // --- SORT & FILTER LOGIC ---
+    /** @param {string} field */
+    function handleSort(field) {
+        if (!ALL_COLUMNS.find((c) => c.id === field)?.sortable) return;
 
+        if (sortField === field) {
+            // Cycle: asc -> desc -> original
+            if (sortDirection === "asc") sortDirection = "desc";
+            else {
+                sortField = "original";
+                sortDirection = "asc";
+            }
+        } else {
+            sortField = field;
+            sortDirection = "asc";
+        }
+    }
+
+    $: processedSongs = (() => {
+        let result = [...songs];
+
+        // 1. Filter
+        if (localSearchQuery.trim()) {
+            const q = localSearchQuery.toLowerCase();
+            result = result.filter(
+                (s) =>
+                    (s.title || "").toLowerCase().includes(q) ||
+                    (s.artist || "").toLowerCase().includes(q) ||
+                    (s.album || "").toLowerCase().includes(q),
+            );
+        }
+
+        // 2. Sort
+        if (sortField !== "original") {
+            result.sort((a, b) => {
+                let valA = a[sortField];
+                let valB = b[sortField];
+
+                // Handle specific cases
+                if (sortField === "quality")
+                    valA = (a.bitDepth || 0) + (a.samplingRate || 0);
+                if (sortField === "quality")
+                    valB = (b.bitDepth || 0) + (b.samplingRate || 0);
+                if (sortField === "starred") valA = a.starred ? 1 : 0;
+                if (sortField === "starred") valB = b.starred ? 1 : 0;
+
+                // String comparison
+                if (typeof valA === "string") valA = valA.toLowerCase();
+                if (typeof valB === "string") valB = valB.toLowerCase();
+
+                if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+                if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+                return 0;
+            });
+        }
+
+        // 3. Limit
+        if (limit > 0) {
+            result = result.slice(0, limit);
+        }
+
+        return result;
+    })();
+
+    // Only group by disc if we are in Album context AND NOT sorting/searching
     $: useDiscGrouping =
-        context === "album" && displayedSongs.some((s) => s.discNumber > 1);
+        context === "album" &&
+        sortField === "original" &&
+        !localSearchQuery &&
+        processedSongs.some((s) => s.discNumber > 1);
 
     $: groupedSongs = useDiscGrouping
-        ? displayedSongs.reduce((acc, song, index) => {
-              song.globalIndex = index;
+        ? processedSongs.reduce((acc, song, index) => {
+              // Preserve original global index for playback context
+              const originalIndex = songs.findIndex((s) => s.id === song.id);
+              song.globalIndex = originalIndex !== -1 ? originalIndex : index;
+
               const disc = song.discNumber || 1;
               let lastGroup = acc[acc.length - 1];
               if (!lastGroup || lastGroup.disc !== disc) {
@@ -144,26 +212,85 @@
         : [
               {
                   disc: 1,
-                  songs: displayedSongs.map((s, i) => ({
-                      ...s,
-                      globalIndex: i,
-                  })),
+                  songs: processedSongs.map((s, i) => {
+                      const originalIndex = songs.findIndex(
+                          (raw) => raw.id === s.id,
+                      );
+                      return {
+                          ...s,
+                          globalIndex: originalIndex !== -1 ? originalIndex : i,
+                      };
+                  }),
               },
           ];
 
-    /** @param {number} index */
-    function playSong(index) {
-        if (songs) {
-            /** @type {null | { type: string, id: string, name: string }} */
-            let queueContext = null;
-            if (contextId && contextName) {
-                queueContext = {
+    /**
+     * Handles row clicks safely, ignoring clicks on interactive elements like buttons/links
+     * @param {MouseEvent} e
+     * @param {any} song
+     */
+    function handleRowClick(e, song) {
+        // Safe cast: assert that target is an HTMLElement so we can use .closest()
+        const target = /** @type {HTMLElement} */ (e.target);
+
+        // If the click was on a button or link (or their children), do nothing
+        if (target && (target.closest("a") || target.closest("button"))) {
+            return;
+        }
+
+        playSong(song);
+    }
+
+    // --- PLAYBACK & ACTIONS ---
+    /** @param {any} song */
+    function playSong(song) {
+        // We pass the FULL original list to the player, but start at the clicked song's index
+        // If sorting is active, the queue experience might feel jumpy if we play the 'sorted' index against the 'original' list.
+        // Better UX: Play the filtered/sorted view as a *new* ad-hoc queue.
+
+        if (sortField !== "original" || localSearchQuery) {
+            // Play the VISIBLE list
+            playQueue(
+                processedSongs,
+                processedSongs.findIndex((s) => s.id === song.id),
+                {
                     type: context,
-                    id: contextId,
-                    name: contextName,
-                };
+                    id: contextId || "sorted",
+                    name: contextName || "Sorted List",
+                },
+            );
+        } else {
+            // Play the original context
+            playQueue(songs, song.globalIndex, {
+                type: context,
+                // Fixed: Ensure string types
+                id: contextId || "",
+                name: contextName || "",
+            });
+        }
+    }
+
+    // --- DND HANDLERS (Disable when sorted) ---
+    /** @param {any} e */
+    function handleDndConsider(e) {
+        if (sortField === "original" && !localSearchQuery)
+            songs = e.detail.items;
+    }
+    /** @param {any} e */
+    async function handleDndFinalize(e) {
+        if (sortField === "original" && !localSearchQuery) {
+            songs = e.detail.items;
+            if (context === "playlist" && contextId) {
+                try {
+                    await reorderPlaylist(
+                        contextId,
+                        songs.map((s) => s.id),
+                    );
+                    dispatch("playlistUpdated");
+                } catch (err) {
+                    console.error("Failed to reorder playlist:", err);
+                }
             }
-            playQueue(songs, index, queueContext);
         }
     }
 
@@ -368,30 +495,6 @@
         if (activeMenuSongId) closeMenu();
     }
 
-    /** @param {CustomEvent<any>} e */
-    function handleDndConsider(e) {
-        songs = e.detail.items;
-    }
-
-    /** @param {CustomEvent<any>} e */
-    async function handleDndFinalize(e) {
-        songs = e.detail.items;
-        if (context === "playlist" && contextId) {
-            // Optimistic update done, now save
-            try {
-                // @ts-ignore
-                await reorderPlaylist(
-                    contextId,
-                    songs.map((s) => s.id),
-                );
-                // Notify parent to refresh if needed (e.g. sidebar)
-                dispatch("playlistUpdated");
-            } catch (err) {
-                console.error("Failed to reorder playlist:", err);
-            }
-        }
-    }
-
     /** @param {any} song */
     function handleAddToPlaylist(song) {
         songToAdd = song;
@@ -432,105 +535,123 @@
 />
 
 <div
-    class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80"
+    class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl overflow-hidden border border-[var(--border-primary)]"
 >
-    <!-- Options Header -->
-    <div class="flex justify-end mb-2 px-4 relative">
+    <div
+        class="flex flex-col sm:flex-row justify-between items-center p-4 border-b border-[var(--border-primary)] gap-4"
+    >
+        <div class="relative w-full sm:w-64">
+            <Search
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
+                size={16}
+            />
+            <input
+                type="text"
+                bind:value={localSearchQuery}
+                placeholder="Filter current view..."
+                class="w-full bg-[var(--bg-input)] border border-[var(--border-secondary)] rounded-full py-1.5 pl-9 pr-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+            />
+        </div>
+
         <button
-            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-2 text-xs uppercase font-bold tracking-wider transition-colors"
+            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-2 text-xs uppercase font-bold tracking-wider transition-colors ml-auto"
             onclick={() => (showColumnSelector = !showColumnSelector)}
         >
             <Settings2 size={16} />
-            <span>Customize</span>
+            <span class="hidden sm:inline">Customize</span>
         </button>
-
-        {#if showColumnSelector}
-            <div
-                transition:slide={{ duration: 200 }}
-                class="absolute right-4 top-8 z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl p-4 min-w-[200px]"
-            >
-                <div
-                    class="text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider"
-                >
-                    Visible Columns
-                </div>
-                <div class="flex flex-col gap-2">
-                    {#each ALL_COLUMNS.filter((c) => !c.alwaysVisible) as col}
-                        <button
-                            class="flex items-center gap-2 text-sm text-left hover:bg-[var(--bg-hover)] p-2 rounded transition-colors"
-                            onclick={() => toggleColumn(col.id)}
-                        >
-                            <div
-                                class="w-4 h-4 border border-[var(--border-secondary)] rounded flex items-center justify-center {isColumnVisible(
-                                    col.id,
-                                )
-                                    ? 'bg-[var(--accent)] border-[var(--accent)]'
-                                    : ''}"
-                            >
-                                {#if isColumnVisible(col.id)}
-                                    <Check size={12} class="text-black" />
-                                {/if}
-                            </div>
-                            <span
-                                class={isColumnVisible(col.id)
-                                    ? "text-[var(--text-primary)]"
-                                    : "text-[var(--text-secondary)]"}
-                                >{col.label || col.id}</span
-                            >
-                        </button>
-                    {/each}
-                </div>
-            </div>
-        {/if}
     </div>
 
-    <!-- Header Row -->
+    {#if showColumnSelector}
+        <div
+            transition:slide={{ duration: 200 }}
+            class="absolute right-4 top-16 z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl p-4 min-w-[200px]"
+        >
+            <div
+                class="text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase"
+            >
+                Columns
+            </div>
+            <div class="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                {#each ALL_COLUMNS.filter((c) => !c.alwaysVisible) as col}
+                    <button
+                        class="flex items-center gap-2 text-sm text-left hover:bg-[var(--bg-hover)] p-2 rounded"
+                        onclick={() => toggleColumn(col.id)}
+                    >
+                        <div
+                            class="w-4 h-4 border border-[var(--border-secondary)] rounded flex items-center justify-center {isColumnVisible(
+                                col.id,
+                            )
+                                ? 'bg-[var(--accent)] border-[var(--accent)]'
+                                : ''}"
+                        >
+                            {#if isColumnVisible(col.id)}<Check
+                                    size={12}
+                                    class="text-black"
+                                />{/if}
+                        </div>
+                        <span
+                            class={isColumnVisible(col.id)
+                                ? "text-[var(--text-primary)]"
+                                : "text-[var(--text-secondary)]"}
+                            >{col.label}</span
+                        >
+                    </button>
+                {/each}
+            </div>
+        </div>
+    {/if}
+
     <div
-        class="song-grid gap-4 px-4 py-2 text-sm text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center"
+        class="song-grid gap-4 px-4 py-3 text-xs text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center font-semibold bg-[var(--bg-card)]/50 select-none"
         style="--desktop-cols: {desktopGridColumns};"
     >
         {#if context === "playlist"}<span class="text-center"></span>{/if}
-        {#if isColumnVisible("track")}<span class="text-center">#</span>{/if}
-        <span>Title</span>
-        {#if isColumnVisible("artist")}<span class="hidden md:block"
-                >Artist</span
-            >{/if}
-        {#if isColumnVisible("album")}<span class="hidden md:block">Album</span
-            >{/if}
-        {#if isColumnVisible("year")}<span class="hidden md:block">Year</span
-            >{/if}
-        {#if isColumnVisible("quality")}<span class="hidden md:block"
-                >Quality</span
-            >{/if}
-        {#if isColumnVisible("bitrate")}<span class="hidden md:block"
-                >Bitrate</span
-            >{/if}
-        {#if isColumnVisible("format")}<span class="hidden md:block"
-                >Format</span
-            >{/if}
-        {#if isColumnVisible("genre")}<span class="hidden md:block">Genre</span
-            >{/if}
-        {#if isColumnVisible("playCount")}<span
-                class="hidden md:block text-right">Plays</span
-            >{/if}
-        {#if isColumnVisible("starred")}<span
-                class="text-center hidden md:block"><Heart size={16} /></span
-            >{/if}
-        {#if isColumnVisible("duration")}
-            <span class="text-right flex justify-end"><Clock size={16} /></span
-            >{/if}
-        {#if isColumnVisible("options")}
-            <span class="text-center"></span>
-        {/if}
+
+        {#each ALL_COLUMNS as col}
+            {#if isColumnVisible(col.id)}
+                <div
+                    class="flex items-center gap-1 {col.id === 'track' ||
+                    col.id === 'starred' ||
+                    col.id === 'options'
+                        ? 'justify-center'
+                        : ''} {col.id === 'duration' || col.id === 'playCount'
+                        ? 'justify-end'
+                        : ''} {col.sortable
+                        ? 'cursor-pointer hover:text-[var(--text-primary)]'
+                        : ''}"
+                    onclick={() => handleSort(col.id)}
+                    role="button"
+                    tabindex="0"
+                    onkeydown={() => handleSort(col.id)}
+                >
+                    {#if col.icon}
+                        <svelte:component this={col.icon} size={16} />
+                    {:else}
+                        {col.label}
+                    {/if}
+
+                    {#if sortField === col.id}
+                        {#if sortDirection === "asc"}
+                            <ArrowUp size={12} class="text-[var(--accent)]" />
+                        {:else}
+                            <ArrowDown size={12} class="text-[var(--accent)]" />
+                        {/if}
+                    {/if}
+                </div>
+            {/if}
+        {/each}
     </div>
 
-    <!-- Rows -->
     <div
-        class="mt-2"
+        class="flex flex-col"
         use:dndzone={{
-            items: songs,
+            items: processedSongs, // Use processedSongs for dnd to keep visual sync, but updates happen on 'songs'
             flipDurationMs: 300,
-            dragDisabled: context !== "playlist",
+            dragDisabled:
+                context !== "playlist" ||
+                sortField !== "original" ||
+                localSearchQuery !== "",
             dropTargetStyle: {},
         }}
         onconsider={handleDndConsider}
@@ -539,51 +660,40 @@
         {#each groupedSongs as group (group.disc)}
             {#if useDiscGrouping && groupedSongs.length > 1}
                 <div
-                    class="flex items-center gap-2 px-4 py-3 mt-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider bg-white/5 rounded-md"
+                    class="flex items-center gap-2 px-4 py-2 bg-[var(--bg-main)]/50 text-xs font-bold text-[var(--text-secondary)] uppercase border-b border-[var(--border-primary)]"
                 >
-                    <Disc size={16} />
-                    <span>Disc {group.disc}</span>
+                    <Disc size={14} /> <span>Disc {group.disc}</span>
                 </div>
             {/if}
 
-            {#each group.songs as song, i (`${song.id}-${i}`)}
+            {#each group.songs as song (song.id)}
                 <div
                     role="button"
                     tabindex="0"
                     animate:flip={{ duration: 300 }}
                     onkeydown={(e) =>
-                        (e.key === "Enter" || e.key === " ") &&
-                        playSong(song.globalIndex)}
-                    onclick={(e) => {
-                        // Prevent row click when clicking links or buttons
-                        if (
-                            e.target instanceof Element &&
-                            (e.target.closest("a") ||
-                                e.target.closest("button"))
-                        )
-                            return;
-                        playSong(song.globalIndex);
-                    }}
-                    class="w-full song-grid gap-4 px-4 py-3 text-left items-center rounded-md hover:bg-[var(--bg-hover)] group transition-colors text-sm cursor-pointer
+                        (e.key === "Enter" || e.key === " ") && playSong(song)}
+                    onclick={(e) => handleRowClick(e, song)}
+                    class="w-full song-grid gap-4 px-4 py-2.5 text-left items-center hover:bg-[var(--bg-hover)] group transition-colors text-sm cursor-pointer border-b border-[var(--border-secondary)]/50 last:border-0
                     {$currentTrack?.id === song.id
-                        ? 'text-[var(--accent)] bg-white/5'
+                        ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
                         : 'text-[var(--text-secondary)]'}"
                     style="--desktop-cols: {desktopGridColumns};"
                 >
-                    <!-- Drag Handle -->
                     {#if context === "playlist"}
                         <div
-                            class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)] flex justify-center"
-                            aria-label="drag-handle"
+                            class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)] flex justify-center {sortField !==
+                                'original' || localSearchQuery
+                                ? 'opacity-20 cursor-not-allowed'
+                                : ''}"
                         >
                             <GripVertical size={16} />
                         </div>
                     {/if}
 
-                    <!-- Track # / Play Indicator -->
                     {#if isColumnVisible("track")}
                         <span
-                            class="text-center text-[var(--text-muted)] group-hover:text-[var(--text-primary)] flex justify-center"
+                            class="text-center flex justify-center text-[var(--text-muted)] w-full"
                         >
                             {#if $currentTrack?.id === song.id && $isPlaying}
                                 <Music
@@ -594,171 +704,110 @@
                                 <span class="group-hover:hidden"
                                     >{getTrackNumber(song)}</span
                                 >
-                                <span class="hidden group-hover:block"
-                                    ><Play
-                                        size={16}
-                                        class="fill-[var(--text-primary)]"
-                                    /></span
-                                >
+                                <Play
+                                    size={16}
+                                    class="hidden group-hover:block fill-current"
+                                />
                             {/if}
                         </span>
                     {/if}
 
-                    <!-- Title -->
                     <div class="flex flex-col overflow-hidden">
                         <span
                             class="font-medium truncate text-base {$currentTrack?.id ===
                             song.id
                                 ? 'text-[var(--accent)]'
                                 : 'text-[var(--text-primary)]'}"
+                            >{song.title}</span
                         >
-                            {song.title}
-                        </span>
-                        <!-- Show Artist/Album on mobile if hidden from columns -->
-                        <div class="flex gap-2 md:hidden">
-                            <div
-                                class="text-xs text-[var(--text-muted)] truncate flex items-center"
-                            >
-                                {#each parseArtistString(song.artist, song.artistId, song.artists) as part}
-                                    {#if part.type === "artist"}
-                                        <a
-                                            href={part.id
-                                                ? resolve(`/artist/${part.id}`)
-                                                : resolve("/search") +
-                                                  `?q=${encodeURIComponent(part.name)}`}
-                                            class="hover:text-[var(--text-primary)] hover:underline"
-                                        >
-                                            {part.name}
-                                        </a>
-                                    {:else}
-                                        <span>{part.name}</span>
-                                    {/if}
-                                {/each}
-                            </div>
+
+                        <div
+                            class="flex gap-2 md:hidden text-xs text-[var(--text-muted)] truncate items-center mt-0.5"
+                        >
+                            <span class="truncate">{song.artist}</span>
                             {#if song.album && context !== "album"}
-                                <span class="text-xs text-[var(--text-muted)]"
-                                    >•</span
-                                >
-                                <span
-                                    class="text-xs text-[var(--text-muted)] truncate"
-                                    >{song.album}</span
-                                >
+                                <span>•</span>
+                                <span class="truncate">{song.album}</span>
                             {/if}
                         </div>
                     </div>
 
-                    <!-- Artist -->
                     {#if isColumnVisible("artist")}
-                        <div
-                            class="truncate hidden md:block text-[var(--text-secondary)] z-10 w-full"
-                        >
-                            {#each parseArtistString(song.artist, song.artistId, song.artists) as part}
-                                {#if part.type === "artist"}
-                                    <a
-                                        href={part.id
-                                            ? resolve(`/artist/${part.id}`)
-                                            : resolve("/search") +
-                                              `?q=${encodeURIComponent(part.name)}`}
-                                        class="hover:text-[var(--text-primary)] hover:underline"
-                                    >
-                                        {part.name}
-                                    </a>
-                                {:else}
-                                    <span class="text-[var(--text-muted)]"
-                                        >{part.name}</span
-                                    >
-                                {/if}
-                            {/each}
+                        <div class="truncate hidden md:block z-10">
+                            <a
+                                href={resolve(`/artist/${song.artistId}`)}
+                                class="hover:text-[var(--text-primary)] hover:underline"
+                                >{song.artist}</a
+                            >
                         </div>
                     {/if}
 
-                    <!-- Album -->
                     {#if isColumnVisible("album")}
-                        <a
-                            href={resolve(`/album/${song.albumId}`)}
-                            class="truncate text-[var(--text-secondary)] hidden md:block hover:text-[var(--text-primary)] hover:underline z-10"
-                        >
-                            {song.album}
-                        </a>
-                    {/if}
-
-                    <!-- Year -->
-                    {#if isColumnVisible("year")}
-                        <span class="text-[var(--text-muted)] hidden md:block"
-                            >{song.year || "-"}</span
-                        >
-                    {/if}
-
-                    <!-- Quality -->
-                    {#if isColumnVisible("quality")}
-                        <span
-                            class="text-[var(--text-muted)] text-xs font-mono hidden md:block"
-                            >{formatQuality(song)}</span
-                        >
-                    {/if}
-
-                    <!-- Bitrate -->
-                    {#if isColumnVisible("bitrate")}
-                        <span
-                            class="text-[var(--text-muted)] text-xs font-mono hidden md:block"
-                            >{formatBitrate(song.bitRate)}</span
-                        >
-                    {/if}
-
-                    <!-- Format -->
-                    {#if isColumnVisible("format")}
-                        <span
-                            class="text-[var(--text-muted)] uppercase text-xs hidden md:block"
-                            >{song.suffix || ""}</span
-                        >
-                    {/if}
-
-                    <!-- Genre -->
-                    {#if isColumnVisible("genre")}
-                        <span
-                            class="truncate text-[var(--text-muted)] hidden md:block"
-                            >{song.genre || "-"}</span
-                        >
-                    {/if}
-
-                    <!-- Play Count -->
-                    {#if isColumnVisible("playCount")}
-                        <span
-                            class="text-[var(--text-muted)] text-xs font-mono hidden md:block text-right pr-2"
-                            >{song.playCount || 0}</span
-                        >
-                    {/if}
-
-                    <!-- Favorite -->
-                    {#if isColumnVisible("starred")}
-                        <!-- svelte-ignore a11y_click_events_have_key_events -->
-                        <!-- svelte-ignore a11y_no_static_element_interactions -->
-                        <div
-                            onclick={(e) => toggleFavorite(song, e)}
-                            class="justify-center items-center text-[var(--text-muted)] hover:text-red-500 transition-colors cursor-pointer hidden md:flex"
-                        >
-                            <Heart
-                                size={16}
-                                class={song.starred
-                                    ? "text-red-500 fill-red-500"
-                                    : ""}
-                            />
+                        <div class="truncate hidden md:block z-10">
+                            <a
+                                href={resolve(`/album/${song.albumId}`)}
+                                class="hover:text-[var(--text-primary)] hover:underline"
+                                >{song.album}</a
+                            >
                         </div>
                     {/if}
 
-                    <!-- Duration -->
+                    {#if isColumnVisible("year")}<span
+                            class="hidden md:block text-[var(--text-muted)]"
+                            >{song.year || "-"}</span
+                        >{/if}
+                    {#if isColumnVisible("quality")}<span
+                            class="hidden md:block text-[var(--text-muted)] text-xs"
+                            >{formatQuality(song)}</span
+                        >{/if}
+                    {#if isColumnVisible("bitrate")}<span
+                            class="hidden md:block text-[var(--text-muted)] text-xs"
+                            >{formatBitrate(song.bitRate)}</span
+                        >{/if}
+                    {#if isColumnVisible("format")}<span
+                            class="hidden md:block text-[var(--text-muted)] text-xs uppercase"
+                            >{song.suffix || ""}</span
+                        >{/if}
+                    {#if isColumnVisible("genre")}<span
+                            class="hidden md:block text-[var(--text-muted)] truncate"
+                            >{song.genre || "-"}</span
+                        >{/if}
+                    {#if isColumnVisible("playCount")}<span
+                            class="hidden md:block text-[var(--text-muted)] text-right"
+                            >{song.playCount || 0}</span
+                        >{/if}
+                    {#if isColumnVisible("bpm")}<span
+                            class="hidden md:block text-[var(--text-muted)] text-right"
+                            >{song.bpm || "-"}</span
+                        >{/if}
+
+                    {#if isColumnVisible("starred")}
+                        <div class="hidden md:flex justify-center">
+                            <button
+                                class="hover:scale-110 transition-transform"
+                                onclick={(e) => toggleFavorite(song, e)}
+                            >
+                                <Heart
+                                    size={16}
+                                    class={song.starred
+                                        ? "text-red-500 fill-red-500"
+                                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}
+                                />
+                            </button>
+                        </div>
+                    {/if}
+
                     {#if isColumnVisible("duration")}
                         <span
-                            class="text-[var(--text-muted)] font-mono text-right"
+                            class="text-right font-mono text-[var(--text-muted)]"
                             >{formatDuration(song.duration)}</span
                         >
                     {/if}
 
-                    <!-- Options -->
                     {#if isColumnVisible("options")}
-                        <div class="flex justify-end relative">
+                        <div class="flex justify-end">
                             <button
-                                class="p-1.5 rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors opacity-100 md:opacity-0 group-hover:opacity-100"
+                                class="p-1.5 rounded-full hover:bg-[var(--bg-active)] text-[var(--text-muted)] hover:text-[var(--text-primary)] opacity-100 md:opacity-0 group-hover:opacity-100 transition-all"
                                 onclick={(e) => openMenu(e, song)}
                             >
                                 <MoreVertical size={16} />
@@ -769,94 +818,73 @@
             {/each}
         {/each}
     </div>
-</div>
 
-<!-- Context Menu  Add to Playlist, Remove from Playlist, Go to Artist, Go to Album, Add to Queue modal-->
-{#if activeMenuSongId}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-        class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
-        style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
-        transition:scale={{ duration: 150, start: 0.95 }}
-    >
-        <!-- Add to Queue -->
-        <button
-            class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
-            onclick={() => {
-                addToQueue(songs.find((s) => s.id === activeMenuSongId));
-                closeMenu();
-            }}
+    {#if activeMenuSongId}
+        {@const activeSong = songs.find((s) => s.id === activeMenuSongId)}
+
+        <div
+            class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
+            style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
+            transition:scale={{ duration: 150, start: 0.95 }}
         >
-            <ListPlus size={16} />
-            Add to Queue
-        </button>
-
-        <!-- Add to Playlist -->
-        <button
-            class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
-            onclick={() =>
-                handleAddToPlaylist(
-                    songs.find((s) => s.id === activeMenuSongId),
-                )}
-        >
-            <Plus size={16} />
-            Add to Playlist
-        </button>
-
-        <!-- Remove from Playlist (Context Dependent) -->
-        {#if context === "playlist"}
             <button
-                class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2"
-                onclick={() =>
-                    handleRemoveFromPlaylist(
-                        songs.find((s) => s.id === activeMenuSongId),
-                    )}
+                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+                onclick={() => {
+                    addToQueue(activeSong);
+                    activeMenuSongId = null;
+                }}
             >
-                <Trash2 size={16} />
-                Remove from Playlist
+                <ListPlus size={16} /> Add to Queue
             </button>
-        {/if}
 
-        <div class="h-px bg-[var(--border-secondary)] my-1 mx-2"></div>
+            <button
+                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+                onclick={() => handleAddToPlaylist(activeSong)}
+            >
+                <Plus size={16} /> Add to Playlist
+            </button>
 
-        <!-- Go to Artist -->
-        {#if activeMenuSong}
-            {#if activeMenuSong.artistId}
-                <a
-                    href={resolve(`/artist/${activeMenuSong.artistId}`)}
-                    class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
-                    onclick={closeMenu}
+            {#if context === "playlist"}
+                <button
+                    class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-red-500 flex items-center gap-2"
+                    onclick={() => handleRemoveFromPlaylist(activeSong)}
                 >
-                    <User size={16} />
-                    Go to Artist
+                    <Trash2 size={16} /> Remove
+                </button>
+            {/if}
+
+            <div class="h-px bg-[var(--border-secondary)] my-1"></div>
+
+            {#if activeSong?.artistId}
+                <a
+                    href={resolve(`/artist/${activeSong.artistId}`)}
+                    class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+                >
+                    <User size={16} /> Go to Artist
                 </a>
             {/if}
 
-            <!-- Go to Album -->
-            {#if activeMenuSong.albumId}
+            {#if activeSong?.albumId}
                 <a
-                    href={resolve(`/album/${activeMenuSong.albumId}`)}
-                    class="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2"
-                    onclick={closeMenu}
+                    href={resolve(`/album/${activeSong.albumId}`)}
+                    class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
                 >
-                    <Album size={16} />
-                    Go to Album
+                    <Album size={16} /> Go to Album
                 </a>
             {/if}
-        {/if}
-    </div>
-{/if}
+        </div>
+    {/if}
+</div>
 
 <style>
     .song-grid {
         display: grid;
-        grid-template-columns: 3rem 1fr auto;
+        grid-template-columns: 3rem 1fr auto; /* Mobile Layout */
     }
 
     @media (min-width: 768px) {
         .song-grid {
-            grid-template-columns: var(--desktop-cols);
+            grid-template-columns: var(--desktop-cols); /* Desktop Layout */
         }
     }
 </style>
