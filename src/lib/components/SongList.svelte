@@ -35,6 +35,7 @@
     import { reorderPlaylist } from "../subsonic.js";
     import { GripVertical } from "lucide-svelte";
     import { resolve } from "$app/paths";
+    import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
     /** @type {any[]} */
     export let songs = [];
@@ -85,19 +86,20 @@
         },
         { id: "bpm", label: "BPM", alwaysVisible: false, sortable: true },
         {
-            id: "duration",
-            label: "",
-            icon: Clock,
-            alwaysVisible: true,
-            sortable: true,
-        },
-        {
             id: "starred",
             label: "",
             icon: Heart,
             alwaysVisible: true,
             sortable: true,
         },
+        {
+            id: "duration",
+            label: "",
+            icon: Clock,
+            alwaysVisible: true,
+            sortable: true,
+        },
+
         {
             id: "options",
             label: "",
@@ -107,9 +109,34 @@
         },
     ];
 
-    // Determine default visible columns based on context
     // Default Visible Columns
-    let visibleColumnIds = ["track", "title", "duration", "starred", "options"];
+    // Determine default visible columns based on device type
+    /**
+     * @type {string[]}
+     */
+    let visibleColumnIds = [];
+    if (isMobileDevice()) {
+        visibleColumnIds = [
+            "track",
+            "title",
+            "duration",
+            "starred",
+            "playCount",
+            "options",
+        ];
+    } else {
+        visibleColumnIds = [
+            "track",
+            "title",
+            "duration",
+            "starred",
+            "format",
+            "bitrate",
+            "quality",
+            "playCount",
+            "options",
+        ];
+    }
 
     // Add context-specific columns
     if (context !== "album") visibleColumnIds.splice(2, 0, "album");
