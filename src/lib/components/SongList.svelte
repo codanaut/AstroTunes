@@ -49,6 +49,8 @@
     /** @type {string|null} */
     export let contextName = null;
 
+    export let showToolbar = true;
+
     // --- SORTING & FILTERING STATE ---
     let sortField = "original"; // 'original' means no sorting (respects track order/server order)
     let sortDirection = "asc";
@@ -433,8 +435,10 @@
         }
     }
 
-    let windowWidth = 1024; // Default to desktop until mounted
-    $: isMobile = windowWidth < 768;
+    let containerWidth = 1024; // Default to wide to prevent flash
+
+    // If the container (not the window) is smaller than 768px, switch to mobile view
+    $: isMobile = containerWidth < 768;
 
     // 2. Define columns that should NEVER show on mobile (even if enabled)
     // Note: We hide 'artist' and 'album' here because they are shown under the Title on mobile
@@ -574,7 +578,7 @@
 </script>
 
 <svelte:window
-    bind:innerWidth={windowWidth}
+    bind:innerWidth={containerWidth}
     onclick={() => (activeMenuSongId = null)}
 />
 
@@ -591,71 +595,74 @@
 />
 
 <div
+    bind:clientWidth={containerWidth}
     class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl overflow-hidden border border-[var(--border-primary)]"
 >
-    <div
-        class="flex flex-col sm:flex-row justify-between items-center p-4 border-b border-[var(--border-primary)] gap-4"
-    >
-        <div class="relative w-full sm:w-64">
-            <Search
-                class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
-                size={16}
-            />
-            <input
-                type="text"
-                bind:value={localSearchQuery}
-                placeholder="Filter current view..."
-                class="w-full bg-[var(--bg-input)] border border-[var(--border-secondary)] rounded-full py-1.5 pl-9 pr-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
-            />
-        </div>
-
-        <button
-            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-2 text-xs uppercase font-bold tracking-wider transition-colors ml-auto"
-            onclick={() => (showColumnSelector = !showColumnSelector)}
-        >
-            <Settings2 size={16} />
-            <span class="hidden sm:inline">Customize</span>
-        </button>
-    </div>
-
-    {#if showColumnSelector}
+    {#if showToolbar}
         <div
-            transition:slide={{ duration: 200 }}
-            class="absolute right-4 top-16 z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl p-4 min-w-[200px]"
+            class="flex flex-col sm:flex-row justify-between items-center p-4 border-b border-[var(--border-primary)] gap-4"
         >
-            <div
-                class="text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase"
+            <div class="relative w-full sm:w-64">
+                <Search
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
+                    size={16}
+                />
+                <input
+                    type="text"
+                    bind:value={localSearchQuery}
+                    placeholder="Filter current view..."
+                    class="w-full bg-[var(--bg-input)] border border-[var(--border-secondary)] rounded-full py-1.5 pl-9 pr-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+                />
+            </div>
+
+            <button
+                class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-2 text-xs uppercase font-bold tracking-wider transition-colors ml-auto"
+                onclick={() => (showColumnSelector = !showColumnSelector)}
             >
-                Columns
-            </div>
-            <div class="flex flex-col gap-2 max-h-60 overflow-y-auto">
-                {#each ALL_COLUMNS.filter((c) => !c.alwaysVisible) as col}
-                    <button
-                        class="flex items-center gap-2 text-sm text-left hover:bg-[var(--bg-hover)] p-2 rounded"
-                        onclick={() => toggleColumn(col.id)}
-                    >
-                        <div
-                            class="w-4 h-4 border border-[var(--border-secondary)] rounded flex items-center justify-center {isColumnVisible(
-                                col.id,
-                            )
-                                ? 'bg-[var(--accent)] border-[var(--accent)]'
-                                : ''}"
-                        >
-                            {#if isColumnVisible(col.id)}<Check
-                                    size={12}
-                                    class="text-black"
-                                />{/if}
-                        </div>
-                        <span
-                            class={isColumnVisible(col.id)
-                                ? "text-[var(--text-primary)]"
-                                : "text-[var(--text-secondary)]"}
-                            >{col.label}</span
-                        >
-                    </button>
-                {/each}
-            </div>
+                <Settings2 size={16} />
+                <span class="hidden sm:inline">Customize</span>
+            </button>
         </div>
+
+        {#if showColumnSelector}
+            <div
+                transition:slide={{ duration: 200 }}
+                class="absolute right-4 top-16 z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl p-4 min-w-[200px]"
+            >
+                <div
+                    class="text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase"
+                >
+                    Columns
+                </div>
+                <div class="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                    {#each ALL_COLUMNS.filter((c) => !c.alwaysVisible) as col}
+                        <button
+                            class="flex items-center gap-2 text-sm text-left hover:bg-[var(--bg-hover)] p-2 rounded"
+                            onclick={() => toggleColumn(col.id)}
+                        >
+                            <div
+                                class="w-4 h-4 border border-[var(--border-secondary)] rounded flex items-center justify-center {isColumnVisible(
+                                    col.id,
+                                )
+                                    ? 'bg-[var(--accent)] border-[var(--accent)]'
+                                    : ''}"
+                            >
+                                {#if isColumnVisible(col.id)}<Check
+                                        size={12}
+                                        class="text-black"
+                                    />{/if}
+                            </div>
+                            <span
+                                class={isColumnVisible(col.id)
+                                    ? "text-[var(--text-primary)]"
+                                    : "text-[var(--text-secondary)]"}
+                                >{col.label}</span
+                            >
+                        </button>
+                    {/each}
+                </div>
+            </div>
+        {/if}
     {/if}
 
     <div

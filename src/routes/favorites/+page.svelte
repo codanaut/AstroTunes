@@ -128,6 +128,7 @@
             limit={10}
             contextId="all"
             contextName="Favorite Songs"
+            showToolbar={false}
         />
     </div>
 

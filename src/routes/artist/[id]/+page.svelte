@@ -332,6 +332,7 @@
           context="artist"
           contextId={artist.id}
           contextName={artist.name}
+          showToolbar={false}
         />
       </div>
     {/if}

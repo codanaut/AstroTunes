@@ -239,6 +239,7 @@
         context="album"
         contextId={album.id}
         contextName={album.title || album.name}
+        showToolbar={false}
       />
     </div>
   </div>
