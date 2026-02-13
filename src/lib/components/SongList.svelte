@@ -322,17 +322,42 @@
         event.stopPropagation();
         activeMenuSongId = song.id;
 
-        // Calculate position
-        const target = /** @type {HTMLElement} */ (event.target);
+        // 1. Get the specific button element (fixes the jitter/target issue too)
+        const target = /** @type {HTMLElement} */ (event.currentTarget);
         const rect = target.getBoundingClientRect();
+
+        // 2. Constants for safety
+        const menuWidth = 180; // Matches your min-w-[180px]
+        const menuHeight = 150; // Approx height
+        const screenPadding = 10; // Keep it away from the edge
+
+        // 3. Calculate X (Horizontal)
+        // Default: Align the right edge of the menu with the right edge of the button
+        let xPos = rect.right - menuWidth;
+
+        // Safety: If that pushes it off the left side of the screen, force it to the left edge padding
+        if (xPos < screenPadding) {
+            xPos = screenPadding;
+        }
+
+        // Safety: If it pushes off the right side, force it to the right edge padding
+        if (xPos + menuWidth > window.innerWidth) {
+            xPos = window.innerWidth - menuWidth - screenPadding;
+        }
+
+        // 4. Calculate Y (Vertical)
         const availableHeight = window.innerHeight - rect.bottom;
-        const menuHeight = 150; // Approx
+        let yPos;
 
         if (availableHeight < menuHeight) {
-            menuPosition = { x: rect.right - 180, y: rect.top - menuHeight };
+            // If not enough space below, show above
+            yPos = rect.top - menuHeight;
         } else {
-            menuPosition = { x: rect.right - 180, y: rect.bottom };
+            // Otherwise show below
+            yPos = rect.bottom;
         }
+
+        menuPosition = { x: xPos, y: yPos };
     }
 
     function closeMenu() {
@@ -746,7 +771,7 @@
     </div>
 </div>
 
-<!-- Context Menu -->
+<!-- Context Menu  Add to Playlist, Remove from Playlist, Go to Artist, Go to Album, Add to Queue modal-->
 {#if activeMenuSongId}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
