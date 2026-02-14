@@ -145,7 +145,7 @@
     if (context !== "artist") visibleColumnIds.splice(2, 0, "artist");
     // Add extra details for the big lists
     if (context === "songs" || context === "playlist") {
-        visibleColumnIds = [...visibleColumnIds, "year", "genre"];
+        visibleColumnIds = [...visibleColumnIds, "genre"];
     }
 
     // --- SORT & FILTER LOGIC ---
