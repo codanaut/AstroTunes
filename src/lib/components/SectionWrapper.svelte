@@ -172,30 +172,6 @@
         <ListLayout {items} {type} />
     {/if}
 
-    {#if !showAllLink && totalItems > 0 && baseUrl}
-        <div class="flex justify-center gap-2 mt-8">
-            <button
-                on:click={prevPage}
-                disabled={currentPage === 1}
-                class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-                <ChevronLeft size={20} />
-            </button>
-            <span
-                class="flex items-center px-2 text-[var(--text-secondary)] text-sm"
-            >
-                Page {currentPage} of {totalPages}
-            </span>
-            <button
-                on:click={nextPage}
-                disabled={currentPage >= totalPages}
-                class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-                <ChevronRight size={20} />
-            </button>
-        </div>
-    {/if}
-
     <!-- Bottom Pagination (if paginated) -->
     {#if !showAllLink && totalItems > 0 && baseUrl}
         <div class="flex justify-center gap-2 mt-8">
