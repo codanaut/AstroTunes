@@ -11,6 +11,7 @@
     import FeaturedLayout from "./layouts/FeaturedLayout.svelte";
     import StandardGrid from "./layouts/StandardGrid.svelte";
     import ListLayout from "./layouts/ListLayout.svelte";
+    import { resolve } from "$app/paths";
 
     /** @type {'standard' | 'featured'} */
     export let layout = "standard";
@@ -60,14 +61,14 @@
 
     function nextPage() {
         if (!baseUrl) return;
-        const url = new URL(baseUrl, window.location.origin);
+        const url = new URL(resolve(baseUrl), window.location.origin);
         url.searchParams.set("page", String(currentPage + 1));
         goto(url.pathname + url.search);
     }
 
     function prevPage() {
         if (!baseUrl || currentPage <= 1) return;
-        const url = new URL(baseUrl, window.location.origin);
+        const url = new URL(resolve(baseUrl), window.location.origin);
         url.searchParams.set("page", String(currentPage - 1));
         goto(url.pathname + url.search);
     }
