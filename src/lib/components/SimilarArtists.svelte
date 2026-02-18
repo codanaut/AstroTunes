@@ -3,21 +3,22 @@
     import { getSimilarArtists } from "../subsonic.js";
     import ArtistCard from "./ArtistCard.svelte";
 
-    /** @type {string} */
-    export let artistId;
+    let { artistId } = $props();
 
     /** @type {any[]} */
-    let similarArtists = [];
-    let loading = false;
+    let similarArtists = $state([]);
+    let loading = $state(false);
     /** @type {string | null} */
-    let loadedArtistId = null;
+    let loadedArtistId = $state(null);
     /** @type {HTMLElement} */
     let element;
-    let intersecting = false;
+    let intersecting = $state(false);
 
-    $: if (artistId && intersecting && artistId !== loadedArtistId) {
-        loadSimilarArtists();
-    }
+    $effect(() => {
+        if (artistId && intersecting && artistId !== loadedArtistId) {
+            loadSimilarArtists();
+        }
+    });
 
     onMount(() => {
         const observer = new IntersectionObserver((entries) => {

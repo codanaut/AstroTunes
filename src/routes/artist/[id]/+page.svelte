@@ -24,19 +24,21 @@
   import SimilarArtists from "../../../lib/components/SimilarArtists.svelte";
 
   /** @type {any} */
-  let artist = null;
+  let artist = $state(null);
   /** @type {any[]} */
-  let topSongs = [];
+  let topSongs = $state([]);
   /** @type {any[]} */
-  let appearsOnAlbums = [];
-  let loading = true;
+  let appearsOnAlbums = $state([]);
+  let loading = $state(true);
   /** @type {any} */
   let syncInterval;
 
   // Reactively load artist data when the ID changes
-  $: if ($page.params.id) {
-    loadArtist($page.params.id);
-  }
+  $effect(() => {
+    if ($page.params.id) {
+      loadArtist($page.params.id);
+    }
+  });
 
   /**
    * @param {string} artistId
@@ -343,7 +345,7 @@
         <h1 class="text-2xl font-bold mt-6 mb-6">All Albums</h1>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {#each artist.album as album, i}
-            <AlbumCard bind:album={artist.album[i]} />
+            <AlbumCard album={artist.album[i]} />
           {/each}
         </div>
       </div>

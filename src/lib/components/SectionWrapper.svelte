@@ -13,31 +13,22 @@
     import ListLayout from "./layouts/ListLayout.svelte";
     import { resolve } from "$app/paths";
 
-    /** @type {'standard' | 'featured'} */
-    export let layout = "standard";
-
-    export let title = "";
-    /** @type {any[]} */
-    export let items = [];
-    /** @type {'album' | 'artist'} */
-    export let type = "album";
-    /** @type {string | null} */
-    export let showAllLink = null;
-
-    // Pagination props
-    /** @type {number} */
-    export let totalItems = 0;
-    /** @type {number} */
-    export let currentPage = 1;
-    /** @type {number} */
-    export let limit = 50;
-    /** @type {string} */
-    export let baseUrl = ""; // Base URL for pagination navigation (e.g. /albums)
-    export let enableViewToggle = true;
-    export let headerClass = "";
+    let {
+        layout = "standard",
+        title = "",
+        items = [],
+        type = "album",
+        showAllLink = null,
+        totalItems = 0,
+        currentPage = 1,
+        limit = 50,
+        baseUrl = "",
+        enableViewToggle = true,
+        headerClass = "",
+    } = $props();
 
     // View State
-    let viewMode = "grid";
+    let viewMode = $state("grid");
     const storageKey = `section-view-mode-${type}`;
 
     onMount(() => {
@@ -73,7 +64,7 @@
         goto(url.pathname + url.search);
     }
 
-    $: totalPages = Math.ceil(totalItems / limit);
+    let totalPages = $derived(Math.ceil(totalItems / limit));
 </script>
 
 <div
@@ -107,7 +98,7 @@
                         'grid'
                             ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-                        on:click={() => setViewMode("grid")}
+                        onclick={() => setViewMode("grid")}
                         aria-label="Grid View"
                     >
                         <LayoutGrid size={20} />
@@ -117,7 +108,7 @@
                         'list'
                             ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-                        on:click={() => setViewMode("list")}
+                        onclick={() => setViewMode("list")}
                         aria-label="List View"
                     >
                         <List size={20} />
@@ -131,7 +122,7 @@
             {:else if baseUrl}
                 <div class="flex gap-2 items-center">
                     <button
-                        on:click={prevPage}
+                        onclick={prevPage}
                         disabled={currentPage === 1}
                         class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
@@ -147,7 +138,7 @@
                         {/if}
                     </span>
                     <button
-                        on:click={nextPage}
+                        onclick={nextPage}
                         disabled={totalItems > 0
                             ? currentPage >= totalPages
                             : items.length < limit}
@@ -177,7 +168,7 @@
     {#if !showAllLink && totalItems > 0 && baseUrl}
         <div class="flex justify-center gap-2 mt-8">
             <button
-                on:click={prevPage}
+                onclick={prevPage}
                 disabled={currentPage === 1}
                 class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -189,7 +180,7 @@
                 Page {currentPage} of {totalPages}
             </span>
             <button
-                on:click={nextPage}
+                onclick={nextPage}
                 disabled={currentPage >= totalPages}
                 class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >

@@ -5,20 +5,20 @@
     import SectionWrapper from "../../lib/components/SectionWrapper.svelte";
 
     /** @type {any[]} */
-    let allArtists = [];
+    let allArtists = $state([]);
     /** @type {any[]} */
-    let displayedArtists = [];
-    let loading = true;
+    let displayedArtists = $state([]);
+    let loading = $state(true);
     const limit = 50;
     const baseUrl = "/artists";
 
-    $: currentPage = Number($page.url.searchParams.get("page")) || 1;
-    $: offset = (currentPage - 1) * limit;
+    let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
+    let offset = $derived((currentPage - 1) * limit);
 
     // When allArtists or currentPage changes, update displayedArtists
-    $: {
+    $effect(() => {
         displayedArtists = allArtists.slice(offset, offset + limit);
-    }
+    });
 
     onMount(async () => {
         await loadArtists();

@@ -5,13 +5,13 @@
     import SectionWrapper from "../../../lib/components/SectionWrapper.svelte";
 
     /** @type {any[]} */
-    let albums = [];
-    let loading = true;
+    let albums = $state([]);
+    let loading = $state(true);
     const limit = 50;
     const baseUrl = "/albums/random";
 
-    $: currentPage = Number($page.url.searchParams.get("page")) || 1;
-    $: offset = (currentPage - 1) * limit;
+    let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
+    let offset = $derived((currentPage - 1) * limit);
 
     async function loadAlbums() {
         loading = true;
@@ -34,9 +34,11 @@
         }
     }
 
-    $: if (currentPage) {
-        loadAlbums();
-    }
+    $effect(() => {
+        if (currentPage) {
+            loadAlbums();
+        }
+    });
 </script>
 
 <div class="container mx-auto pb-24 px-4">

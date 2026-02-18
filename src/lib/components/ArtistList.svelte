@@ -3,8 +3,7 @@
     import { getCoverArtUrl } from "../subsonic.js";
     import { resolve } from "$app/paths";
 
-    /** @type {any[]} */
-    export let artists = [];
+    let { artists = [] } = $props();
 
     /** @param {Event} e */
     function handleImageError(e) {
@@ -44,7 +43,7 @@
                                 alt=""
                                 class="h-full w-full object-cover"
                                 loading="lazy"
-                                on:error={handleImageError}
+                                onerror={handleImageError}
                             />
                         </a>
                     </td>

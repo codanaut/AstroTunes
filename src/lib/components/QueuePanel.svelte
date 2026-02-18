@@ -1,5 +1,3 @@
-<svelte:options runes={false} />
-
 <script>
     import {
         currentTrack,
@@ -15,16 +13,16 @@
     import { dndzone } from "svelte-dnd-action";
     import { flip } from "svelte/animate";
 
-    // Map queue to items with unique `id` for dndzone (legacy reactive mode)
+    // Map queue to items with unique `id` for dndzone
     /** @type {any[]} */
-    let items = [];
-    $: {
+    let items = $state([]);
+    $effect(() => {
         items = $queue.map((track) => ({
             ...track,
             id: track.queueId || track.id,
             originalId: track.id,
         }));
-    }
+    });
 
     /**
      * @param {CustomEvent<any>} e
@@ -60,21 +58,21 @@
         </div>
         <div class="flex gap-2">
             <button
-                on:click={shuffleCurrentQueue}
+                onclick={shuffleCurrentQueue}
                 class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 title="Shuffle Queue"
             >
                 <Shuffle size={18} />
             </button>
             <button
-                on:click={clearQueue}
+                onclick={clearQueue}
                 class="p-2 text-[var(--text-secondary)] hover:text-red-500"
                 title="Clear Queue"
             >
                 <Trash2 size={18} />
             </button>
             <button
-                on:click={toggleQueue}
+                onclick={toggleQueue}
                 class="p-2 text-[var(--text-secondary)]"
             >
                 <X />
@@ -88,8 +86,8 @@
             flipDurationMs: items.length > 100 ? 0 : 300,
             dropTargetStyle: {},
         }}
-        on:consider={handleDndConsider}
-        on:finalize={handleDndFinalize}
+        onconsider={handleDndConsider}
+        onfinalize={handleDndFinalize}
     >
         {#each items as track, index (track.id)}
             <div
@@ -110,7 +108,7 @@
                 <button
                     type="button"
                     class="flex-1 min-w-0 cursor-pointer flex items-start gap-3 text-left bg-transparent border-0 p-0"
-                    on:click={() => {
+                    onclick={() => {
                         const newQueue = items.map((t) => ({
                             ...t,
                             id: t.originalId,
@@ -156,7 +154,10 @@
                     class="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1 bg-[var(--bg-card)] shadow-md rounded-md p-1"
                 >
                     <button
-                        on:click|stopPropagation={() => removeFromQueue(index)}
+                        onclick={(e) => {
+                            e.stopPropagation();
+                            removeFromQueue(index);
+                        }}
                         class="p-1 text-[var(--text-secondary)] hover:text-red-500"
                         title="Remove"
                     >

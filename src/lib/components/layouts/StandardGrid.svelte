@@ -3,12 +3,9 @@
     import ArtistCard from "../ArtistCard.svelte";
     import { isMobileDevice } from "$lib/utils/deviceUtils";
 
-    /** @type {any[]} */
-    export let items = [];
-    /** @type {'album' | 'artist'} */
-    export let type = "album";
+    let { items = [], type = "album" } = $props();
 
-    $: displayItems = isMobileDevice() ? items.slice(0, 4) : items;
+    let displayItems = $derived(isMobileDevice() ? items.slice(0, 4) : items);
 </script>
 
 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">

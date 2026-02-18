@@ -157,8 +157,8 @@
 
 <CreatePlaylistModal
     isOpen={showCreateModal}
-    on:close={() => (showCreateModal = false)}
-    on:success={handleCreateSuccess}
+    onclose={() => (showCreateModal = false)}
+    onsuccess={handleCreateSuccess}
 />
 
 <div class="h-full flex overflow-hidden">
@@ -180,7 +180,7 @@
             </h2>
             <button
                 class="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                on:click={() => (showCreateModal = true)}
+                onclick={() => (showCreateModal = true)}
                 title="Create New Playlist"
             >
                 <Plus size={20} />
@@ -206,7 +206,7 @@
                             playlist.id
                                 ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm'
                                 : 'text-[var(--text-secondary)]'}"
-                            on:click={() => selectPlaylist(playlist)}
+                            onclick={() => selectPlaylist(playlist)}
                         >
                             <div
                                 class="font-medium truncate group-hover:text-[var(--text-primary)] transition-colors"
@@ -243,7 +243,7 @@
                 <!-- Back Button (Mobile Only) -->
                 <button
                     class="md:hidden absolute top-4 left-4 p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-full text-[var(--text-primary)]"
-                    on:click={deselectPlaylist}
+                    onclick={deselectPlaylist}
                 >
                     <ChevronLeft size={24} />
                 </button>
@@ -287,21 +287,21 @@
                     <div class="flex items-center gap-3">
                         <button
                             class="bg-[var(--accent)] text-[var(--accent-fg)] rounded-full p-3 hover:scale-105 transition-transform shadow-lg hover:opacity-90"
-                            on:click={handlePlay}
+                            onclick={handlePlay}
                             title="Play Playlist"
                         >
                             <Play size={24} class="fill-current ml-1" />
                         </button>
                         <button
                             class="bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-primary)] rounded-full p-3 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)]"
-                            on:click={handleShuffle}
+                            onclick={handleShuffle}
                             title="Shuffle Playlist"
                         >
                             <Shuffle size={24} />
                         </button>
                         <button
                             class="bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-primary)] rounded-full p-3 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)] hover:text-red-500 hover:border-red-500"
-                            on:click={handleDelete}
+                            onclick={handleDelete}
                             title="Delete Playlist"
                         >
                             <Trash2 size={24} />
@@ -329,7 +329,7 @@
                         context="playlist"
                         contextId={selectedPlaylist.id}
                         contextName={selectedPlaylist.name}
-                        on:playlistUpdated={() =>
+                        onplaylistUpdated={() =>
                             selectPlaylist(selectedPlaylist)}
                     />
                 {/if}
@@ -343,7 +343,7 @@
                 <p class="text-lg">Select a playlist to view songs</p>
                 <button
                     class="mt-4 text-[var(--accent)] hover:underline"
-                    on:click={() => (showCreateModal = true)}
+                    onclick={() => (showCreateModal = true)}
                 >
                     Create New Playlist
                 </button>

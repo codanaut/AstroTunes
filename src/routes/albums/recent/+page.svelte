@@ -6,15 +6,15 @@
     import { onMount, onDestroy } from "svelte";
 
     /** @type {any[]} */
-    let albums = [];
-    let loading = true;
+    let albums = $state([]);
+    let loading = $state(true);
     const limit = 50;
     const baseUrl = "/albums/recent";
     /** @type {any} */
     let syncInterval;
 
-    $: currentPage = Number($page.url.searchParams.get("page")) || 1;
-    $: offset = (currentPage - 1) * limit;
+    let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
+    let offset = $derived((currentPage - 1) * limit);
 
     async function loadAlbums(silent = false) {
         if (!silent) loading = true;
@@ -53,10 +53,12 @@
         if (syncInterval) clearInterval(syncInterval);
     });
 
-    $: if (currentPage) {
-        // When page changes, we want to show loading state
-        loadAlbums(false);
-    }
+    $effect(() => {
+        if (currentPage) {
+            // When page changes, we want to show loading state
+            loadAlbums(false);
+        }
+    });
 </script>
 
 <div class="container mx-auto pb-24 px-4">

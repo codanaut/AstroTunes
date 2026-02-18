@@ -2,14 +2,14 @@
     import { subsonicFetch } from "$lib/subsonic";
     import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
-    let endpoint = "ping";
-    let params = ""; // e.g., "&type=random"
+    let endpoint = $state("ping");
+    let params = $state(""); // e.g., "&type=random"
 
     /** @type {any} */
-    let response = null;
-    let loading = false;
+    let response = $state(null);
+    let loading = $state(false);
     /** @type {string | null} */
-    let error = null;
+    let error = $state(null);
 
     async function runRequest() {
         loading = true;
@@ -70,7 +70,7 @@
         </div>
 
         <button
-            on:click={runRequest}
+            onclick={runRequest}
             disabled={loading}
             class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >

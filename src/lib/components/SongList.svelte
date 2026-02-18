@@ -1,5 +1,4 @@
 <script>
-    import { createEventDispatcher } from "svelte";
     import {
         playQueue,
         currentTrack,
@@ -37,26 +36,21 @@
     import { resolve } from "$app/paths";
     import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
-    /** @type {any[]} */
-    export let songs = [];
-    /** @type {'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'songs'} */
-    export let context = "playlist";
-    /** @type {number} */
-    export let limit = 0;
-
-    /** @type {string|null} */
-    export let contextId = null;
-    /** @type {string|null} */
-    export let contextName = null;
-
-    export let showToolbar = true;
+    /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'songs', limit?: number, contextId?: string|null, contextName?: string|null, showToolbar?: boolean, onplaylistUpdated?: () => void }} */
+    let {
+        songs = $bindable([]),
+        context = "playlist",
+        limit = 0,
+        contextId = null,
+        contextName = null,
+        showToolbar = true,
+        onplaylistUpdated,
+    } = $props();
 
     // --- SORTING & FILTERING STATE ---
-    let sortField = "original"; // 'original' means no sorting (respects track order/server order)
-    let sortDirection = "asc";
-    let localSearchQuery = "";
-
-    const dispatch = createEventDispatcher();
+    let sortField = $state("original"); // 'original' means no sorting (respects track order/server order)
+    let sortDirection = $state("asc");
+    let localSearchQuery = $state("");
 
     // Column definitions
     // Columns Configuration
@@ -166,88 +160,97 @@
         }
     }
 
-    $: processedSongs = (() => {
-        let result = [...songs];
+    let processedSongs = $derived(
+        (() => {
+            let result = [...songs];
 
-        // 1. Filter
-        if (localSearchQuery.trim()) {
-            const q = localSearchQuery.toLowerCase();
-            result = result.filter(
-                (s) =>
-                    (s.title || "").toLowerCase().includes(q) ||
-                    (s.artist || "").toLowerCase().includes(q) ||
-                    (s.album || "").toLowerCase().includes(q),
-            );
-        }
+            // 1. Filter
+            if (localSearchQuery.trim()) {
+                const q = localSearchQuery.toLowerCase();
+                result = result.filter(
+                    (s) =>
+                        (s.title || "").toLowerCase().includes(q) ||
+                        (s.artist || "").toLowerCase().includes(q) ||
+                        (s.album || "").toLowerCase().includes(q),
+                );
+            }
 
-        // 2. Sort
-        if (sortField !== "original") {
-            result.sort((a, b) => {
-                let valA = a[sortField];
-                let valB = b[sortField];
+            // 2. Sort
+            if (sortField !== "original") {
+                result.sort((a, b) => {
+                    let valA = a[sortField];
+                    let valB = b[sortField];
 
-                // Handle specific cases
-                if (sortField === "quality")
-                    valA = (a.bitDepth || 0) + (a.samplingRate || 0);
-                if (sortField === "quality")
-                    valB = (b.bitDepth || 0) + (b.samplingRate || 0);
-                if (sortField === "starred") valA = a.starred ? 1 : 0;
-                if (sortField === "starred") valB = b.starred ? 1 : 0;
+                    // Handle specific cases
+                    if (sortField === "quality")
+                        valA = (a.bitDepth || 0) + (a.samplingRate || 0);
+                    if (sortField === "quality")
+                        valB = (b.bitDepth || 0) + (b.samplingRate || 0);
+                    if (sortField === "starred") valA = a.starred ? 1 : 0;
+                    if (sortField === "starred") valB = b.starred ? 1 : 0;
 
-                // String comparison
-                if (typeof valA === "string") valA = valA.toLowerCase();
-                if (typeof valB === "string") valB = valB.toLowerCase();
+                    // String comparison
+                    if (typeof valA === "string") valA = valA.toLowerCase();
+                    if (typeof valB === "string") valB = valB.toLowerCase();
 
-                if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-                if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-                return 0;
-            });
-        }
+                    if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+                    if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+                    return 0;
+                });
+            }
 
-        // 3. Limit
-        if (limit > 0) {
-            result = result.slice(0, limit);
-        }
+            // 3. Limit
+            if (limit > 0) {
+                result = result.slice(0, limit);
+            }
 
-        return result;
-    })();
+            return result;
+        })(),
+    );
 
     // Only group by disc if we are in Album context AND NOT sorting/searching
-    $: useDiscGrouping =
+    let useDiscGrouping = $derived(
         context === "album" &&
-        sortField === "original" &&
-        !localSearchQuery &&
-        processedSongs.some((s) => s.discNumber > 1);
+            sortField === "original" &&
+            !localSearchQuery &&
+            processedSongs.some((s) => s.discNumber > 1),
+    );
 
-    $: groupedSongs = useDiscGrouping
-        ? processedSongs.reduce((acc, song, index) => {
-              // Preserve original global index for playback context
-              const originalIndex = songs.findIndex((s) => s.id === song.id);
-              song.globalIndex = originalIndex !== -1 ? originalIndex : index;
+    let groupedSongs = $derived(
+        useDiscGrouping
+            ? processedSongs.reduce((acc, song, index) => {
+                  // Preserve original global index for playback context
+                  const originalIndex = songs.findIndex(
+                      (s) => s.id === song.id,
+                  );
+                  song.globalIndex =
+                      originalIndex !== -1 ? originalIndex : index;
 
-              const disc = song.discNumber || 1;
-              let lastGroup = acc[acc.length - 1];
-              if (!lastGroup || lastGroup.disc !== disc) {
-                  lastGroup = { disc, songs: [] };
-                  acc.push(lastGroup);
-              }
-              lastGroup.songs.push(song);
-              return acc;
-          }, [])
-        : [
-              {
-                  disc: 1,
-                  songs: processedSongs.map((s, i) => {
-                      const originalIndex = songs.findIndex(
-                          (raw) => raw.id === s.id,
-                      );
-                      return {
-                          ...s,
-                          globalIndex: originalIndex !== -1 ? originalIndex : i,
-                      };
-                  }),
-              },
-          ];
+                  const disc = song.discNumber || 1;
+                  let lastGroup = acc[acc.length - 1];
+                  if (!lastGroup || lastGroup.disc !== disc) {
+                      lastGroup = { disc, songs: [] };
+                      acc.push(lastGroup);
+                  }
+                  lastGroup.songs.push(song);
+                  return acc;
+              }, [])
+            : [
+                  {
+                      disc: 1,
+                      songs: processedSongs.map((s, i) => {
+                          const originalIndex = songs.findIndex(
+                              (raw) => raw.id === s.id,
+                          );
+                          return {
+                              ...s,
+                              globalIndex:
+                                  originalIndex !== -1 ? originalIndex : i,
+                          };
+                      }),
+                  },
+              ],
+    );
 
     /**
      * Handles row clicks safely, ignoring clicks on interactive elements like buttons/links
@@ -311,7 +314,7 @@
                         contextId,
                         songs.map((s) => s.id),
                     );
-                    dispatch("playlistUpdated");
+                    onplaylistUpdated?.();
                 } catch (err) {
                     console.error("Failed to reorder playlist:", err);
                 }
@@ -404,27 +407,29 @@
     }
 
     // Sync external favorite changes (from player bar) to the list
-    $: if ($currentTrack && $isFavorite !== undefined) {
-        const idx = songs.findIndex((s) => s.id === $currentTrack.id);
-        if (idx !== -1) {
-            const song = songs[idx];
-            const shouldBeStarred = $isFavorite;
-            const isStarred = !!song.starred;
+    $effect(() => {
+        if ($currentTrack && $isFavorite !== undefined) {
+            const idx = songs.findIndex((s) => s.id === $currentTrack.id);
+            if (idx !== -1) {
+                const song = songs[idx];
+                const shouldBeStarred = $isFavorite;
+                const isStarred = !!song.starred;
 
-            if (shouldBeStarred !== isStarred) {
-                // Update local list to match global state
-                songs[idx] = {
-                    ...song,
-                    starred: shouldBeStarred
-                        ? song.starred || new Date().toISOString()
-                        : undefined,
-                };
-                songs = songs; // Trigger reactivity
+                if (shouldBeStarred !== isStarred) {
+                    // Update local list to match global state
+                    songs[idx] = {
+                        ...song,
+                        starred: shouldBeStarred
+                            ? song.starred || new Date().toISOString()
+                            : undefined,
+                    };
+                    songs = songs; // Trigger reactivity
+                }
             }
         }
-    }
+    });
 
-    let showColumnSelector = false;
+    let showColumnSelector = $state(false);
 
     /** @param {string} id */
     function toggleColumn(id) {
@@ -435,13 +440,13 @@
         }
     }
 
-    let containerWidth = 1024; // Default to wide to prevent flash
+    let containerWidth = $state(1024); // Default to wide to prevent flash
 
     // If the container (not the window) is smaller than 768px, switch to mobile view
-    $: isMobile = containerWidth < 768;
+    let isMobile = $derived(containerWidth < 768);
 
     // Tablet/Compact view (< 1200px) - Triggers when queue is open on laptops
-    $: isCompact = containerWidth < 1200;
+    let isCompact = $derived(containerWidth < 1200);
 
     // 2. Define columns that should NEVER show on mobile (even if enabled)
     // Note: We hide 'artist' and 'album' here because they are shown under the Title on mobile
@@ -470,7 +475,8 @@
 
     // 3. Smart Visibility Check
     // This overrides the settings: if on mobile, force-hide the heavy columns
-    $: isColumnVisible = (/** @type {string} */ id) => {
+    /** @param {string} id */
+    function isColumnVisible(id) {
         // Force hide on mobile
         if (isMobile && DESKTOP_ONLY_COLUMNS.includes(id)) return false;
 
@@ -478,10 +484,11 @@
         if (isCompact && COMPACT_HIDDEN_COLUMNS.includes(id)) return false;
 
         return visibleColumnIds.includes(id);
-    };
+    }
 
     // 4. Grid Generation
-    $: desktopGridColumns = `
+    let desktopGridColumns = $derived(
+        `
         ${context === "playlist" ? "2rem" : ""}
         ${isColumnVisible("track") ? "3rem" : ""} 
         
@@ -502,20 +509,21 @@
         ${isColumnVisible("duration") ? "auto" : ""}
         ${isColumnVisible("options") ? "2rem" : ""}
     `
-        .replace(/\s+/g, " ")
-        .trim();
+            .replace(/\s+/g, " ")
+            .trim(),
+    );
 
     // Menu Logic
     /** @type {string|null} */
-    let activeMenuSongId = null;
-    let menuPosition = { x: 0, y: 0 };
-    let showAddModal = false;
+    let activeMenuSongId = $state(null);
+    let menuPosition = $state({ x: 0, y: 0 });
+    let showAddModal = $state(false);
     /** @type {any} */
-    let songToAdd = null;
+    let songToAdd = $state(null);
 
-    $: activeMenuSong = activeMenuSongId
-        ? songs.find((s) => s.id === activeMenuSongId)
-        : null;
+    let activeMenuSong = $derived(
+        activeMenuSongId ? songs.find((s) => s.id === activeMenuSongId) : null,
+    );
 
     /**
      * @param {MouseEvent} event
@@ -588,7 +596,7 @@
                 songIndexesToRemove: [song.globalIndex],
             });
             // Notify parent to refresh
-            dispatch("playlistUpdated");
+            onplaylistUpdated?.();
         } catch (e) {
             console.error("Failed to remove song from playlist", e);
         }
@@ -604,11 +612,11 @@
 <AddToPlaylistModal
     isOpen={showAddModal}
     songs={songToAdd ? [songToAdd] : []}
-    on:close={() => {
+    onclose={() => {
         showAddModal = false;
         songToAdd = null;
     }}
-    on:success={() => {
+    onsuccess={() => {
         // Optional: show toast or success message
     }}
 />
@@ -708,7 +716,8 @@
                     onkeydown={() => handleSort(col.id)}
                 >
                     {#if col.icon}
-                        <svelte:component this={col.icon} size={16} />
+                        {@const Icon = col.icon}
+                        <Icon size={16} />
                     {:else}
                         {col.label}
                     {/if}

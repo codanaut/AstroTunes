@@ -7,13 +7,13 @@
     import SongList from "../../lib/components/SongList.svelte";
 
     /** @type {any[]} */
-    let songs = [];
-    let loading = true;
-    let totalSongs = 0;
+    let songs = $state([]);
+    let loading = $state(true);
+    let totalSongs = $state(0);
     const limit = 50;
 
-    $: currentPage = Number($page.url.searchParams.get("page")) || 1;
-    $: offset = (currentPage - 1) * limit;
+    let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
+    let offset = $derived((currentPage - 1) * limit);
 
     async function loadSongs() {
         loading = true;
@@ -38,9 +38,11 @@
         }
     }
 
-    $: if (currentPage) {
-        loadSongs();
-    }
+    $effect(() => {
+        if (currentPage) {
+            loadSongs();
+        }
+    });
 
     function nextPage() {
         goto(resolve(`/songs`) + `?page=${currentPage + 1}`);

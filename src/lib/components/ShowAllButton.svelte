@@ -1,10 +1,7 @@
 <script>
     import { ArrowRight } from "lucide-svelte";
 
-    /** @type {string} */
-    export let label = "Show All";
-    /** @type {string} */
-    export let href = "#";
+    let { label = "Show All", href = "#" } = $props();
 </script>
 
 <a

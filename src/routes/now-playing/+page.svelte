@@ -44,7 +44,7 @@
     import { flip } from "svelte/animate";
     import { resolve } from "$app/paths";
 
-    let showQueuePanel = false;
+    let showQueuePanel = $state(false);
 
     /**
      * @param {{ currentTarget: any; clientX: number; }} e
@@ -58,16 +58,16 @@
     }
 
     /** @type {any[]} */
-    let items = [];
+    let items = $state([]);
 
     // Map queue to items with unique `id` for dndzone
-    $: {
+    $effect(() => {
         items = $queue.map((track) => ({
             ...track,
             id: track.queueId || track.id, // dndzone needs unique 'id'
             originalId: track.id, // Keep keep original ID
         }));
-    }
+    });
 
     /**
      * @param {CustomEvent<any>} e

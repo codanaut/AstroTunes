@@ -2,10 +2,7 @@
     import AlbumCard from "../AlbumCard.svelte";
     import ArtistCard from "../ArtistCard.svelte";
 
-    /** @type {any[]} */
-    export let items = [];
-    /** @type {'album' | 'artist'} */
-    export let type = "album";
+    let { items = [], type = "album" } = $props();
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 justify-items-center">

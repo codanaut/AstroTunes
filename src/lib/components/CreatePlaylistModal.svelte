@@ -1,16 +1,13 @@
 <script>
-    import { createEventDispatcher } from "svelte";
     import { createPlaylist } from "../subsonic";
     import { X, Loader2 } from "lucide-svelte";
     import { fade, scale } from "svelte/transition";
 
-    export let isOpen = false;
+    let { isOpen = false, onclose, onsuccess } = $props();
 
-    const dispatch = createEventDispatcher();
-
-    let playlistName = "";
-    let isLoading = false;
-    let error = "";
+    let playlistName = $state("");
+    let isLoading = $state(false);
+    let error = $state("");
 
     async function handleSubmit() {
         if (!playlistName.trim()) return;
@@ -21,7 +18,7 @@
         try {
             const res = await createPlaylist(playlistName);
             if (res && res.status === "ok") {
-                dispatch("success");
+                onsuccess?.();
                 close();
             } else {
                 error = res?.error?.message || "Failed to create playlist";
@@ -38,7 +35,7 @@
         isOpen = false;
         playlistName = "";
         error = "";
-        dispatch("close");
+        onclose?.();
     }
 </script>
 
@@ -49,7 +46,7 @@
     <div
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         transition:fade={{ duration: 200 }}
-        on:click={close}
+        onclick={close}
     >
         <!-- Modal Content -->
         <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -57,7 +54,7 @@
         <div
             class="bg-[var(--bg-card)] border border-[var(--border-primary)] w-full max-w-md rounded-xl shadow-2xl overflow-hidden"
             transition:scale={{ duration: 200, start: 0.95 }}
-            on:click|stopPropagation
+            onclick={(e) => e.stopPropagation()}
         >
             <div
                 class="flex justify-between items-center p-4 border-b border-[var(--border-primary)]"
@@ -66,7 +63,7 @@
                     Create Playlist
                 </h2>
                 <button
-                    on:click={close}
+                    onclick={close}
                     class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                     <X size={20} />
@@ -74,7 +71,10 @@
             </div>
 
             <form
-                on:submit|preventDefault={handleSubmit}
+                onsubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmit();
+                }}
                 class="p-4 flex flex-col gap-4"
             >
                 {#if error}
@@ -105,7 +105,7 @@
                 <div class="flex justify-end gap-3 mt-2">
                     <button
                         type="button"
-                        on:click={close}
+                        onclick={close}
                         class="px-4 py-2 rounded-md text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
                     >
                         Cancel

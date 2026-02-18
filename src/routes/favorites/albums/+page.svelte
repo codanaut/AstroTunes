@@ -11,21 +11,21 @@
     import { onMount } from "svelte";
 
     /** @type {any[]} */
-    let allFavorites = [];
+    let allFavorites = $state([]);
     /** @type {any[]} */
-    let displayedAlbums = [];
-    let loading = true;
+    let displayedAlbums = $state([]);
+    let loading = $state(true);
     const limit = 50;
     const baseUrl = "/favorites/albums";
 
-    $: currentPage = Number($page.url.searchParams.get("page")) || 1;
+    let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
 
     // Client-side slice for display
-    $: {
+    $effect(() => {
         const start = (currentPage - 1) * limit;
         const end = start + limit;
         displayedAlbums = allFavorites.slice(start, end);
-    }
+    });
 
     onMount(async () => {
         await loadFavorites();

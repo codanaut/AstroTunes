@@ -23,8 +23,8 @@
   import { resolve } from "$app/paths";
 
   /** @type {any} */
-  let album = null;
-  let loading = true;
+  let album = $state(null);
+  let loading = $state(true);
 
   onMount(async () => {
     const albumId = $page.params.id;
@@ -87,7 +87,7 @@
     }, 10000); // Poll every 10 seconds
   }
 
-  $: songs =
+  let songs = $derived(
     album && album.song
       ? (Array.isArray(album.song) ? album.song : [album.song])
           .slice()
@@ -99,25 +99,28 @@
             const trackB = b.track || 0;
             return trackA - trackB;
           })
-      : [];
+      : [],
+  );
 
-  $: groupedSongs = songs.reduce(
-    (
-      /** @type {any[]} */ acc,
-      /** @type {any} */ song,
-      /** @type {number} */ index,
-    ) => {
-      song.globalIndex = index;
-      const disc = song.discNumber || 1;
-      let lastGroup = acc[acc.length - 1];
-      if (!lastGroup || lastGroup.disc !== disc) {
-        lastGroup = { disc, songs: [] };
-        acc.push(lastGroup);
-      }
-      lastGroup.songs.push(song);
-      return acc;
-    },
-    [],
+  let groupedSongs = $derived(
+    songs.reduce(
+      (
+        /** @type {any[]} */ acc,
+        /** @type {any} */ song,
+        /** @type {number} */ index,
+      ) => {
+        song.globalIndex = index;
+        const disc = song.discNumber || 1;
+        let lastGroup = acc[acc.length - 1];
+        if (!lastGroup || lastGroup.disc !== disc) {
+          lastGroup = { disc, songs: [] };
+          acc.push(lastGroup);
+        }
+        lastGroup.songs.push(song);
+        return acc;
+      },
+      [],
+    ),
   );
 
   function playAlbum() {

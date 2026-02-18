@@ -9,9 +9,7 @@
     import { playQueue, playQueueShuffled } from "../player.js";
     import { resolve } from "$app/paths";
 
-    /** @type {any} */
-    export let album;
-    export let className = "";
+    let { album } = $props();
 
     /**
      * @param {Event} event

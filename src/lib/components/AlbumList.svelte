@@ -3,8 +3,7 @@
     import { getCoverArtUrl, starAlbum, unstarAlbum } from "../subsonic.js";
     import { resolve } from "$app/paths";
 
-    /** @type {any[]} */
-    export let albums = [];
+    let { albums = [] } = $props();
 
     /**
      * @param {any} album
@@ -122,7 +121,7 @@
                         class="px-4 py-2 text-center text-[var(--text-secondary)]"
                     >
                         <button
-                            on:click={(e) => toggleAlbumFavorite(album, e)}
+                            onclick={(e) => toggleAlbumFavorite(album, e)}
                             class="p-1.5 rounded-full hover:bg-[var(--text-primary)]/10 transition-colors {album.starred
                                 ? 'opacity-100'
                                 : 'opacity-0 group-hover:opacity-100'}"

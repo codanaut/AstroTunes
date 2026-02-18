@@ -2,10 +2,7 @@
     import AlbumList from "../AlbumList.svelte";
     import ArtistList from "../ArtistList.svelte";
 
-    /** @type {any[]} */
-    export let items = [];
-    /** @type {'album' | 'artist'} */
-    export let type = "album";
+    let { items = [], type = "album" } = $props();
 </script>
 
 {#if type === "album"}

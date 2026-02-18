@@ -1,32 +1,31 @@
 <script>
-    import { createEventDispatcher, onMount } from "svelte";
     import { getPlaylists, createPlaylist, updatePlaylist } from "../subsonic";
     import { X, Loader2, Plus, ListMusic, Check } from "lucide-svelte";
     import { fade, scale } from "svelte/transition";
 
-    export let isOpen = false;
-    /** @type {any[]} */
-    export let songs = [];
-
-    const dispatch = createEventDispatcher();
+    let { isOpen = false, songs = [], onclose, onsuccess } = $props();
 
     /** @type {any[]} */
-    let playlists = [];
-    let isLoadingPlaylists = false;
-    let isProcessing = false;
-    let error = "";
-    let searchQuery = "";
-    let showCreateInput = false;
-    let newPlaylistName = "";
+    let playlists = $state([]);
+    let isLoadingPlaylists = $state(false);
+    let isProcessing = $state(false);
+    let error = $state("");
+    let searchQuery = $state("");
+    let showCreateInput = $state(false);
+    let newPlaylistName = $state("");
 
-    $: filteredPlaylists = playlists.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    let filteredPlaylists = $derived(
+        playlists.filter((p) =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
     );
 
-    $: if (isOpen) {
-        loadPlaylists();
-        resetState();
-    }
+    $effect(() => {
+        if (isOpen) {
+            loadPlaylists();
+            resetState();
+        }
+    });
 
     function resetState() {
         error = "";
@@ -70,7 +69,7 @@
         try {
             const songIds = songs.map((s) => s.id);
             await updatePlaylist(playlist.id, { songIdsToAdd: songIds });
-            dispatch("success");
+            onsuccess?.();
             close();
         } catch (e) {
             console.error("Failed to add to playlist", e);
@@ -87,7 +86,7 @@
         try {
             const songIds = songs.map((s) => s.id);
             await createPlaylist(newPlaylistName, songIds);
-            dispatch("success");
+            onsuccess?.();
             close();
         } catch (e) {
             console.error("Failed to create playlist", e);
@@ -98,7 +97,7 @@
 
     function close() {
         isOpen = false;
-        dispatch("close");
+        onclose?.();
     }
 </script>
 
@@ -109,13 +108,13 @@
     <div
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         transition:fade={{ duration: 200 }}
-        on:click={close}
+        onclick={close}
     >
         <!-- Modal Content -->
         <div
             class="bg-[var(--bg-card)] border border-[var(--border-primary)] w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
             transition:scale={{ duration: 200, start: 0.95 }}
-            on:click|stopPropagation
+            onclick={(e) => e.stopPropagation()}
         >
             <div
                 class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center flex-shrink-0"
@@ -124,7 +123,7 @@
                     Add to Playlist
                 </h2>
                 <button
-                    on:click={close}
+                    onclick={close}
                     class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                     <X size={20} />
@@ -153,7 +152,10 @@
             <div class="overflow-y-auto flex-1 p-2">
                 {#if showCreateInput}
                     <form
-                        on:submit|preventDefault={handleCreateAndAdd}
+                        onsubmit={(e) => {
+                            e.preventDefault();
+                            handleCreateAndAdd();
+                        }}
                         class="flex gap-2 p-2 mb-2 bg-[var(--bg-hover)] rounded-md"
                     >
                         <!-- svelte-ignore a11y_autofocus -->
@@ -177,7 +179,7 @@
                         </button>
                         <button
                             type="button"
-                            on:click={() => (showCreateInput = false)}
+                            onclick={() => (showCreateInput = false)}
                             class="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                         >
                             <X size={16} />
@@ -186,7 +188,7 @@
                 {:else}
                     <button
                         class="w-full text-left px-3 py-3 rounded-md hover:bg-[var(--bg-hover)] flex items-center gap-3 text-[var(--accent)] transition-colors"
-                        on:click={() => (showCreateInput = true)}
+                        onclick={() => (showCreateInput = true)}
                     >
                         <div
                             class="w-8 h-8 rounded bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]"
@@ -205,7 +207,7 @@
                     {#each filteredPlaylists as playlist}
                         <button
                             class="w-full text-left px-3 py-2 rounded-md hover:bg-[var(--bg-hover)] flex items-center gap-3 group transition-colors"
-                            on:click={() => handleAddToPlaylist(playlist)}
+                            onclick={() => handleAddToPlaylist(playlist)}
                             disabled={isProcessing}
                         >
                             <div

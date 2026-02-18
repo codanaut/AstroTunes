@@ -3,8 +3,7 @@
     import { getCoverArtUrl } from "../subsonic.js";
     import { resolve } from "$app/paths";
 
-    /** @type {any} */
-    export let artist;
+    let { artist } = $props();
 
     /** @param {Event} e */
     function handleImageError(e) {
@@ -24,7 +23,7 @@
             alt={artist.name}
             class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
-            on:error={handleImageError}
+            onerror={handleImageError}
         />
 
         <div class="absolute top-2 right-2 p-1 bg-black/50 rounded-full">

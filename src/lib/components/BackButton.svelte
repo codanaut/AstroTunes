@@ -1,10 +1,8 @@
 <script>
     import { ArrowLeft } from "lucide-svelte";
 
-    /** @type {string} */
-    export let label = "Back";
-    /** @type {() => void} */
-    export let onclick = () => window.history.back();
+    /** @type {{ label?: string, onclick?: (e: MouseEvent) => void }} */
+    let { label = "Back", onclick = () => window.history.back() } = $props();
 </script>
 
 <button
