@@ -14,6 +14,8 @@
   let recentlyAddedAlbums = [];
   /** @type {any[]} */
   let topAlbums = [];
+  /** @type {any[]} */
+  let albums2026 = [];
 
   onMount(async () => {
     const data = await subsonicFetch("getAlbumList", "&type=random&size=5");
@@ -45,6 +47,17 @@
       topAlbumsData.albumList.album
     ) {
       topAlbums = topAlbumsData.albumList.album;
+    }
+    const albums2026Data = await subsonicFetch(
+      "getAlbumList",
+      "&type=byYear&fromYear=2026&toYear=2026&size=5",
+    );
+    if (
+      albums2026Data &&
+      albums2026Data.albumList &&
+      albums2026Data.albumList.album
+    ) {
+      albums2026 = albums2026Data.albumList.album;
     }
     startSyncLoop();
   });
@@ -89,6 +102,18 @@
         topAlbumsData.albumList.album
       ) {
         topAlbums = topAlbumsData.albumList.album;
+      }
+
+      const albums2026Data = await subsonicFetch(
+        "getAlbumList",
+        "&type=byYear&fromYear=2026&toYear=2026&size=5",
+      );
+      if (
+        albums2026Data &&
+        albums2026Data.albumList &&
+        albums2026Data.albumList.album
+      ) {
+        albums2026 = albums2026Data.albumList.album;
       }
 
       // Note: We don't sync 'random' albums because fetching them again would change the albums shown.
@@ -254,6 +279,14 @@
       items={albums}
       type="album"
       showAllLink={resolve("/albums/random")}
+      enableViewToggle={false}
+    />
+
+    <SectionWrapper
+      title="2026 Releases"
+      items={albums2026}
+      type="album"
+      showAllLink={resolve("/albums/this-year")}
       enableViewToggle={false}
     />
   {/if}
