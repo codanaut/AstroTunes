@@ -106,7 +106,7 @@
 
             <!-- CONTENT WRAPPER (Centers Art & Info properly) -->
             <div
-                class="flex-1 flex flex-col items-center justify-center w-full min-h-0 gap-4 md:gap-4 grow py-2"
+                class="flex-1 flex flex-col items-center justify-center w-full min-h-0 gap-4 md:gap-2 grow py-2"
             >
                 <!-- ARTWORK -->
                 <div
@@ -148,7 +148,7 @@
                         </span>
                     </div>
                     <div
-                        class="text-xs md:text-sm text-[var(--text-muted)] mt-1 flex items-center justify-center gap-2"
+                        class="text-xs md:text-sm text-[var(--text-muted)] mt-0.5 flex items-center justify-center gap-2"
                     >
                         <a
                             href={resolve(`/album/${$currentTrack.albumId}`)}
