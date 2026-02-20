@@ -188,10 +188,10 @@
 
                         {#if $auth.isConnected}
                             <span
-                                class="text-[var(--accent)] text-sm font-medium flex items-center gap-2 ml-auto"
+                                class="text-[var(--primary)] text-sm font-medium flex items-center gap-2 ml-auto"
                             >
                                 <div
-                                    class="w-2 h-2 bg-[var(--accent)] rounded-full"
+                                    class="w-2 h-2 bg-green-500 rounded-full"
                                 ></div>
                                 Connected
                             </span>
