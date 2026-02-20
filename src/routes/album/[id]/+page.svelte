@@ -101,6 +101,23 @@
           })
       : [],
   );
+  let genres = $derived.by(() => {
+    if (!album) return [];
+    const source = album.genres || album.genre;
+    if (!source) return [];
+
+    let list = Array.isArray(source) ? source : [source];
+    return list
+      .map((/** @type {any} */ item) => {
+        if (typeof item === "object" && item.name) return item.name;
+        if (typeof item === "string")
+          return item.split(/[;,]/).map((s) => s.trim());
+        return item;
+      })
+      .flat()
+      .filter((/** @type {any} */ g) => g && typeof g === "string")
+      .slice(0, 3);
+  });
 
   let groupedSongs = $derived(
     songs.reduce(
@@ -186,22 +203,41 @@
         <h1 class="text-5xl font-bold text-[var(--text-primary)]">
           {album.title || album.name}
         </h1>
-        <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+        <div
+          class="flex flex-col md:flex-row md:items-center gap-x-2 gap-y-1 text-[var(--text-secondary)]"
+        >
           {#if album.artist}
-            <a href={resolve(`/artist/${album.artistId}`)}>
-              <span
-                class="font-semibold text-[var(--text-primary)] hover:underline"
-                >{album.artist}</span
-              >
-            </a>
-            <span>•</span>
+            <div class="flex items-center gap-2">
+              <a href={resolve(`/artist/${album.artistId}`)}>
+                <span
+                  class="font-semibold text-[var(--text-primary)] hover:underline"
+                  >{album.artist}</span
+                >
+              </a>
+              <span class="hidden md:inline">•</span>
+            </div>
           {/if}
-          <span>{album.year || "Unknown Year"}</span>
-          <span>•</span>
-          <span>{album.songCount} songs</span>
-          <span>•</span>
-          <span>{formatDuration(album.duration)}</span>
+          <div class="flex items-center gap-2 text-sm md:text-base">
+            <span>{album.year || "Unknown Year"}</span>
+            <span>•</span>
+            <span>{album.songCount} songs</span>
+            <span>•</span>
+            <span>{formatDuration(album.duration)}</span>
+          </div>
         </div>
+
+        <!-- GENRES -->
+        {#if genres.length > 0}
+          <div class="flex flex-wrap gap-2 mt-1">
+            {#each genres as genre}
+              <span
+                class="px-3 py-1 text-xs font-medium rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                {genre}
+              </span>
+            {/each}
+          </div>
+        {/if}
       </div>
     </div>
 
