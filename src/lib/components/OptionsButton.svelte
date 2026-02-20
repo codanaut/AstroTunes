@@ -10,7 +10,8 @@
         User,
         Album,
     } from "lucide-svelte";
-    import { slide, scale } from "svelte/transition";
+    import { scale } from "svelte/transition";
+    import { portal } from "$lib/utils/portal";
     import { resolve } from "$app/paths";
 
     /**
@@ -71,18 +72,6 @@
 
     function handleWindowClick() {
         if (isOpen) closeMenu();
-    }
-
-    /** @param {HTMLElement} node */
-    function portal(node) {
-        document.body.appendChild(node);
-        return {
-            destroy() {
-                if (node.parentNode) {
-                    node.parentNode.removeChild(node);
-                }
-            },
-        };
     }
 
     /** @param {MouseEvent} event */

@@ -2,6 +2,7 @@
     import { createPlaylist } from "../subsonic";
     import { X, Loader2 } from "lucide-svelte";
     import { fade, scale } from "svelte/transition";
+    import { portal } from "../utils/portal";
 
     let { isOpen = false, onclose, onsuccess } = $props();
 
@@ -44,6 +45,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
+        use:portal
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         transition:fade={{ duration: 200 }}
         onclick={close}
