@@ -53,7 +53,9 @@
 
 <div class="container mx-auto p-4 md:p-8 pb-32">
     <!-- FAVORITE SONGS SECTION -->
-    <div class="flex items-center justify-between mb-6">
+    <div
+        class="flex flex-col md:flex-row items-center justify-between mt-6 mb-6 gap-4"
+    >
         <div class="flex items-center gap-3">
             <div
                 class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
@@ -106,7 +108,9 @@
     </div>
 
     <!-- FAVORITE ALBUMS SECTION -->
-    <div class="flex items-center justify-between mb-6">
+    <div
+        class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4"
+    >
         <div class="flex items-center gap-3">
             <div
                 class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
@@ -145,7 +149,9 @@
     </div>
 
     <!-- FAVORITE ARTISTS SECTION -->
-    <div class="flex items-center justify-between mb-6">
+    <div
+        class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4"
+    >
         <div class="flex items-center gap-3">
             <div
                 class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
