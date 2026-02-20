@@ -395,7 +395,7 @@
         <!-- QUEUE OVERLAY (Mobile) -->
         {#if showQueuePanel}
             <div
-                class="fixed inset-0 z-50 bg-[var(--bg-main)] md:hidden flex flex-col"
+                class="fixed inset-0 z-50 bg-[var(--bg-main)] backdrop-blur-lg md:hidden flex flex-col"
                 transition:slide={{ axis: "y", duration: 300 }}
             >
                 <div
