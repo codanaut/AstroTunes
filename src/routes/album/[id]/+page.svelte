@@ -195,7 +195,7 @@
         alt={album.title || album.name}
         class="w-64 h-64 rounded-lg shadow-2xl object-cover bg-[var(--bg-card)]"
       />
-      <div class="flex flex-col gap-4 mb-2">
+      <div class="flex flex-col gap-4 mb-2 items-center md:items-start">
         <span
           class="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] inline-flex items-center gap-2"
           ><Disc size={24} /> Album</span
@@ -204,7 +204,7 @@
           {album.title || album.name}
         </h1>
         <div
-          class="flex flex-col md:flex-row md:items-center gap-x-2 gap-y-1 text-[var(--text-secondary)]"
+          class="flex flex-col md:flex-row md:items-center gap-x-2 gap-y-1 text-[var(--text-secondary)] items-center md:items-start"
         >
           {#if album.artist}
             <div class="flex items-center gap-2">
@@ -228,7 +228,9 @@
 
         <!-- GENRES -->
         {#if genres.length > 0}
-          <div class="flex flex-wrap gap-2 mt-1">
+          <div
+            class="flex flex-wrap gap-2 mt-1 justify-center md:justify-start"
+          >
             {#each genres as genre}
               <span
                 class="px-3 py-1 text-xs font-medium rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
@@ -242,7 +244,7 @@
     </div>
 
     <!-- ACTIONS -->
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-4 justify-center md:justify-start">
       <button
         onclick={playAlbum}
         class="bg-[var(--accent)] text-[var(--accent-fg)] rounded-full p-4 hover:scale-105 transition-transform shadow-lg flex items-center justify-center"
