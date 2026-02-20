@@ -19,8 +19,10 @@
   import { subsonicFetch } from "../lib/subsonic";
   import QueuePanel from "../lib/components/QueuePanel.svelte";
   import PlayerBar from "../lib/components/PlayerBar.svelte";
+  import { page } from "$app/stores";
   import TopBar from "../lib/components/TopBar.svelte";
   import Sidebar from "../lib/components/Sidebar.svelte";
+  import { resolve } from "$app/paths";
 
   let isSidebarOpen = $state(false);
 
@@ -154,6 +156,10 @@
     isMobileMenuOpen = false;
   }
 
+  let isNowPlayingPage = $derived(
+    $page.url.pathname === resolve("/now-playing"),
+  );
+
   onMount(async () => {
     if ($auth.serverUrl && $auth.username) {
       try {
@@ -226,10 +232,20 @@
 
   <div class="flex-1 flex flex-col min-w-0 relative">
     <!-- TOP BAR -->
-    <TopBar onToggle={toggleSidebar} />
+    {#if !isNowPlayingPage}
+      <TopBar onToggle={toggleSidebar} />
+    {:else}
+      <div class="hidden md:block">
+        <TopBar onToggle={toggleSidebar} />
+      </div>
+    {/if}
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-24">
+    <main
+      class="flex-1 overflow-y-auto {isNowPlayingPage
+        ? ''
+        : 'p-4 md:p-8 pb-24'}"
+    >
       {@render children()}
     </main>
 

@@ -97,33 +97,32 @@
     {#if $currentTrack}
         <!-- MAIN CONTENT (Left/Top) -->
         <div
-            class="flex-1 flex flex-col p-4 md:p-12 items-center relative overflow-y-auto"
+            class="flex-1 flex flex-col p-4 md:p-4 items-center relative overflow-hidden h-full"
         >
             <!-- TOP BAR (Back Button) -->
-            <div class="w-full flex justify-start mb-4 shrink-0">
+            <div class="w-full flex justify-start mb-2 shrink-0">
                 <BackButton />
             </div>
 
             <!-- CONTENT WRAPPER (Centers Art & Info properly) -->
             <div
-                class="flex-1 flex flex-col items-center justify-center w-full min-h-min gap-4 md:gap-8 grow shrink-0 py-2"
+                class="flex-1 flex flex-col items-center justify-center w-full min-h-0 gap-4 md:gap-4 grow py-2"
             >
                 <!-- ARTWORK -->
                 <div
-                    class="w-full max-w-[260px] md:max-w-xs aspect-square relative group shrink-0"
-                    style="max-height: 40vh;"
+                    class="w-full max-w-[280px] md:max-w-xs flex-1 min-h-0 relative group flex items-center justify-center"
                 >
                     <img
                         src={getCoverArtUrl($currentTrack.id)}
                         alt="Album Art"
-                        class="w-full h-full object-cover rounded-xl shadow-2xl"
+                        class="max-w-full max-h-full aspect-square object-cover rounded-xl shadow-2xl"
                     />
                 </div>
 
                 <!-- INFO -->
-                <div class="w-full max-w-md text-center">
+                <div class="w-full max-w-md text-center shrink-0 mt-0">
                     <h1
-                        class="text-xl md:text-3xl font-bold mb-1 truncate px-4"
+                        class="text-xl md:text-2xl font-bold mb-0.5 truncate px-4"
                     >
                         {$currentTrack.title}
                     </h1>
@@ -188,7 +187,7 @@
 
             <!-- CONTROLS CONTAINER -->
             <div
-                class="w-full max-w-md flex flex-col gap-4 md:gap-6 px-4 mt-4 md:mt-0 shrink-0"
+                class="w-full max-w-md flex flex-col gap-4 md:gap-6 px-4 mt-2 md:mt-0 shrink-0 mb-4 md:mb-0"
             >
                 <!-- PROGRESS BAR -->
                 <div
@@ -285,7 +284,7 @@
 
             <!-- QUEUE TOGGLE (Mobile Only) -->
             <button
-                class="md:hidden mt-4 flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0"
+                class="md:hidden mt-2 mb-4 flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0"
                 onclick={() => (showQueuePanel = !showQueuePanel)}
             >
                 <ListMusic size={20} />
