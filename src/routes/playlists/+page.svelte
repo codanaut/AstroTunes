@@ -161,7 +161,7 @@
     onsuccess={handleCreateSuccess}
 />
 
-<div class="h-full flex overflow-hidden">
+<div class="h-[calc(100%+6rem)] -m-4 md:-m-8 flex overflow-hidden">
     <!-- Playlist Sidebar -->
     <!-- Hidden on mobile if playlist is selected, visible on desktop always -->
     <div
@@ -170,7 +170,7 @@
             : 'flex'}"
     >
         <div
-            class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center"
+            class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--bg-sidebar)] z-10"
         >
             <h2
                 class="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2"
@@ -188,7 +188,7 @@
         </div>
 
         <div
-            class="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-[var(--border-secondary)]"
+            class="flex-1 overflow-y-auto p-2 pb-36 scrollbar-thin scrollbar-thumb-[var(--border-secondary)]"
         >
             {#if loading}
                 <div class="flex justify-center p-4">
@@ -230,31 +230,41 @@
 
     <!-- Main Content -->
     <!-- Hidden on mobile if NO playlist is selected, visible on desktop always -->
+    <!-- CHANGED: flex-col to block, remove overflow-hidden from here and put overflow-y-auto back on this container so the whole thing scrolls -->
     <div
-        class="flex-1 overflow-hidden flex-col bg-[var(--bg-main)] {selectedPlaylist
-            ? 'flex'
-            : 'hidden md:flex'}"
+        class="flex-1 overflow-y-auto bg-[var(--bg-main)] scrollbar-thin scrollbar-thumb-[var(--border-secondary)] pb-36 {selectedPlaylist
+            ? 'block'
+            : 'hidden md:block'}"
     >
         {#if selectedPlaylist}
             <!-- Playlist Header -->
+            <!-- Back button is now sticky on mobile so it doesn't get lost -->
             <div
-                class="p-6 md:p-8 flex flex-col md:flex-row md:items-end gap-6 bg-[var(--bg-main)] relative border-b border-[var(--border-primary)]"
+                class="md:hidden sticky top-0 z-20 bg-[var(--bg-main)]/95 backdrop-blur-md p-4 border-b border-[var(--border-primary)] flex items-center gap-4"
             >
-                <!-- Back Button (Mobile Only) -->
                 <button
-                    class="md:hidden absolute top-4 left-4 p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-full text-[var(--text-primary)]"
+                    class="p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
                     onclick={deselectPlaylist}
+                    aria-label="Back to Playlists"
                 >
                     <ChevronLeft size={24} />
                 </button>
+                <div class="font-bold text-lg truncate flex-1">
+                    {selectedPlaylist.name}
+                </div>
+            </div>
+
+            <div
+                class="p-4 md:p-8 flex flex-col md:flex-row md:items-end gap-6 bg-[var(--bg-main)] relative border-b border-[var(--border-primary)]"
+            >
+                <div
+                    class="w-40 h-40 md:w-56 md:h-56 shadow-2xl rounded-lg bg-[var(--bg-card)] flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 mt-4 md:mt-0"
+                >
+                    <ListMusic size={80} class="text-[var(--text-muted)]" />
+                </div>
 
                 <div
-                    class="w-32 h-32 md:w-48 md:h-48 shadow-2xl rounded-md bg-[var(--bg-card)] flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 mt-8 md:mt-0"
-                >
-                    <ListMusic size={64} class="text-[var(--text-muted)]" />
-                </div>
-                <div
-                    class="flex flex-col gap-4 mb-2 overflow-hidden flex-1 items-center md:items-start text-center md:text-left"
+                    class="flex flex-col gap-4 overflow-hidden flex-1 items-center md:items-start text-center md:text-left w-full"
                 >
                     <div class="flex flex-col w-full">
                         <span
@@ -262,45 +272,55 @@
                             >Playlist</span
                         >
                         <h1
-                            class="text-2xl md:text-5xl font-bold text-[var(--text-primary)] truncate drop-shadow-sm"
+                            class="text-2xl md:text-5xl font-bold text-[var(--text-primary)] truncate drop-shadow-sm leading-tight hidden md:block"
                         >
                             {selectedPlaylist.name}
                         </h1>
+                        <!-- Mobile Title (shown only in header body if not scrolled, but we have sticky header now, so maybe acceptable to duplicate or just show here too) -->
+                        <h1
+                            class="text-2xl font-bold text-[var(--text-primary)] truncate drop-shadow-sm leading-tight md:hidden"
+                        >
+                            {selectedPlaylist.name}
+                        </h1>
+
                         <div
-                            class="flex items-center justify-center md:justify-start gap-2 text-sm text-[var(--text-secondary)] mt-2"
+                            class="flex flex-wrap items-center justify-center md:justify-start gap-x-2 gap-y-1 text-sm text-[var(--text-secondary)] mt-2"
                         >
                             <span class="text-[var(--text-primary)] font-medium"
                                 >{selectedPlaylist.owner ||
                                     "Unknown User"}</span
                             >
+                            <span class="hidden md:inline">•</span>
                             <span
-                                >• {formatNumber(selectedPlaylist.songCount)} songs</span
+                                >{formatNumber(selectedPlaylist.songCount)} songs</span
                             >
+                            <span class="hidden md:inline">•</span>
                             <span
-                                >• {formatDuration(
+                                >{formatDuration(
                                     selectedPlaylist.duration,
                                 )}</span
                             >
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 mt-2">
                         <button
-                            class="bg-[var(--accent)] text-[var(--accent-fg)] rounded-full p-3 hover:scale-105 transition-transform shadow-lg hover:opacity-90"
+                            class="bg-[var(--accent)] text-[var(--accent-fg)] rounded-full p-3 md:p-4 hover:scale-105 transition-transform shadow-lg hover:opacity-90 flex items-center justify-center"
                             onclick={handlePlay}
                             title="Play Playlist"
                         >
                             <Play size={24} class="fill-current ml-1" />
                         </button>
                         <button
-                            class="bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-primary)] rounded-full p-3 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)]"
+                            class="bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-primary)] rounded-full p-3 md:p-4 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)] flex items-center justify-center"
                             onclick={handleShuffle}
                             title="Shuffle Playlist"
                         >
                             <Shuffle size={24} />
                         </button>
+                        <div class="flex-1 md:hidden"></div>
                         <button
-                            class="bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-primary)] rounded-full p-3 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)] hover:text-red-500 hover:border-red-500"
+                            class="bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-primary)] rounded-full p-3 md:p-4 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)] hover:text-red-500 hover:border-red-500 flex items-center justify-center"
                             onclick={handleDelete}
                             title="Delete Playlist"
                         >
@@ -311,7 +331,8 @@
             </div>
 
             <!-- Song List -->
-            <div class="flex-1 overflow-y-auto">
+            <!-- Removed overflow-y-auto here so it flows naturally -->
+            <div>
                 {#if loadingSongs}
                     <div class="h-40 flex items-center justify-center">
                         <Loader2
@@ -337,7 +358,7 @@
         {:else}
             <!-- Empty State -->
             <div
-                class="flex-1 flex flex-col items-center justify-center text-[var(--text-muted)]"
+                class="flex-1 flex flex-col items-center justify-center text-[var(--text-muted)] min-h-[50vh]"
             >
                 <ListMusic size={64} class="mb-4 opacity-50" />
                 <p class="text-lg">Select a playlist to view songs</p>
