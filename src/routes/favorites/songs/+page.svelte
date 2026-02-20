@@ -11,12 +11,12 @@
         currentTrack,
         isPlaying,
     } from "../../../lib/player.js";
-    import { Play, Shuffle } from "lucide-svelte";
+    import { Play, Shuffle, Music } from "lucide-svelte";
     import BackButton from "../../../lib/components/BackButton.svelte";
     import SongList from "../../../lib/components/SongList.svelte";
 
     /** @type {any[]} */
-    let favoriteSongs = [];
+    let favoriteSongs = $state([]);
 
     onMount(async () => {
         await loadFavorites();
@@ -45,33 +45,50 @@
     }
 </script>
 
-<div class="w-full mx-auto p-6">
+<div class="w-full mx-auto p-4 md:p-8 pb-32">
     <BackButton />
-    <div class="flex items-center gap-4 mb-6">
-        <h1 class="text-3xl font-bold text-[var(--accent)]">Favorite Songs</h1>
-        {#if favoriteSongs.length > 0}
-            <div class="flex gap-2">
-                <button
-                    onclick={() =>
-                        playQueue(favoriteSongs, 0, {
-                            type: "favorites",
-                            id: "all",
-                            name: "Favorite Songs",
-                        })}
-                    class="p-3 bg-green-500 rounded-full text-black hover:scale-105 transition-transform shadow-lg"
-                    title="Play All"
-                >
-                    <Play size={20} fill="black" />
-                </button>
-                <button
-                    onclick={() => playQueueShuffled(favoriteSongs)}
-                    class="p-3 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors shadow-lg border border-gray-700"
-                    title="Shuffle Play"
-                >
-                    <Shuffle size={20} />
-                </button>
+
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div
+                class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
+            >
+                <Music size={24} />
             </div>
-        {/if}
+            <h1 class="text-3xl font-bold text-[var(--text-primary)]">
+                Favorite Songs
+                {#if favoriteSongs.length > 0}
+                    <span
+                        class="text-[var(--text-secondary)] text-lg font-normal ml-2"
+                    >
+                        - {favoriteSongs.length}
+                    </span>
+                {/if}
+            </h1>
+            {#if favoriteSongs.length > 0}
+                <div class="flex gap-2 ml-2">
+                    <button
+                        onclick={() =>
+                            playQueue(favoriteSongs, 0, {
+                                type: "favorites",
+                                id: "all",
+                                name: "Favorite Songs",
+                            })}
+                        class="p-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-md hover:opacity-90 transition-opacity"
+                        title="Play All"
+                    >
+                        <Play size={20} fill="currentColor" />
+                    </button>
+                    <button
+                        onclick={() => playQueueShuffled(favoriteSongs)}
+                        class="p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-md hover:bg-[var(--bg-hover)] transition-colors"
+                        title="Shuffle Play"
+                    >
+                        <Shuffle size={20} />
+                    </button>
+                </div>
+            {/if}
+        </div>
     </div>
 
     <div class="flex flex-col">
