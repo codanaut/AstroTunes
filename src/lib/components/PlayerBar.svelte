@@ -21,6 +21,7 @@
         context,
     } from "$lib/player.js";
     import { getCoverArtUrl } from "$lib/subsonic.js";
+    import OptionsButton from "$lib/components/OptionsButton.svelte";
     import { parseArtistString } from "$lib/utils/artistUtils";
     import {
         Play,
@@ -307,6 +308,11 @@
                 {formatSampleRate($currentTrack.samplingRate)}
             </span>
         </div>
+
+        <OptionsButton
+            item={$currentTrack}
+            className="hover:text-[var(--text-primary)] transition-colors"
+        />
 
         <button
             onclick={toggleQueue}

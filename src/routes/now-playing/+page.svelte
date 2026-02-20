@@ -20,6 +20,7 @@
         context,
     } from "../../lib/player";
     import { getCoverArtUrl } from "../../lib/subsonic";
+    import OptionsButton from "../../lib/components/OptionsButton.svelte";
     import {
         Play,
         Pause,
@@ -261,18 +262,24 @@
                         </button>
                     </div>
 
-                    <button
-                        onclick={toggleFavorite}
-                        class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2"
-                        title="Favorite"
-                    >
-                        <Heart
-                            size={24}
-                            class={$isFavorite
-                                ? "text-red-500 fill-red-500"
-                                : ""}
+                    <div class="flex items-center gap-1">
+                        <button
+                            onclick={toggleFavorite}
+                            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2"
+                            title="Favorite"
+                        >
+                            <Heart
+                                size={24}
+                                class={$isFavorite
+                                    ? "text-red-500 fill-red-500"
+                                    : ""}
+                            />
+                        </button>
+                        <OptionsButton
+                            item={$currentTrack}
+                            className="p-2 md:p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                         />
-                    </button>
+                    </div>
                 </div>
             </div>
 

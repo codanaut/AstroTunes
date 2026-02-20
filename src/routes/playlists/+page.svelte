@@ -350,7 +350,7 @@
                         context="playlist"
                         contextId={selectedPlaylist.id}
                         contextName={selectedPlaylist.name}
-                        onplaylistUpdated={() =>
+                        onPlaylistUpdated={() =>
                             selectPlaylist(selectedPlaylist)}
                     />
                 {/if}

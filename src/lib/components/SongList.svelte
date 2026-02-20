@@ -7,7 +7,7 @@
         addToQueue,
     } from "../player.js";
     import { starTrack, unstarTrack, updatePlaylist } from "../subsonic.js";
-    import AddToPlaylistModal from "./AddToPlaylistModal.svelte";
+    import OptionsButton from "./OptionsButton.svelte";
     import {
         Heart,
         Clock,
@@ -17,11 +17,6 @@
         Check,
         Play,
         MoreVertical,
-        Plus,
-        Trash2,
-        User,
-        Album,
-        ListPlus,
         ArrowUp,
         ArrowDown,
         Search,
@@ -36,7 +31,7 @@
     import { resolve } from "$app/paths";
     import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
-    /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'songs', limit?: number, contextId?: string|null, contextName?: string|null, showToolbar?: boolean, onplaylistUpdated?: () => void }} */
+    /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'songs', limit?: number, contextId?: string|null, contextName?: string|null, showToolbar?: boolean, onPlaylistUpdated?: () => void }} */
     let {
         songs = $bindable([]),
         context = "playlist",
@@ -44,7 +39,7 @@
         contextId = null,
         contextName = null,
         showToolbar = true,
-        onplaylistUpdated,
+        onPlaylistUpdated,
     } = $props();
 
     // --- SORTING & FILTERING STATE ---
@@ -314,7 +309,7 @@
                         contextId,
                         songs.map((s) => s.id),
                     );
-                    onplaylistUpdated?.();
+                    onPlaylistUpdated?.();
                 } catch (err) {
                     console.error("Failed to reorder playlist:", err);
                 }
@@ -512,114 +507,9 @@
             .replace(/\s+/g, " ")
             .trim(),
     );
-
-    // Menu Logic
-    /** @type {string|null} */
-    let activeMenuSongId = $state(null);
-    let menuPosition = $state({ x: 0, y: 0 });
-    let showAddModal = $state(false);
-    /** @type {any} */
-    let songToAdd = $state(null);
-
-    let activeMenuSong = $derived(
-        activeMenuSongId ? songs.find((s) => s.id === activeMenuSongId) : null,
-    );
-
-    /**
-     * @param {MouseEvent} event
-     * @param {any} song
-     */
-    function openMenu(event, song) {
-        event.stopPropagation();
-        activeMenuSongId = song.id;
-
-        // 1. Get the specific button element (fixes the jitter/target issue too)
-        const target = /** @type {HTMLElement} */ (event.currentTarget);
-        const rect = target.getBoundingClientRect();
-
-        // 2. Constants for safety
-        const menuWidth = 180; // Matches your min-w-[180px]
-        const menuHeight = 150; // Approx height
-        const screenPadding = 10; // Keep it away from the edge
-
-        // 3. Calculate X (Horizontal)
-        // Default: Align the right edge of the menu with the right edge of the button
-        let xPos = rect.right - menuWidth;
-
-        // Safety: If that pushes it off the left side of the screen, force it to the left edge padding
-        if (xPos < screenPadding) {
-            xPos = screenPadding;
-        }
-
-        // Safety: If it pushes off the right side, force it to the right edge padding
-        if (xPos + menuWidth > window.innerWidth) {
-            xPos = window.innerWidth - menuWidth - screenPadding;
-        }
-
-        // 4. Calculate Y (Vertical)
-        const availableHeight = window.innerHeight - rect.bottom;
-        let yPos;
-
-        if (availableHeight < menuHeight) {
-            // If not enough space below, show above
-            yPos = rect.top - menuHeight;
-        } else {
-            // Otherwise show below
-            yPos = rect.bottom;
-        }
-
-        menuPosition = { x: xPos, y: yPos };
-    }
-
-    function closeMenu() {
-        activeMenuSongId = null;
-    }
-
-    function handleWindowClick() {
-        if (activeMenuSongId) closeMenu();
-    }
-
-    /** @param {any} song */
-    function handleAddToPlaylist(song) {
-        songToAdd = song;
-        showAddModal = true;
-        closeMenu();
-    }
-
-    /** @param {any} song */
-    async function handleRemoveFromPlaylist(song) {
-        if (!contextId) return;
-
-        // Optimistic UI update could be tricky here with re-indexing, so we'll wait for server
-        try {
-            await updatePlaylist(contextId, {
-                songIndexesToRemove: [song.globalIndex],
-            });
-            // Notify parent to refresh
-            onplaylistUpdated?.();
-        } catch (e) {
-            console.error("Failed to remove song from playlist", e);
-        }
-        closeMenu();
-    }
 </script>
 
-<svelte:window
-    bind:innerWidth={containerWidth}
-    onclick={() => (activeMenuSongId = null)}
-/>
-
-<AddToPlaylistModal
-    isOpen={showAddModal}
-    songs={songToAdd ? [songToAdd] : []}
-    onclose={() => {
-        showAddModal = false;
-        songToAdd = null;
-    }}
-    onsuccess={() => {
-        // Optional: show toast or success message
-    }}
-/>
+<svelte:window bind:innerWidth={containerWidth} />
 
 <div
     bind:clientWidth={containerWidth}
@@ -897,12 +787,13 @@
 
                     {#if isColumnVisible("options")}
                         <div class="flex justify-end">
-                            <button
-                                class="p-1.5 rounded-full hover:bg-[var(--bg-active)] text-[var(--text-muted)] hover:text-[var(--text-primary)] opacity-100 md:opacity-0 group-hover:opacity-100 transition-all"
-                                onclick={(e) => openMenu(e, song)}
-                            >
-                                <MoreVertical size={16} />
-                            </button>
+                            <OptionsButton
+                                item={song}
+                                {context}
+                                {contextId}
+                                {onPlaylistUpdated}
+                                className="p-1.5 opacity-100 md:opacity-0 group-hover:opacity-100"
+                            />
                         </div>
                     {/if}
                 </div>
@@ -910,62 +801,6 @@
         {/each}
     </div>
 </div>
-
-{#if activeMenuSongId}
-    {@const activeSong = songs.find((s) => s.id === activeMenuSongId)}
-
-    <div
-        class="fixed z-50 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"
-        style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
-        transition:scale={{ duration: 150, start: 0.95 }}
-    >
-        <button
-            class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-            onclick={() => {
-                addToQueue(activeSong);
-                activeMenuSongId = null;
-            }}
-        >
-            <ListPlus size={16} /> Add to Queue
-        </button>
-
-        <button
-            class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-            onclick={() => handleAddToPlaylist(activeSong)}
-        >
-            <Plus size={16} /> Add to Playlist
-        </button>
-
-        {#if context === "playlist"}
-            <button
-                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-red-500 flex items-center gap-2"
-                onclick={() => handleRemoveFromPlaylist(activeSong)}
-            >
-                <Trash2 size={16} /> Remove
-            </button>
-        {/if}
-
-        <div class="h-px bg-[var(--border-secondary)] my-1"></div>
-
-        {#if activeSong?.artistId}
-            <a
-                href={resolve(`/artist/${activeSong.artistId}`)}
-                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-            >
-                <User size={16} /> Go to Artist
-            </a>
-        {/if}
-
-        {#if activeSong?.albumId}
-            <a
-                href={resolve(`/album/${activeSong.albumId}`)}
-                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-            >
-                <Album size={16} /> Go to Album
-            </a>
-        {/if}
-    </div>
-{/if}
 
 <style>
     .song-grid {
