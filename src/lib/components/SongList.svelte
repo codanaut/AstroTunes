@@ -218,8 +218,10 @@
                   const originalIndex = songs.findIndex(
                       (s) => s.id === song.id,
                   );
-                  song.globalIndex =
-                      originalIndex !== -1 ? originalIndex : index;
+                  const songWithIndex = {
+                      ...song,
+                      globalIndex: originalIndex !== -1 ? originalIndex : index,
+                  };
 
                   const disc = song.discNumber || 1;
                   let lastGroup = acc[acc.length - 1];
@@ -227,7 +229,7 @@
                       lastGroup = { disc, songs: [] };
                       acc.push(lastGroup);
                   }
-                  lastGroup.songs.push(song);
+                  lastGroup.songs.push(songWithIndex);
                   return acc;
               }, [])
             : [
