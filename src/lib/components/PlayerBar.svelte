@@ -300,7 +300,7 @@
         <div
             class="flex flex-col items-end text-xs text-[var(--text-secondary)] mr-2"
         >
-            <span class="font-semibold text-[var(--text-muted)] uppercase"
+            <span class="font-semibold text-[var(--text-secondary)] uppercase"
                 >{$currentTrack.suffix}</span
             >
             <span class="text-right">
@@ -311,7 +311,7 @@
 
         <OptionsButton
             item={$currentTrack}
-            className="hover:text-[var(--text-primary)] transition-colors"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
         />
 
         <button
