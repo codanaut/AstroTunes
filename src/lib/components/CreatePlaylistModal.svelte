@@ -46,7 +46,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
         use:portal
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        class="fixed inset-0 bg-[var(--bg-card)]/50 backdrop-blur-lg z-50 flex items-center justify-center p-4"
         transition:fade={{ duration: 200 }}
         onclick={close}
     >
@@ -54,7 +54,7 @@
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
-            class="bg-[var(--bg-card)] border border-[var(--border-primary)] w-full max-w-md rounded-xl shadow-2xl overflow-hidden"
+            class="bg-[var(--bg-card)] backdrop-blur-lg border border-[var(--border-primary)] w-full max-w-md rounded-xl shadow-2xl overflow-hidden"
             transition:scale={{ duration: 200, start: 0.95 }}
             onclick={(e) => e.stopPropagation()}
         >

@@ -108,7 +108,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
         use:portal
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        class="fixed inset-0 bg-[var(--bg-card)]/50 backdrop-blur-lg z-50 flex items-center justify-center p-4"
         transition:fade={{ duration: 200 }}
         onclick={close}
     >
