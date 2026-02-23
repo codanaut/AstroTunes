@@ -15,6 +15,8 @@
     import { page } from "$app/stores";
     import { auth } from "../../lib/auth";
     import { resolve } from "$app/paths";
+    import { ui } from "../../lib/stores/ui";
+    import { ChevronLeft, ChevronRight } from "lucide-svelte";
 
     let { isOpen, onClose } = $props();
 
@@ -50,13 +52,31 @@
 
 <!-- SIDEBAR -->
 <aside
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-transform duration-300 ease-in-out md:relative md:translate-x-0
-    {isOpen ? 'translate-x-0' : '-translate-x-full'}"
+    class="fixed inset-y-0 left-0 z-50 bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-all duration-300 ease-in-out md:relative md:translate-x-0
+    {isOpen ? 'translate-x-0' : '-translate-x-full'}
+    {$ui.isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}"
 >
-    <div class="p-6">
-        <h1 class="text-2xl font-bold tracking-tight text-[var(--accent)]">
-            <a href={resolve("/")} onclick={closeMobileMenu}>AstroTunes</a>
-        </h1>
+    <div class="p-6 flex items-center justify-between">
+        {#if !$ui.isSidebarCollapsed}
+            <h1
+                class="text-2xl font-bold tracking-tight text-[var(--accent)] truncate"
+            >
+                <a href={resolve("/")} onclick={closeMobileMenu}>AstroTunes</a>
+            </h1>
+        {/if}
+        <button
+            onclick={() => ui.toggleSidebar()}
+            class="hidden md:flex items-center justify-center p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            title={$ui.isSidebarCollapsed
+                ? "Expand Sidebar"
+                : "Collapse Sidebar"}
+        >
+            {#if $ui.isSidebarCollapsed}
+                <ChevronRight size={20} />
+            {:else}
+                <ChevronLeft size={20} />
+            {/if}
+        </button>
     </div>
 
     <nav class="flex-1 px-4 space-y-2">
@@ -64,13 +84,17 @@
             <a
                 href={item.href}
                 onclick={closeMobileMenu}
+                title={$ui.isSidebarCollapsed ? item.label : ""}
                 class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200
           {$page.url.pathname === item.href
                     ? 'bg-[var(--bg-card)] text-[var(--text-primary)]'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}"
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}
+          {$ui.isSidebarCollapsed ? 'justify-center' : ''}"
             >
                 <item.icon size={20} />
-                <span class="font-medium">{item.label}</span>
+                {#if !$ui.isSidebarCollapsed}
+                    <span class="font-medium truncate">{item.label}</span>
+                {/if}
             </a>
         {/each}
     </nav>
@@ -79,28 +103,34 @@
         <a
             href={resolve("/settings")}
             onclick={closeMobileMenu}
+            title={$ui.isSidebarCollapsed ? "Settings" : ""}
             class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200
         {$page.url.pathname === '/settings'
                 ? 'bg-[var(--bg-card)] text-[var(--text-primary)]'
-                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}"
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}
+        {$ui.isSidebarCollapsed ? 'justify-center' : ''}"
         >
             <Settings size={20} />
-            <span class="font-medium">Settings</span>
+            {#if !$ui.isSidebarCollapsed}
+                <span class="font-medium truncate">Settings</span>
+            {/if}
         </a>
 
-        <div
-            class="px-4 py-2 text-xs flex items-center gap-2 truncate text-[var(--text-secondary)]"
-        >
+        {#if !$ui.isSidebarCollapsed}
             <div
-                class="w-2 h-2 rounded-full shrink-0 {$auth.isConnected
-                    ? 'bg-green-500'
-                    : 'bg-red-500'}"
-            ></div>
-            {#if $auth.isConnected && $auth.username}
-                <span class="truncate">Connected as {$auth.username}</span>
-            {:else}
-                <span>Disconnected</span>
-            {/if}
-        </div>
+                class="px-4 py-2 text-xs flex items-center gap-2 truncate text-[var(--text-secondary)]"
+            >
+                <div
+                    class="w-2 h-2 rounded-full shrink-0 {$auth.isConnected
+                        ? 'bg-green-500'
+                        : 'bg-red-500'}"
+                ></div>
+                {#if $auth.isConnected && $auth.username}
+                    <span class="truncate">Connected as {$auth.username}</span>
+                {:else}
+                    <span>Disconnected</span>
+                {/if}
+            </div>
+        {/if}
     </div>
 </aside>
