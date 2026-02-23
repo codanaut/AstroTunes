@@ -4,7 +4,6 @@
 
 AstroTunes is a sleek, lightweight frontend for Subsonic-compatible servers (like Navidrome and Airsonic). While traditional Subsonic interfaces are often "sub"-terranean, we’re taking your music to the stratosphere with a modern, fast, and visually stunning player, available both as a web app and a lightweight desktop application.
 
-<img src="./astrotunes-ui.PNG" alt="AstroTunes Screenshot" width="600">
 
 ## Try it out
 You can try out the latest build at [https://codanaut.github.io/AstroTunes/](https://codanaut.github.io/AstroTunes/)
