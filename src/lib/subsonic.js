@@ -180,12 +180,21 @@ export async function getTopSongs(artistName, count = 50) {
 }
 
 /**
+ * Fetches additional info for an artist (biography, images, similar artists)
+ * @param {string} id - Artist ID
+ * @param {number} count - Number of similar artists to return
+ */
+export async function getArtistInfo(id, count = 20) {
+    return await subsonicFetch('getArtistInfo2', `&id=${id}&count=${count}`);
+}
+
+/**
  * Fetches similar artists for a given artist
  * @param {string} id - Artist ID (ID3 tag)
  * @param {number} count
  */
 export async function getSimilarArtists(id, count = 20) {
-    const data = await subsonicFetch('getArtistInfo2', `&id=${id}&count=${count}`);
+    const data = await getArtistInfo(id, count);
     return data?.artistInfo2?.similarArtist || [];
 }
 
