@@ -8,7 +8,7 @@ const config = {
 		paths: {
 			// Only apply a base path if we are specifically building for GH Pages
 			base: process.env.NODE_ENV === 'production' && process.env.BASE_PATH ? process.env.BASE_PATH : '',
-			relative: true // This is the key for Tauri/EXE compatibility
+			relative: !(process.env.NODE_ENV === 'production' && process.env.BASE_PATH) // Absolute paths for GH Pages, relative for Tauri
 		}
 	}
 };
