@@ -91,7 +91,12 @@
                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}
           {$ui.isSidebarCollapsed ? 'justify-center' : ''}"
             >
-                <item.icon size={20} />
+                <item.icon
+                    size={20}
+                    class={$page.url.pathname === item.href
+                        ? "text-[var(--accent)]"
+                        : ""}
+                />
                 {#if !$ui.isSidebarCollapsed}
                     <span class="font-medium truncate">{item.label}</span>
                 {/if}
@@ -110,7 +115,12 @@
                 : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}
         {$ui.isSidebarCollapsed ? 'justify-center' : ''}"
         >
-            <Settings size={20} />
+            <Settings
+                size={20}
+                class={$page.url.pathname === "/settings"
+                    ? "text-[var(--accent)]"
+                    : ""}
+            />
             {#if !$ui.isSidebarCollapsed}
                 <span class="font-medium truncate">Settings</span>
             {/if}
