@@ -100,12 +100,12 @@
 
             <!-- Dark Gradient Overlay (Hover) -->
             <div
-                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+                class="absolute inset-0 bg-black/40 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-auto lg:pointer-events-none lg:group-hover:pointer-events-auto"
             >
                 <!-- Centered Play Button -->
                 <button
                     onclick={(e) => playAlbum(e)}
-                    class="p-4 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] shadow-2xl scale-90 group-hover:scale-100 transition-all duration-300 hover:scale-110"
+                    class="p-4 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] shadow-2xl scale-90 lg:group-hover:scale-100 transition-all duration-300 hover:scale-110"
                     title="Play"
                 >
                     <Play size={28} fill="currentColor" class="ml-1" />
@@ -115,9 +115,9 @@
             <!-- Favorite Button (Top Right) -->
             <button
                 onclick={(e) => toggleAlbumFavorite(album, e)}
-                class="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100 {album.starred
+                class="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 {album.starred
                     ? 'opacity-100 !bg-[var(--accent)]/20 text-[var(--accent)]'
-                    : ''} cursor-pointer border-none z-20"
+                    : ''} cursor-pointer border-none z-20 pointer-events-auto lg:pointer-events-none lg:group-hover:pointer-events-auto"
                 aria-label={album.starred
                     ? "Unfavorite album"
                     : "Favorite album"}
@@ -131,7 +131,7 @@
             <!-- Shuffle Button (Bottom Right) -->
             <button
                 onclick={(e) => shuffleAlbum(e)}
-                class="absolute bottom-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100 cursor-pointer border-none z-20"
+                class="absolute bottom-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 cursor-pointer border-none z-20 pointer-events-auto lg:pointer-events-none lg:group-hover:pointer-events-auto"
                 title="Shuffle"
             >
                 <Shuffle size={18} />
