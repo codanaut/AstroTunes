@@ -146,7 +146,7 @@
       </a>
     </div>
   {:else}
-    <div class="w-full px-6 py-8">
+    <div class="w-full py-8">
       <!-- Section Title
       <h2 class="text-2xl font-bold text-[var(--accent)] mb-6">
         Your Collections
@@ -154,70 +154,99 @@
       -->
 
       <!-- Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:max-w-[80%] mx-auto gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Favorite Songs Card -->
         <a
           href={resolve("/favorites/songs")}
-          class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+          class="group relative overflow-hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--bg-glass)] p-8 backdrop-blur-md transition-all duration-500 hover:shadow-[var(--theme-glow)] hover:scale-[1.02]"
         >
-          <div class="flex items-center justify-between relative z-10">
-            <div>
-              <h3 class="text-xl font-bold text-white mb-1">Favorite Songs</h3>
-              <p class="text-sm text-gray-400">All your liked tracks</p>
-            </div>
-            <div
-              class="text-[var(--accent)] group-hover:scale-110 transition-transform duration-300"
-            >
-              <Music size={32} />
-            </div>
+          <!-- Asymmetrical Icon -->
+          <div
+            class="absolute -left-4 -bottom-4 opacity-10 text-[var(--accent)] group-hover:opacity-20 transition-opacity duration-500"
+          >
+            <Music size={120} />
           </div>
+
+          <div class="flex flex-col relative z-10 h-full justify-center">
+            <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-1">
+              Favorite Songs
+            </h3>
+            <p class="text-sm text-[var(--text-muted)]">
+              All your liked tracks
+            </p>
+          </div>
+
+          <div
+            class="absolute top-6 right-6 text-[var(--accent)] opacity-50 group-hover:opacity-100 transition-opacity"
+          >
+            <Music size={24} />
+          </div>
+
           <!-- Subtle Glow Effect on Hover -->
           <div
-            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           ></div>
         </a>
 
         <!-- Favorite Albums Card -->
         <a
           href={resolve("/favorites/albums")}
-          class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+          class="group relative overflow-hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--bg-glass)] p-8 backdrop-blur-md transition-all duration-500 hover:shadow-[var(--theme-glow)] hover:scale-[1.02]"
         >
-          <div class="flex items-center justify-between relative z-10">
-            <div>
-              <h3 class="text-xl font-bold text-white mb-1">Favorite Albums</h3>
-              <p class="text-sm text-gray-400">Saved full-length records</p>
-            </div>
-            <div
-              class="text-[var(--accent)] group-hover:scale-110 transition-transform duration-300"
-            >
-              <Disc size={32} />
-            </div>
-          </div>
+          <!-- Asymmetrical Icon -->
           <div
-            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            class="absolute -left-4 -bottom-4 opacity-10 text-[var(--accent)] group-hover:opacity-20 transition-opacity duration-500"
+          >
+            <Disc size={120} />
+          </div>
+
+          <div class="flex flex-col relative z-10 h-full justify-center">
+            <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-1">
+              Favorite Albums
+            </h3>
+            <p class="text-sm text-[var(--text-muted)]">
+              Saved full-length records
+            </p>
+          </div>
+
+          <div
+            class="absolute top-6 right-6 text-[var(--accent)] opacity-50 group-hover:opacity-100 transition-opacity"
+          >
+            <Disc size={24} />
+          </div>
+
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           ></div>
         </a>
 
         <!-- Favorite Artists Card -->
         <a
           href={resolve("/favorites/artists")}
-          class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+          class="group relative overflow-hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--bg-glass)] p-8 backdrop-blur-md transition-all duration-500 hover:shadow-[var(--theme-glow)] hover:scale-[1.02]"
         >
-          <div class="flex items-center justify-between relative z-10">
-            <div>
-              <h3 class="text-xl font-bold text-white mb-1">
-                Favorite Artists
-              </h3>
-              <p class="text-sm text-gray-400">Your top performers</p>
-            </div>
-            <div
-              class="text-[var(--accent)] group-hover:scale-110 transition-transform duration-300"
-            >
-              <Mic2 size={32} />
-            </div>
-          </div>
+          <!-- Asymmetrical Icon -->
           <div
-            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            class="absolute -left-4 -bottom-4 opacity-10 text-[var(--accent)] group-hover:opacity-20 transition-opacity duration-500"
+          >
+            <Mic2 size={120} />
+          </div>
+
+          <div class="flex flex-col relative z-10 h-full justify-center">
+            <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-1">
+              Favorite Artists
+            </h3>
+            <p class="text-sm text-[var(--text-muted)]">Your top performers</p>
+          </div>
+
+          <div
+            class="absolute top-6 right-6 text-[var(--accent)] opacity-50 group-hover:opacity-100 transition-opacity"
+          >
+            <Mic2 size={24} />
+          </div>
+
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           ></div>
         </a>
 
@@ -253,7 +282,7 @@
         showAllLink={resolve("/albums/top")}
         enableViewToggle={false}
         layout="featured"
-        headerClass="justify-center"
+        headerClass=""
       />
     </div>
 

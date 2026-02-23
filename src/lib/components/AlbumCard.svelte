@@ -87,71 +87,69 @@
 
 <div class="text-left group block relative my-4">
     <!-- Album Cover Link -->
-    <a href={resolve(`/album/${album.id}`)}>
+    <a href={resolve(`/album/${album.id}`)} class="block no-underline">
         <div
-            class="relative aspect-square mb-2 overflow-hidden rounded-lg bg-[var(--bg-card)]"
+            class="relative aspect-square mb-3 overflow-hidden rounded-xl bg-[var(--bg-card)] shadow-lg transition-all duration-300 group-hover:shadow-[var(--theme-glow)]"
         >
             <img
                 src={getCoverArtUrl(album.id)}
                 alt={album.title}
-                class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-300"
+                class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
             />
-            <!-- Favorite Button -->
+
+            <!-- Dark Gradient Overlay (Hover) -->
+            <div
+                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+            >
+                <!-- Centered Play Button -->
+                <button
+                    onclick={(e) => playAlbum(e)}
+                    class="p-4 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] shadow-2xl scale-90 group-hover:scale-100 transition-all duration-300 hover:scale-110"
+                    title="Play"
+                >
+                    <Play size={28} fill="currentColor" class="ml-1" />
+                </button>
+            </div>
+
+            <!-- Favorite Button (Top Right) -->
             <button
                 onclick={(e) => toggleAlbumFavorite(album, e)}
-                class="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 {album.starred
-                    ? 'opacity-100'
-                    : ''} cursor-pointer border-none"
+                class="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100 {album.starred
+                    ? 'opacity-100 !bg-[var(--accent)]/20 text-[var(--accent)]'
+                    : ''} cursor-pointer border-none z-20"
                 aria-label={album.starred
                     ? "Unfavorite album"
                     : "Favorite album"}
             >
                 <Heart
-                    size={18}
-                    class={album.starred
-                        ? "text-red-500 fill-red-500"
-                        : "text-[var(--text-primary)]"}
+                    size={20}
+                    class={album.starred ? "fill-[var(--accent)]" : ""}
                 />
             </button>
 
-            <!-- Play Actions -->
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div
-                class="absolute bottom-2 right-2 left-2 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                onclick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }}
+            <!-- Shuffle Button (Bottom Right) -->
+            <button
+                onclick={(e) => shuffleAlbum(e)}
+                class="absolute bottom-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100 cursor-pointer border-none z-20"
+                title="Shuffle"
             >
-                <button
-                    onclick={(e) => playAlbum(e)}
-                    class="p-2 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] shadow-lg hover:scale-110 transition-transform"
-                    title="Play"
-                >
-                    <Play size={20} fill="currentColor" class="ml-0.5" />
-                </button>
-                <button
-                    onclick={(e) => shuffleAlbum(e)}
-                    class="p-2 rounded-full bg-[var(--bg-card)] text-[var(--text-primary)] shadow-lg hover:bg-[var(--bg-hover)] transition-colors"
-                    title="Shuffle"
-                >
-                    <Shuffle size={20} />
-                </button>
-            </div>
+                <Shuffle size={18} />
+            </button>
         </div>
+
         <!-- Album Title -->
         <div
-            class="font-medium truncate text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors"
+            class="font-bold truncate text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors text-base"
         >
             {album.title || album.name}
         </div>
     </a>
+
     <!-- Artist Link -->
     {#if album.artist}
         <div
-            class="text-sm text-[var(--text-secondary)] truncate hover:text-[var(--accent)] transition-colors hover:underline"
+            class="text-sm text-[var(--text-muted)] truncate hover:text-[var(--text-primary)] transition-colors"
         >
             <a href={resolve(`/artist/${album.artistId}`)}>{album.artist}</a>
         </div>

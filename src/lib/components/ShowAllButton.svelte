@@ -6,13 +6,12 @@
 
 <a
     {href}
-    class="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors group"
+    class="inline-flex items-center gap-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] transition-all group text-sm font-medium"
     title={label}
 >
-    <span class="font-medium">{label}</span>
-    <div
-        class="p-2 rounded-full bg-[var(--bg-card)] border border-[var(--border-primary)] group-hover:bg-[var(--bg-hover)] transition-colors"
-    >
-        <ArrowRight size={20} />
-    </div>
+    <span>{label}</span>
+    <ArrowRight
+        size={16}
+        class="transform group-hover:translate-x-1 transition-transform"
+    />
 </a>

@@ -23,6 +23,13 @@
     --border-secondary: #374151;
     /* gray-700 */
 
+    /* --- UI Modernization Variables --- */
+    --bg-surface: #1f2937;
+    /* gray-800 */
+    --bg-glass: rgba(31, 41, 55, 0.4);
+    /* card-ish opacity */
+    --border-glass: rgba(255, 255, 255, 0.1);
+    --theme-glow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 
@@ -109,6 +116,11 @@ body {
 
     /* Default Accent (Green) */
     --accent-fg: #000000;
+
+    --bg-surface: #1f2937;
+    --bg-glass: rgba(31, 41, 55, 0.4);
+    --border-glass: rgba(255, 255, 255, 0.1);
+    --theme-glow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 [data-mode='light'] {
@@ -125,6 +137,11 @@ body {
     --border-secondary: #e5e7eb;
 
     --accent-fg: #ffffff;
+
+    --bg-surface: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.6);
+    --border-glass: rgba(0, 0, 0, 0.05);
+    --theme-glow: 0 0 15px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -158,6 +175,11 @@ body {
     background: radial-gradient(circle at 0% 0%, #105c39 0%, #022c22 40%, #000000 100%);
     background-attachment: fixed;
     background-size: cover;
+
+    --bg-surface: rgba(10, 25, 15, 0.8);
+    --bg-glass: rgba(2, 10, 5, 0.5);
+    --border-glass: rgba(52, 211, 153, 0.2);
+    --theme-glow: 0 0 25px rgba(16, 185, 129, 0.3);
 }
 
 
@@ -232,9 +254,13 @@ body {
         0 0, 0 0, 0 0, 0 0;
     /* Scene elements fixed */
 
-    background-attachment: fixed;
     /* Repeat stars, NO-Repeat scene elements */
     background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+
+    --bg-surface: rgba(15, 23, 42, 0.8);
+    --bg-glass: rgba(8, 12, 25, 0.4);
+    --border-glass: rgba(56, 189, 248, 0.2);
+    --theme-glow: 0 0 30px rgba(56, 189, 248, 0.4);
 }
 
 

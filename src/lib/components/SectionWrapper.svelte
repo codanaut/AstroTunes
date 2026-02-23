@@ -67,27 +67,26 @@
     let totalPages = $derived(Math.ceil(totalItems / limit));
 </script>
 
-<div
-    class="mb-6 mt-6 p-4 backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl"
->
+<div class="mt-12 mb-6">
     <div
         class="flex flex-col md:flex-row items-center justify-between mb-4 gap-4 {headerClass}"
     >
-        <h1 class="text-2xl font-bold text-[var(--accent)]">
-            {#if showAllLink}
-                <a href={showAllLink}>{title}</a>
-            {:else}
-                {title}
-            {/if}
+        <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-bold text-[var(--text-primary)]">
+                {#if showAllLink}
+                    <a href={showAllLink} class="hover:text-[var(--accent)] transition-colors">{title}</a>
+                {:else}
+                    {title}
+                {/if}
+            </h1>
             {#if totalItems > 0 && !showAllLink}
-                <span
-                    class="text-[var(--text-secondary)] text-lg ml-2 font-normal"
-                    >- {totalItems}</span
-                >
+                <span class="text-[var(--text-muted)] text-sm font-normal self-end mb-1">
+                    {totalItems} items
+                </span>
             {/if}
-        </h1>
+        </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 ml-auto">
             <!-- View Toggles -->
             {#if enableViewToggle}
                 <div

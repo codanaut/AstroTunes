@@ -273,7 +273,7 @@
       <img
         src={getCoverArtUrl(artist.id)}
         alt={artist.name}
-        class="w-64 h-64 rounded-lg shadow-2xl object-cover bg-[var(--bg-card)]"
+        class="w-64 h-64 rounded-full shadow-2xl object-cover bg-[var(--bg-card)] border-4 border-[var(--border-glass)]"
       />
       <div class="flex flex-col gap-4 mb-2">
         <span

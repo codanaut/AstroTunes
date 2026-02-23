@@ -14,15 +14,28 @@
     const ALL_COLUMNS = [
         { id: "cover", label: "", alwaysVisible: true, sortable: false },
         { id: "name", label: "Artist", alwaysVisible: true, sortable: true },
-        { id: "albumCount", label: "Albums", icon: Disc, alwaysVisible: true, sortable: true },
-        { id: "starred", label: "", icon: Heart, alwaysVisible: true, sortable: true },
+        {
+            id: "albumCount",
+            label: "Albums",
+            icon: Disc,
+            alwaysVisible: true,
+            sortable: true,
+        },
+        {
+            id: "starred",
+            label: "",
+            icon: Heart,
+            alwaysVisible: true,
+            sortable: true,
+        },
     ];
 
     let containerWidth = $state(1024);
     let isMobile = $derived(containerWidth < 768);
 
+    /** @param {string} id */
     function isColumnVisible(id) {
-        return true; 
+        return true;
     }
 
     // Grid Template
@@ -34,10 +47,11 @@
         40px /* Heart */
     `
             .replace(/\s+/g, " ")
-            .trim()
+            .trim(),
     );
 
     // Sorting Logic
+    /** @param {string} field */
     function handleSort(field) {
         if (!ALL_COLUMNS.find((c) => c.id === field)?.sortable) return;
 
@@ -73,10 +87,10 @@
                 });
             }
             return result;
-        })()
+        })(),
     );
 
-     /** @param {Event} e */
+    /** @param {Event} e */
     function handleImageError(e) {
         const target = /** @type {HTMLImageElement} */ (e.target);
         if (target) {
@@ -95,29 +109,28 @@
         const originalStarred = artist.starred;
         const isStarred = !!artist.starred;
 
-         // Update local state immediately
-        const index = artists.findIndex(a => a.id === artist.id);
+        // Update local state immediately
+        const index = artists.findIndex((a) => a.id === artist.id);
         if (index !== -1) {
-             artists[index] = { 
-                ...artist, 
-                starred: isStarred ? undefined : new Date().toISOString() 
+            artists[index] = {
+                ...artist,
+                starred: isStarred ? undefined : new Date().toISOString(),
             };
         }
 
         try {
             if (isStarred) {
-               await subsonicFetch("unstar", `&id=${artist.id}`);
+                await subsonicFetch("unstar", `&id=${artist.id}`);
             } else {
-               await subsonicFetch("star", `&id=${artist.id}`);
+                await subsonicFetch("star", `&id=${artist.id}`);
             }
         } catch (error) {
             console.error("Failed to toggle artist favorite:", error);
-             if (index !== -1) {
+            if (index !== -1) {
                 artists[index] = { ...artist, starred: originalStarred };
             }
         }
     }
-
 </script>
 
 <div
@@ -131,11 +144,18 @@
     >
         {#each ALL_COLUMNS as col}
             <div
-                class="flex items-center gap-1 {col.id === 'albumCount' ? 'justify-end' : ''} {col.id === 'starred' ? 'justify-center' : ''} {col.sortable ? 'cursor-pointer hover:text-[var(--text-primary)]' : ''}"
+                class="flex items-center gap-1 {col.id === 'albumCount'
+                    ? 'justify-end'
+                    : ''} {col.id === 'starred'
+                    ? 'justify-center'
+                    : ''} {col.sortable
+                    ? 'cursor-pointer hover:text-[var(--text-primary)]'
+                    : ''}"
                 onclick={() => handleSort(col.id)}
                 role="button"
                 tabindex="0"
-                onkeydown={(e) => (e.key === "Enter" || e.key === " ") && handleSort(col.id)}
+                onkeydown={(e) =>
+                    (e.key === "Enter" || e.key === " ") && handleSort(col.id)}
             >
                 {#if col.icon}
                     {@const Icon = col.icon}
@@ -160,11 +180,13 @@
         {#each processedArtists as artist (artist.id)}
             <a
                 href={resolve(`/artist/${artist.id}`)}
-                class="grid gap-4 px-4 py-2 text-sm items-center hover:bg-[var(--bg-hover)] group transition-colors border-b border-[var(--border-secondary)]/50 last:border-0 text-[var(--text-secondary)]"
+                class="grid gap-4 px-4 py-2 text-sm items-center hover:bg-[var(--bg-hover)] group transition-colors border-b border-[var(--border-secondary)]/50 last:border-0 text-[var(--text-secondary)] rounded-lg mx-1"
                 style="grid-template-columns: {desktopGridColumns};"
             >
                 <!-- Avatar -->
-                <div class="w-10 h-10 rounded-full overflow-hidden bg-[var(--bg-card)] shrink-0">
+                <div
+                    class="w-10 h-10 rounded-full overflow-hidden bg-[var(--bg-card)] shrink-0"
+                >
                     <img
                         src={getCoverArtUrl(artist.id, 100)}
                         alt=""

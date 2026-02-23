@@ -59,15 +59,17 @@
     <div
         class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4"
     >
-        <div class="flex items-center gap-3">
-            <div
-                class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
-            >
-                <Music size={24} />
-            </div>
+        <div class="flex items-center gap-2">
             <h1 class="text-3xl font-bold text-[var(--text-primary)]">
                 Library Songs
             </h1>
+            {#if totalSongs > 0}
+                <span
+                    class="text-[var(--text-muted)] text-sm font-normal self-end mb-1 ml-2"
+                >
+                    {totalSongs} tracks
+                </span>
+            {/if}
         </div>
 
         <div

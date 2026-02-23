@@ -54,14 +54,9 @@
 <div class="container mx-auto p-4 md:p-8 pb-32">
     <!-- FAVORITE SONGS SECTION -->
     <div
-        class="flex flex-col md:flex-row items-center justify-between mt-6 mb-6 gap-4"
+        class="flex flex-col md:flex-row items-center justify-between mt-12 mb-6 gap-4"
     >
-        <div class="flex items-center gap-3">
-            <div
-                class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
-            >
-                <Music size={24} />
-            </div>
+        <div class="flex items-center gap-2">
             <h1 class="text-3xl font-bold text-[var(--text-primary)]">
                 <a
                     href={resolve("/favorites/songs")}
@@ -70,7 +65,7 @@
                 >
             </h1>
             {#if favoriteSongs.length > 0}
-                <div class="flex gap-2 ml-2">
+                <div class="flex gap-2 ml-4">
                     <button
                         onclick={() =>
                             playQueue(favoriteSongs, 0, {
@@ -78,22 +73,27 @@
                                 id: "all",
                                 name: "Favorite Songs",
                             })}
-                        class="p-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-md hover:opacity-90 transition-opacity"
+                        class="p-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-full hover:scale-105 transition-all shadow-lg"
                         title="Play All"
                     >
-                        <Play size={20} fill="currentColor" />
+                        <Play size={18} fill="currentColor" class="ml-0.5" />
                     </button>
                     <button
                         onclick={() => playQueueShuffled(favoriteSongs)}
-                        class="p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-md hover:bg-[var(--bg-hover)] transition-colors"
+                        class="p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-hover)] transition-all shadow-sm"
                         title="Shuffle Play"
                     >
-                        <Shuffle size={20} />
+                        <Shuffle size={18} />
                     </button>
                 </div>
             {/if}
         </div>
-        <ShowAllButton href={resolve("/favorites/songs")} label="Show All" />
+        <div class="ml-auto">
+            <ShowAllButton
+                href={resolve("/favorites/songs")}
+                label="Show All"
+            />
+        </div>
     </div>
 
     <div class="flex flex-col mb-12">
@@ -109,30 +109,30 @@
 
     <!-- FAVORITE ALBUMS SECTION -->
     <div
-        class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4"
+        class="flex flex-col md:flex-row items-center justify-between mt-12 mb-6 gap-4"
     >
-        <div class="flex items-center gap-3">
-            <div
-                class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
-            >
-                <Disc size={24} />
-            </div>
+        <div class="flex items-center gap-2">
             <h1 class="text-3xl font-bold text-[var(--text-primary)]">
                 <a
                     href={resolve("/favorites/albums")}
                     class="hover:text-[var(--accent)] transition-colors"
                     >Favorite Albums</a
                 >
-                {#if favoriteAlbums.length > 0}
-                    <span
-                        class="text-[var(--text-secondary)] text-lg font-normal ml-2"
-                    >
-                        - {favoriteAlbums.length}
-                    </span>
-                {/if}
             </h1>
+            {#if favoriteAlbums.length > 0}
+                <span
+                    class="text-[var(--text-muted)] text-sm font-normal self-end mb-1 ml-2"
+                >
+                    {favoriteAlbums.length} albums
+                </span>
+            {/if}
         </div>
-        <ShowAllButton href={resolve("/favorites/albums")} label="Show All" />
+        <div class="ml-auto">
+            <ShowAllButton
+                href={resolve("/favorites/albums")}
+                label="Show All"
+            />
+        </div>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-12">
@@ -150,30 +150,30 @@
 
     <!-- FAVORITE ARTISTS SECTION -->
     <div
-        class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4"
+        class="flex flex-col md:flex-row items-center justify-between mt-12 mb-6 gap-4"
     >
-        <div class="flex items-center gap-3">
-            <div
-                class="p-3 bg-[var(--bg-card)] rounded-full text-[var(--accent)] border border-[var(--border-primary)]"
-            >
-                <Mic2 size={24} />
-            </div>
+        <div class="flex items-center gap-2">
             <h1 class="text-3xl font-bold text-[var(--text-primary)]">
                 <a
                     href={resolve("/favorites/artists")}
                     class="hover:text-[var(--accent)] transition-colors"
                     >Favorite Artists</a
                 >
-                {#if favoriteArtists.length > 0}
-                    <span
-                        class="text-[var(--text-secondary)] text-lg font-normal ml-2"
-                    >
-                        - {favoriteArtists.length}
-                    </span>
-                {/if}
             </h1>
+            {#if favoriteArtists.length > 0}
+                <span
+                    class="text-[var(--text-muted)] text-sm font-normal self-end mb-1 ml-2"
+                >
+                    {favoriteArtists.length} artists
+                </span>
+            {/if}
         </div>
-        <ShowAllButton href={resolve("/favorites/artists")} label="Show All" />
+        <div class="ml-auto">
+            <ShowAllButton
+                href={resolve("/favorites/artists")}
+                label="Show All"
+            />
+        </div>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
