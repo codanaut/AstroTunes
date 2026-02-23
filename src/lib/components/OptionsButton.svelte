@@ -1,6 +1,6 @@
 <script>
     import { addToQueue } from "$lib/player.js";
-    import { updatePlaylist } from "$lib/subsonic.js";
+    import { updatePlaylist, subsonicFetch } from "$lib/subsonic.js";
     import AddToPlaylistModal from "$lib/components/AddToPlaylistModal.svelte";
     import {
         MoreVertical,
@@ -13,10 +13,12 @@
     import { scale } from "svelte/transition";
     import { portal } from "$lib/utils/portal";
     import { resolve } from "$app/paths";
+    import { goto } from "$app/navigation";
 
     /**
      * @typedef {Object} Props
      * @property {any} item - The item object
+     * @property {'song' | 'album' | 'artist'} [itemType] - The type of the item (default: 'song')
      * @property {string} [context] - The context from which the button is rendered (e.g. 'playlist', 'album')
      * @property {string|null} [contextId] - The ID of the context (e.g. playlist ID)
      * @property {() => void} [onPlaylistUpdated] - Callback for when context playlist updates
@@ -26,6 +28,7 @@
     /** @type {Props} */
     let {
         item,
+        itemType = "song",
         context = "",
         contextId = null,
         onPlaylistUpdated,
@@ -35,9 +38,12 @@
     let showAddModal = $state(false);
     let isOpen = $state(false);
     let menuPosition = $state({ x: 0, y: 0 });
+    /** @type {any[]} */
+    let songsToProcess = $state([]);
 
     /** @param {MouseEvent} event */
     function openMenu(event) {
+        event.preventDefault();
         event.stopPropagation();
         isOpen = true;
 
@@ -45,7 +51,7 @@
         const rect = target.getBoundingClientRect();
 
         const menuWidth = 180;
-        const menuHeight = 150;
+        const menuHeight = itemType === "album" ? 180 : 150;
         const screenPadding = 10;
 
         let xPos = rect.right - menuWidth;
@@ -70,26 +76,62 @@
         isOpen = false;
     }
 
+    async function getSongsForItem() {
+        if (!item) return [];
+        if (itemType === "album") {
+            const data = await subsonicFetch("getAlbum", `&id=${item.id}`);
+            if (data?.album?.song) {
+                return Array.isArray(data.album.song)
+                    ? data.album.song
+                    : [data.album.song];
+            }
+        } else if (itemType === "song") {
+            return [item];
+        } else if (itemType === "artist") {
+            const artistName = item.name || item.artist;
+            if (artistName) {
+                const data = await subsonicFetch(
+                    "getTopSongs",
+                    `&artist=${encodeURIComponent(artistName)}&count=50`,
+                );
+                if (data?.topSongs?.song) {
+                    return Array.isArray(data.topSongs.song)
+                        ? data.topSongs.song
+                        : [data.topSongs.song];
+                }
+            }
+        }
+        return [];
+    }
+
     function handleWindowClick() {
         if (isOpen) closeMenu();
     }
 
     /** @param {MouseEvent} event */
-    function handleAddToPlaylist(event) {
+    async function handleAddToPlaylist(event) {
+        event.preventDefault();
         event.stopPropagation();
-        showAddModal = true;
+        songsToProcess = await getSongsForItem();
+        if (songsToProcess.length > 0) {
+            showAddModal = true;
+        }
         closeMenu();
     }
 
     /** @param {MouseEvent} event */
-    function handleAddToQueue(event) {
+    async function handleAddToQueue(event) {
+        event.preventDefault();
         event.stopPropagation();
-        addToQueue(item);
+        const songs = await getSongsForItem();
+        /** @param {any} song */
+        songs.forEach((song) => addToQueue(song));
         closeMenu();
     }
 
     /** @param {MouseEvent} event */
     async function handleRemoveFromPlaylist(event) {
+        event.preventDefault();
         event.stopPropagation();
         if (!contextId) return;
 
@@ -110,7 +152,7 @@
 
 <AddToPlaylistModal
     isOpen={showAddModal}
-    songs={[item]}
+    songs={songsToProcess}
     onclose={() => {
         showAddModal = false;
     }}
@@ -134,21 +176,23 @@
         style="top: {menuPosition.y}px; left: {menuPosition.x}px;"
         transition:scale={{ duration: 150, start: 0.95 }}
     >
-        <button
-            class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-            onclick={handleAddToQueue}
-        >
-            <ListPlus size={16} /> Add to Queue
-        </button>
+        {#if itemType === "song" || itemType === "album" || itemType === "artist"}
+            <button
+                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+                onclick={handleAddToQueue}
+            >
+                <ListPlus size={16} /> Add to Queue
+            </button>
 
-        <button
-            class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-            onclick={handleAddToPlaylist}
-        >
-            <Plus size={16} /> Add to Playlist
-        </button>
+            <button
+                class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+                onclick={handleAddToPlaylist}
+            >
+                <Plus size={16} /> Add to Playlist
+            </button>
+        {/if}
 
-        {#if context === "playlist"}
+        {#if context === "playlist" && itemType === "song"}
             <button
                 class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-red-500 flex items-center gap-2"
                 onclick={handleRemoveFromPlaylist}
@@ -159,21 +203,29 @@
 
         <div class="h-px bg-[var(--border-secondary)] my-1"></div>
 
-        {#if item?.artistId}
+        {#if item?.artistId && itemType !== "artist"}
             <a
                 href={resolve(`/artist/${item.artistId}`)}
                 class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-                onclick={() => closeMenu()}
+                onclick={(e) => {
+                    e.preventDefault();
+                    closeMenu();
+                    goto(resolve(`/artist/${item.artistId}`));
+                }}
             >
                 <User size={16} /> Go to Artist
             </a>
         {/if}
 
-        {#if item?.albumId}
+        {#if item?.albumId && itemType === "song"}
             <a
                 href={resolve(`/album/${item.albumId}`)}
                 class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
-                onclick={() => closeMenu()}
+                onclick={(e) => {
+                    e.preventDefault();
+                    closeMenu();
+                    goto(resolve(`/album/${item.albumId}`));
+                }}
             >
                 <Album size={16} /> Go to Album
             </a>

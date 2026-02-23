@@ -1,9 +1,11 @@
 <script>
-    import { Heart } from "lucide-svelte";
+    import { Heart, Play } from "lucide-svelte";
     import { getCoverArtUrl, subsonicFetch } from "../subsonic.js";
     import { resolve } from "$app/paths";
+    import { playQueue } from "../player.js";
+    import OptionsButton from "./OptionsButton.svelte";
 
-    let { artist = $bindable() } = $props();
+    let { artist = $bindable(), className = "" } = $props();
 
     /** @param {Event} e */
     function handleImageError(e) {
@@ -14,11 +16,37 @@
     }
 
     /**
+     * @param {Event} event
+     */
+    async function playTopSongs(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        try {
+            const data = await subsonicFetch(
+                "getTopSongs",
+                `&artist=${encodeURIComponent(artist.name)}&count=50`,
+            );
+            if (data?.topSongs?.song) {
+                const songs = Array.isArray(data.topSongs.song)
+                    ? data.topSongs.song
+                    : [data.topSongs.song];
+                playQueue(songs, 0, {
+                    type: "artist",
+                    id: artist.id,
+                    name: artist.name,
+                });
+            }
+        } catch (error) {
+            console.error("Failed to play artist top songs:", error);
+        }
+    }
+
+    /**
      * @param {any} artistToToggle
      * @param {Event} event
      */
     async function toggleArtistFavorite(artistToToggle, event) {
-        // Prevent default just in case, though structure handles it now
         event.preventDefault();
         event.stopPropagation();
 
@@ -45,7 +73,7 @@
     }
 </script>
 
-<div class="text-center group block my-4 relative">
+<div class="text-center group block relative {className}">
     <div class="relative aspect-square mb-3 mx-auto max-w-[200px]">
         <!-- Main Link -->
         <a
@@ -65,6 +93,15 @@
             ></div>
         </a>
 
+        <!-- Play Button (Top Left of circle) -->
+        <button
+            onclick={(e) => playTopSongs(e)}
+            class="absolute top-2 left-2 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-[var(--accent)] hover:text-[var(--accent-fg)] transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 cursor-pointer border-none z-10 pointer-events-auto lg:pointer-events-none lg:group-hover:pointer-events-auto"
+            title="Play Top Songs"
+        >
+            <Play size={16} fill="currentColor" />
+        </button>
+
         <!-- Favorite Button (Top Right of circle) -->
         <button
             onclick={(e) => toggleArtistFavorite(artist, e)}
@@ -76,16 +113,27 @@
                 : "Favorite artist"}
         >
             <Heart
-                size={18}
+                size={16}
                 class={artist.starred ? "fill-[var(--accent)]" : ""}
             />
         </button>
+
+        <!-- Options Button (Bottom Right) -->
+        <div
+            class="absolute bottom-2 right-2 z-10 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all pointer-events-auto lg:pointer-events-none lg:group-hover:pointer-events-auto"
+        >
+            <OptionsButton
+                item={artist}
+                itemType="artist"
+                className="p-2 bg-black/40 backdrop-blur-md text-white hover:bg-black/60"
+            />
+        </div>
     </div>
 
     <!-- Name Link -->
     <a
         href={resolve(`/artist/${artist.id}`)}
-        class="block font-bold truncate text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors text-base"
+        class="block font-bold truncate text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors text-base no-underline"
     >
         {artist.name}
     </a>
