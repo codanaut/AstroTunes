@@ -11,9 +11,7 @@
         isFavorite,
         toggleFavorite,
         queue,
-        playQueue,
-        removeFromQueue,
-        moveInQueue,
+        clearQueue,
         shuffleCurrentQueue,
         repeatMode,
         toggleRepeat,
@@ -35,14 +33,14 @@
         Disc,
         Mic2,
         X,
+        Trash2,
         Music,
-        GripVertical,
     } from "lucide-svelte";
     import BackButton from "../../lib/components/BackButton.svelte";
+    import QueueList from "../../lib/components/QueueList.svelte";
     import { fade, slide } from "svelte/transition";
     import { parseArtistString } from "../../lib/utils/artistUtils";
-    import { dndzone } from "svelte-dnd-action";
-    import { flip } from "svelte/animate";
+    import { reorderPlaylist } from "../../lib/subsonic";
     import { resolve } from "$app/paths";
 
     let showQueuePanel = $state(false);
@@ -56,38 +54,6 @@
         const x = e.clientX - rect.left;
         const percentage = x / rect.width;
         seek(percentage * $duration);
-    }
-
-    /** @type {any[]} */
-    let items = $state([]);
-
-    // Map queue to items with unique `id` for dndzone
-    $effect(() => {
-        items = $queue.map((track) => ({
-            ...track,
-            id: track.queueId || track.id, // dndzone needs unique 'id'
-            originalId: track.id, // Keep keep original ID
-        }));
-    });
-
-    /**
-     * @param {CustomEvent<any>} e
-     */
-    function handleDndConsider(e) {
-        items = e.detail.items;
-    }
-
-    /**
-     * @param {CustomEvent<any>} e
-     */
-    function handleDndFinalize(e) {
-        items = e.detail.items;
-        // Restore original IDs for the player
-        const newQueue = items.map((track) => ({
-            ...track,
-            id: track.originalId,
-        }));
-        queue.set(newQueue);
     }
 </script>
 
@@ -305,91 +271,41 @@
             <div
                 class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center"
             >
-                <h2 class="font-bold text-lg">Queue</h2>
+                <div class="flex flex-col">
+                    <h2 class="font-bold text-lg">Queue</h2>
+                    <p class="text-xs text-[var(--text-secondary)]">
+                        {$queue.length} tracks
+                    </p>
+                </div>
                 <div class="flex gap-1">
                     <button
+                        onclick={togglePlay}
+                        class="p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+                        title={$isPlaying ? "Pause" : "Play"}
+                    >
+                        {#if $isPlaying}
+                            <Pause size={18} fill="currentColor" />
+                        {:else}
+                            <Play size={18} fill="currentColor" />
+                        {/if}
+                    </button>
+                    <button
                         onclick={shuffleCurrentQueue}
-                        class="p-2 hover:bg-[var(--bg-hover)] rounded-md transition-colors"
-                        title="Shuffle Upcoming"
+                        class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                        title="Shuffle Queue"
                     >
                         <Shuffle size={18} />
                     </button>
+                    <button
+                        onclick={clearQueue}
+                        class="p-2 text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                        title="Clear Queue"
+                    >
+                        <Trash2 size={18} />
+                    </button>
                 </div>
             </div>
-            <div
-                class="flex-1 overflow-y-auto"
-                use:dndzone={{
-                    items: items,
-                    flipDurationMs: 300,
-                    dropTargetStyle: {},
-                }}
-                onconsider={handleDndConsider}
-                onfinalize={handleDndFinalize}
-            >
-                {#each items as track, index (track.id)}
-                    <div
-                        class="group relative p-3 border-b border-[var(--border-primary)] hover:bg-[var(--bg-card)] transition-colors flex gap-3 items-center
-                        {$currentTrack?.id === track.originalId
-                            ? 'bg-[var(--bg-card)] border-l-4 border-l-[var(--accent)]'
-                            : ''}"
-                        animate:flip={{ duration: 300 }}
-                    >
-                        <!-- DRAG HANDLE -->
-                        <div
-                            class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                            aria-label="drag-handle"
-                        >
-                            <GripVertical size={16} />
-                        </div>
-
-                        <div
-                            class="min-w-[1.5rem] text-center text-xs text-[var(--text-muted)]"
-                        >
-                            {#if $currentTrack?.id === track.originalId}
-                                <div
-                                    class="w-2 h-2 rounded-full bg-[var(--accent)] mx-auto animate-pulse"
-                                ></div>
-                            {:else}
-                                {index + 1}
-                            {/if}
-                        </div>
-                        <button
-                            type="button"
-                            class="flex-1 min-w-0 cursor-pointer text-left bg-transparent border-0 p-0"
-                            onclick={() => {
-                                const newQueue = items.map((t) => ({
-                                    ...t,
-                                    id: t.originalId,
-                                }));
-                                playQueue(newQueue, index);
-                            }}
-                        >
-                            <div
-                                class="truncate font-medium text-sm {$currentTrack?.id ===
-                                track.originalId
-                                    ? 'text-[var(--accent)]'
-                                    : ''}"
-                            >
-                                {track.title}
-                            </div>
-                            <div
-                                class="truncate text-xs text-[var(--text-secondary)]"
-                            >
-                                {track.artist}
-                            </div>
-                        </button>
-                        <!-- HOVER ACTIONS -->
-                        <div class="hidden group-hover:flex items-center gap-1">
-                            <button
-                                onclick={() => removeFromQueue(index)}
-                                class="p-1 text-[var(--text-muted)] hover:text-red-500"
-                            >
-                                <X size={14} />
-                            </button>
-                        </div>
-                    </div>
-                {/each}
-            </div>
+            <QueueList />
         </div>
 
         <!-- QUEUE OVERLAY (Mobile) -->
@@ -409,70 +325,8 @@
                         <X size={24} />
                     </button>
                 </div>
-                <div
-                    class="flex-1 overflow-y-auto p-4"
-                    use:dndzone={{
-                        items: items,
-                        flipDurationMs: 300,
-                        dropTargetStyle: {},
-                    }}
-                    onconsider={handleDndConsider}
-                    onfinalize={handleDndFinalize}
-                >
-                    {#each items as track, index (track.id)}
-                        <div
-                            class="mb-2 p-3 rounded-lg bg-[var(--bg-card)] flex gap-3 items-center w-full text-left relative
-                            {$currentTrack?.id === track.originalId
-                                ? 'border border-[var(--accent)]'
-                                : ''}"
-                            animate:flip={{ duration: 300 }}
-                        >
-                            <!-- DRAG HANDLE -->
-                            <div
-                                class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2"
-                                aria-label="drag-handle"
-                            >
-                                <GripVertical size={20} />
-                            </div>
-
-                            <span
-                                class="text-sm font-mono text-[var(--text-muted)] w-6"
-                                >{index + 1}</span
-                            >
-                            <div
-                                class="flex-1 min-w-0"
-                                role="button"
-                                tabindex="0"
-                                onkeydown={(e) =>
-                                    (e.key === "Enter" || e.key === " ") &&
-                                    (() => {
-                                        const newQueue = items.map((t) => ({
-                                            ...t,
-                                            id: t.originalId,
-                                        }));
-                                        playQueue(newQueue, index);
-                                        showQueuePanel = false;
-                                    })()}
-                                onclick={() => {
-                                    const newQueue = items.map((t) => ({
-                                        ...t,
-                                        id: t.originalId,
-                                    }));
-                                    playQueue(newQueue, index);
-                                    showQueuePanel = false;
-                                }}
-                            >
-                                <div class="truncate font-bold text-sm">
-                                    {track.title}
-                                </div>
-                                <div
-                                    class="truncate text-xs text-[var(--text-secondary)]"
-                                >
-                                    {track.artist}
-                                </div>
-                            </div>
-                        </div>
-                    {/each}
+                <div class="flex-1 overflow-y-auto p-4">
+                    <QueueList isMobile={true} />
                 </div>
             </div>
         {/if}

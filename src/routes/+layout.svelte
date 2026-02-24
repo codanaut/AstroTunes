@@ -160,6 +160,12 @@
     $page.url.pathname === resolve("/now-playing"),
   );
 
+  $effect(() => {
+    if (isNowPlayingPage) {
+      showQueue.set(false);
+    }
+  });
+
   onMount(async () => {
     if ($auth.serverUrl && $auth.username) {
       try {
