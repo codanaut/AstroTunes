@@ -17,7 +17,7 @@
 </script>
 
 <aside
-    class="fixed inset-0 z-40 md:static w-full md:w-80 bg-[var(--bg-sidebar)] border-l border-[var(--border-primary)] flex flex-col overflow-hidden"
+    class="fixed inset-0 z-[60] md:static w-full md:w-80 bg-[var(--bg-sidebar)] border-l border-[var(--border-primary)] flex flex-col overflow-hidden"
 >
     <div
         class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center mt-16 md:mt-0"

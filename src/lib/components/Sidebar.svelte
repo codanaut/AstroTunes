@@ -45,14 +45,14 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-        class="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+        class="fixed inset-0 bg-black/50 z-[60] md:hidden backdrop-blur-sm transition-opacity"
         onclick={onClose}
     ></div>
 {/if}
 
 <!-- SIDEBAR -->
 <aside
-    class="fixed inset-y-0 left-0 z-50 bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-all duration-300 ease-in-out md:relative md:translate-x-0 w-64
+    class="fixed inset-y-0 left-0 z-[70] bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-all duration-300 ease-in-out md:relative md:translate-x-0 w-64
     {isOpen ? 'translate-x-0' : '-translate-x-full'}
     {$ui.isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}"
 >
