@@ -3,10 +3,11 @@
         queue,
         clearQueue,
         shuffleCurrentQueue,
+        toggleQueue,
         isPlaying,
         togglePlay,
     } from "$lib/player.js";
-    import { Trash2, Shuffle, Play, Pause } from "lucide-svelte";
+    import { X, Trash2, Shuffle, Play, Pause } from "lucide-svelte";
     import QueueList from "./QueueList.svelte";
 
     function handleHeaderPlay() {
@@ -52,6 +53,13 @@
                 title="Clear Queue"
             >
                 <Trash2 size={18} />
+            </button>
+            <button
+                onclick={toggleQueue}
+                class="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors md:hidden"
+                title="Close"
+            >
+                <X size={24} />
             </button>
         </div>
     </div>
