@@ -10,6 +10,7 @@ export const currentTrack = writable(null); // The song object
 /** @type {import('svelte/store').Writable<any[]>} */
 export const queue = writable([]); // Array of songs
 export const progress = writable(0); // Current time in seconds
+export const buffered = writable(0); // Buffered time as percentage (0 to 1)
 export const duration = writable(0); // Total time in seconds
 export const repeatMode = writable('off'); // 'off', 'all', 'one'
 export const isFavorite = writable(false); // Whether current track is favorited
@@ -271,6 +272,29 @@ function startProgressLoop() {
         if (sound && sound.playing()) {
             // @ts-ignore
             progress.set(sound.seek());
+
+            // Handle buffering
+            // @ts-ignore - _sounds and _node are internal Howler properties
+            const audioNode = sound._sounds[0]?._node;
+            if (audioNode && audioNode.buffered && audioNode.buffered.length > 0) {
+                const totalDuration = sound.duration();
+                if (totalDuration > 0) {
+                    // Find the buffer range that contains the current playback position
+                    const currentTime = sound.seek();
+                    let latestBuffered = 0;
+                    for (let i = 0; i < audioNode.buffered.length; i++) {
+                        if (audioNode.buffered.start(i) <= currentTime && audioNode.buffered.end(i) >= currentTime) {
+                            latestBuffered = audioNode.buffered.end(i);
+                            break;
+                        }
+                    }
+                    // If we didn't find a range covering current time, just take the last end point as a fallback
+                    if (latestBuffered === 0 && audioNode.buffered.length > 0) {
+                        latestBuffered = audioNode.buffered.end(audioNode.buffered.length - 1);
+                    }
+                    buffered.set(latestBuffered / totalDuration);
+                }
+            }
         }
     }, 1000); // Update every second
 }

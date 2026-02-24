@@ -7,6 +7,7 @@
         playNext,
         playPrev,
         progress,
+        buffered,
         duration,
         seek,
         volume,
@@ -286,6 +287,12 @@
                 class="w-64 h-1.5 bg-[var(--bg-hover)] rounded-full relative cursor-pointer group"
                 onclick={handleSeek}
             >
+                <!-- Buffer Bar -->
+                <div
+                    class="h-full bg-white/25 rounded-full absolute top-0 left-0 transition-[width] duration-300"
+                    style="width: {$buffered * 100}%"
+                ></div>
+                <!-- Progress Fill -->
                 <div
                     class="h-full bg-[var(--text-primary)] rounded-full absolute top-0 left-0 group-hover:bg-[var(--accent)] transition-colors"
                     style="width: {($progress / $duration) * 100}%"
