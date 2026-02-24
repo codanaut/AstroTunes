@@ -52,7 +52,7 @@
 
 <!-- SIDEBAR -->
 <aside
-    class="fixed inset-y-0 left-0 z-50 bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-all duration-300 ease-in-out md:relative md:translate-x-0
+    class="fixed inset-y-0 left-0 z-50 bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-all duration-300 ease-in-out md:relative md:translate-x-0 w-64
     {isOpen ? 'translate-x-0' : '-translate-x-full'}
     {$ui.isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}"
 >

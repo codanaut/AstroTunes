@@ -162,38 +162,44 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-4 mt-6">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            class="bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--accent-fg)] font-bold py-2.5 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    <div
+                        class="flex flex-col md:flex-row md:items-center gap-4 mt-6"
+                    >
+                        <div
+                            class="flex items-center gap-4 order-1 md:order-none"
                         >
-                            {#if loading}
-                                <Loader2 size={18} class="animate-spin" />
-                                Connecting...
-                            {:else}
-                                Save & Connect
-                            {/if}
-                        </button>
-
-                        {#if $auth.isConnected}
                             <button
-                                type="button"
-                                onclick={handleLogout}
-                                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                type="submit"
+                                disabled={loading}
+                                class="flex-1 md:flex-none bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--accent-fg)] font-bold py-2.5 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Logout
+                                {#if loading}
+                                    <Loader2 size={18} class="animate-spin" />
+                                    Connecting...
+                                {:else}
+                                    Save & Connect
+                                {/if}
                             </button>
-                        {/if}
+
+                            {#if $auth.isConnected}
+                                <button
+                                    type="button"
+                                    onclick={handleLogout}
+                                    class="flex-1 md:flex-none bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                >
+                                    Logout
+                                </button>
+                            {/if}
+                        </div>
 
                         {#if $auth.isConnected}
                             <span
-                                class="text-[var(--primary)] text-sm font-medium flex items-center gap-2 ml-auto"
+                                class="text-[var(--primary)] text-sm font-medium flex items-center gap-2 md:ml-auto order-2 md:order-none px-1"
                             >
                                 <div
                                     class="w-2 h-2 bg-green-500 rounded-full"
                                 ></div>
-                                Connected
+                                Connected as {$auth.username}
                             </span>
                         {/if}
                     </div>
