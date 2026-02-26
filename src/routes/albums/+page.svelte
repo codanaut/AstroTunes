@@ -14,6 +14,10 @@
     } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import { browser } from "$app/environment";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../lib/stores/library.js";
 
     /** @type {any[]} */
     let albums = $state([]);
@@ -47,11 +51,12 @@
 
     async function loadAlbums() {
         loading = true;
+        const folderParam = musicFolderParam($libraryStore.selectedId);
         try {
             const [albumsData, countData] = await Promise.all([
-                getAlbums(offset, limit),
+                getAlbums(offset, limit, "alphabeticalByName", folderParam),
                 totalAlbums === 0
-                    ? getAlbumCount()
+                    ? getAlbumCount(folderParam)
                     : Promise.resolve(totalAlbums),
             ]);
 
@@ -76,7 +81,9 @@
     }
 
     $effect(() => {
-        if (currentPage) {
+        // Re-run when page OR library changes
+        if (currentPage || $libraryStore.selectedId !== undefined) {
+            totalAlbums = 0; // Reset count on library change
             loadAlbums();
         }
     });

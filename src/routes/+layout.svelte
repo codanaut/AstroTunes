@@ -23,6 +23,7 @@
   import TopBar from "../lib/components/TopBar.svelte";
   import Sidebar from "../lib/components/Sidebar.svelte";
   import { resolve } from "$app/paths";
+  import { libraryStore } from "../lib/stores/library.js";
 
   let isSidebarOpen = $state(false);
 
@@ -172,6 +173,8 @@
         const res = await subsonicFetch("ping");
         if (res && res.status === "ok") {
           auth.update((s) => ({ ...s, isConnected: true }));
+          // Load music folders (libraries) now that auth is confirmed
+          await libraryStore.load(subsonicFetch);
         } else {
           auth.update((s) => ({ ...s, isConnected: false }));
         }

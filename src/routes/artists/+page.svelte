@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
-    import { getAllArtists } from "../../lib/subsonic.js";
+    import { subsonicFetch } from "../../lib/subsonic.js";
     import ArtistList from "../../lib/components/ArtistList.svelte";
     import ArtistCard from "../../lib/components/ArtistCard.svelte";
     import {
@@ -14,6 +14,10 @@
     } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import { browser } from "$app/environment";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../lib/stores/library.js";
 
     /** @type {any[]} */
     let allArtists = $state([]);
@@ -53,8 +57,10 @@
 
     async function loadArtists() {
         loading = true;
+        const folderParam = musicFolderParam($libraryStore.selectedId);
         try {
-            const data = await getAllArtists();
+            // getArtists supports musicFolderId natively
+            const data = await subsonicFetch("getArtists", folderParam);
             if (data && data.artists && data.artists.index) {
                 allArtists = data.artists.index
                     .flatMap(
@@ -73,6 +79,13 @@
             loading = false;
         }
     }
+
+    // Re-run when the library selection changes
+    $effect(() => {
+        if ($libraryStore.selectedId !== undefined) {
+            loadArtists();
+        }
+    });
 
     function nextPage() {
         if (offset + limit < allArtists.length) {

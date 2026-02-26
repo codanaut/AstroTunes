@@ -15,6 +15,10 @@
     } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import { browser } from "$app/environment";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../../lib/stores/library.js";
 
     /** @type {any[]} */
     let allFavorites = $state([]);
@@ -52,7 +56,8 @@
         loading = true;
         try {
             // Fetch ALL favorites to get correct count and data
-            const starred = await subsonicFetch("getStarred");
+            const folderParam = musicFolderParam($libraryStore.selectedId);
+            const starred = await subsonicFetch("getStarred", folderParam);
             if (starred && starred.starred && starred.starred.album) {
                 allFavorites = starred.starred.album;
             } else {
@@ -66,15 +71,18 @@
     }
 
     $effect(() => {
-        // Client-side slice for display
+        // Re-run on library change OR page change
+        if ($libraryStore.selectedId !== undefined || currentPage) {
+            loadFavorites();
+        }
+    });
+
+    // Update displayed slice whenever allFavorites or currentPage changes
+    $effect(() => {
         const start = (currentPage - 1) * limit;
         const end = start + limit;
-        // Ensure we don't try to slice if data isn't loaded yet
-        if (allFavorites.length > 0) {
-            displayedAlbums = allFavorites.slice(start, end);
-        } else {
-            displayedAlbums = [];
-        }
+        displayedAlbums =
+            allFavorites.length > 0 ? allFavorites.slice(start, end) : [];
     });
 
     function nextPage() {

@@ -9,6 +9,7 @@
     import { toggleQueue, showQueue } from "../player.js";
     import { goto } from "$app/navigation";
     import { resolve } from "$app/paths";
+    import LibrarySelector from "./LibrarySelector.svelte";
 
     let { onToggle } = $props();
 
@@ -38,13 +39,14 @@
 <header
     class="h-16 bg-[var(--bg-sidebar)] backdrop-blur-xl border-b border-[var(--border-primary)] grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 md:px-8 shrink-0 sticky top-0 z-40 gap-4"
 >
-    <div class="flex items-center justify-start">
+    <div class="flex items-center justify-start gap-3">
         <button
             onclick={onToggle}
             class="md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
         >
             <Menu size={24} />
         </button>
+        <LibrarySelector />
     </div>
 
     <div class="flex items-center justify-center">

@@ -5,61 +5,55 @@
   import { auth } from "../lib/auth";
   import SectionWrapper from "../lib/components/SectionWrapper.svelte";
   import { resolve } from "$app/paths";
+  import { libraryStore, musicFolderParam } from "../lib/stores/library.js";
 
   /** @type {any[]} */
-  let albums = [];
+  let albums = $state([]);
   /** @type {any[]} */
-  let favlist = [];
+  let favlist = $state([]);
   /** @type {any[]} */
-  let recentlyAddedAlbums = [];
+  let recentlyAddedAlbums = $state([]);
   /** @type {any[]} */
-  let topAlbums = [];
+  let topAlbums = $state([]);
   /** @type {any[]} */
-  let albums2026 = [];
+  let albums2026 = $state([]);
 
-  onMount(async () => {
-    const data = await subsonicFetch("getAlbumList", "&type=random&size=5");
-    if (data && data.albumList && data.albumList.album) {
-      albums = data.albumList.album;
+  // Reactive: re-fetch whenever the selected library changes (or on mount)
+  $effect(() => {
+    // Track selectedId so this effect re-runs on library change
+    const folderParam = musicFolderParam($libraryStore.selectedId);
+    if ($auth.isConnected) {
+      loadAllSections(folderParam);
     }
-    const favs = await subsonicFetch("getAlbumList", "&type=starred&size=5");
-    if (favs && favs.albumList && favs.albumList.album) {
-      favlist = favs.albumList.album;
-    }
-    const recentlyAddedAlbumsData = await subsonicFetch(
-      "getAlbumList",
-      "&type=newest&size=5",
-    );
-    if (
-      recentlyAddedAlbumsData &&
-      recentlyAddedAlbumsData.albumList &&
-      recentlyAddedAlbumsData.albumList.album
-    ) {
+  });
+
+  async function loadAllSections(folderParam = "") {
+    const [data, favs, recentlyAddedAlbumsData, topAlbumsData, albums2026Data] =
+      await Promise.all([
+        subsonicFetch("getAlbumList", `&type=random&size=5${folderParam}`),
+        subsonicFetch("getAlbumList", `&type=starred&size=5${folderParam}`),
+        subsonicFetch("getAlbumList", `&type=newest&size=5${folderParam}`),
+        subsonicFetch("getAlbumList", `&type=frequent&size=5${folderParam}`),
+        subsonicFetch(
+          "getAlbumList",
+          `&type=byYear&fromYear=2026&toYear=2026&size=5${folderParam}`,
+        ),
+      ]);
+
+    if (data?.albumList?.album) albums = data.albumList.album;
+    if (favs?.albumList?.album) favlist = favs.albumList.album;
+    if (recentlyAddedAlbumsData?.albumList?.album)
       recentlyAddedAlbums = recentlyAddedAlbumsData.albumList.album;
-    }
-    const topAlbumsData = await subsonicFetch(
-      "getAlbumList",
-      "&type=frequent&size=5",
-    );
-    if (
-      topAlbumsData &&
-      topAlbumsData.albumList &&
-      topAlbumsData.albumList.album
-    ) {
+    if (topAlbumsData?.albumList?.album)
       topAlbums = topAlbumsData.albumList.album;
-    }
-    const albums2026Data = await subsonicFetch(
-      "getAlbumList",
-      "&type=byYear&fromYear=2026&toYear=2026&size=5",
-    );
-    if (
-      albums2026Data &&
-      albums2026Data.albumList &&
-      albums2026Data.albumList.album
-    ) {
+    if (albums2026Data?.albumList?.album)
       albums2026 = albums2026Data.albumList.album;
-    }
+
     startSyncLoop();
+  }
+
+  onMount(() => {
+    // nothing needed — the $effect handles initial load
   });
 
   onDestroy(() => {
@@ -72,8 +66,13 @@
   function startSyncLoop() {
     if (syncInterval) clearInterval(syncInterval);
     syncInterval = setInterval(async () => {
+      const folderParam = musicFolderParam($libraryStore.selectedId);
+
       // Sync Favorites
-      const favs = await subsonicFetch("getAlbumList", "&type=starred&size=5");
+      const favs = await subsonicFetch(
+        "getAlbumList",
+        `&type=starred&size=5${folderParam}`,
+      );
       if (favs && favs.albumList && favs.albumList.album) {
         favlist = favs.albumList.album;
       }
@@ -81,7 +80,7 @@
       // Sync Recently Added Albums
       const recentlyAddedAlbumsData = await subsonicFetch(
         "getAlbumList",
-        "&type=newest&size=5",
+        `&type=newest&size=5${folderParam}`,
       );
       if (
         recentlyAddedAlbumsData &&
@@ -94,7 +93,7 @@
       // Sync Top Played Albums
       const topAlbumsData = await subsonicFetch(
         "getAlbumList",
-        "&type=frequent&size=5",
+        `&type=frequent&size=5${folderParam}`,
       );
       if (
         topAlbumsData &&
@@ -106,7 +105,7 @@
 
       const albums2026Data = await subsonicFetch(
         "getAlbumList",
-        "&type=byYear&fromYear=2026&toYear=2026&size=5",
+        `&type=byYear&fromYear=2026&toYear=2026&size=5${folderParam}`,
       );
       if (
         albums2026Data &&

@@ -120,9 +120,11 @@ export async function searchSongs(query = '', offset = 0, count = 50) {
  * Fetches a list of albums
  * @param {number} offset 
  * @param {number} count 
+ * @param {string} type
+ * @param {string} folderParam - Optional musicFolderId param, e.g. '&musicFolderId=1'
  */
-export async function getAlbums(offset = 0, count = 50, type = 'alphabeticalByName') {
-    return await subsonicFetch('getAlbumList', `&type=${type}&size=${count}&offset=${offset}`);
+export async function getAlbums(offset = 0, count = 50, type = 'alphabeticalByName', folderParam = '') {
+    return await subsonicFetch('getAlbumList', `&type=${type}&size=${count}&offset=${offset}${folderParam}`);
 }
 
 /**
@@ -164,9 +166,10 @@ export async function scrobble(id, submission = true) {
 
 /**
  * Fetches the total number of albums
+ * @param {string} folderParam - Optional musicFolderId param, e.g. '&musicFolderId=1'
  */
-export async function getAlbumCount() {
-    const data = await subsonicFetch('search3', '&query=&albumCount=100000&songCount=0&artistCount=0');
+export async function getAlbumCount(folderParam = '') {
+    const data = await subsonicFetch('search3', `&query=&albumCount=100000&songCount=0&artistCount=0${folderParam}`);
     return data?.searchResult3?.album?.length || 0;
 }
 
@@ -295,4 +298,12 @@ export async function reorderPlaylist(playlistId, newSongIds) {
     });
 
     return await subsonicFetch('updatePlaylist', params);
+}
+
+/**
+ * Fetches the list of music folders (libraries) the current user has access to.
+ * Returns the raw subsonic response; musicFolders.musicFolder is an array of { id, value }.
+ */
+export async function getMusicFolders() {
+    return await subsonicFetch('getMusicFolders');
 }

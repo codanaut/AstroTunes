@@ -8,6 +8,10 @@
     import AlbumCard from "../../lib/components/AlbumCard.svelte";
     import ArtistCard from "../../lib/components/ArtistCard.svelte";
     import { resolve } from "$app/paths";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../lib/stores/library.js";
 
     /** @type {any[]} */
     let favoriteAlbums = $state([]);
@@ -17,7 +21,6 @@
     let favoriteArtists = $state([]);
 
     onMount(async () => {
-        await loadFavorites();
         startSyncLoop();
     });
 
@@ -26,19 +29,33 @@
     });
 
     async function loadFavorites() {
-        const starred = await subsonicFetch("getStarred");
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        const starred = await subsonicFetch("getStarred", folderParam);
         if (starred && starred.starred) {
             if (starred.starred.album) {
                 favoriteAlbums = starred.starred.album;
+            } else {
+                favoriteAlbums = [];
             }
             if (starred.starred.song) {
                 favoriteSongs = starred.starred.song;
+            } else {
+                favoriteSongs = [];
             }
             if (starred.starred.artist) {
                 favoriteArtists = starred.starred.artist;
+            } else {
+                favoriteArtists = [];
             }
         }
     }
+
+    // Re-fetch when library selection changes
+    $effect(() => {
+        if ($libraryStore.selectedId !== undefined) {
+            loadFavorites();
+        }
+    });
 
     /** @type {any} */
     let syncInterval;

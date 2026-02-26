@@ -1,10 +1,14 @@
 <script>
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
-    import { searchSongs } from "../../lib/subsonic.js";
+    import { subsonicFetch } from "../../lib/subsonic.js";
     import { ChevronLeft, ChevronRight, Music } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import SongList from "../../lib/components/SongList.svelte";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../lib/stores/library.js";
 
     /** @type {any[]} */
     let songs = $state([]);
@@ -17,8 +21,13 @@
 
     async function loadSongs() {
         loading = true;
+        const folderParam = musicFolderParam($libraryStore.selectedId);
         try {
-            const result = await searchSongs("", offset, limit);
+            // search3 supports musicFolderId
+            const result = await subsonicFetch(
+                "search3",
+                `&query=&songOffset=${offset}&songCount=${limit}&artistCount=0&albumCount=0${folderParam}`,
+            );
             if (result && result.searchResult3) {
                 if (result.searchResult3.song) {
                     songs = result.searchResult3.song;
@@ -39,7 +48,8 @@
     }
 
     $effect(() => {
-        if (currentPage) {
+        // Re-run when page OR library changes
+        if (currentPage || $libraryStore.selectedId !== undefined) {
             loadSongs();
         }
     });
