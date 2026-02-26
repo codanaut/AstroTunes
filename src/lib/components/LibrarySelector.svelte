@@ -17,16 +17,15 @@
 
 {#if hasMultiple}
     <div class="library-selector-wrapper">
-        <span
-            style="color: var(--text-secondary); display: flex; align-items: center; flex-shrink: 0;"
-        >
-            <Library size={15} />
+        <span class="library-icon">
+            <Library size={18} />
         </span>
         <select
             id="library-selector"
             class="library-selector"
             value={$libraryStore.selectedId ?? ""}
             onchange={handleChange}
+            title="Select Library"
         >
             <option value="">All Libraries</option>
             {#each $libraryStore.folders as folder (folder.id)}
@@ -42,6 +41,15 @@
         align-items: center;
         gap: 6px;
         position: relative;
+    }
+
+    .library-icon {
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        pointer-events: none;
+        z-index: 10; /* ensure it stays above the select on mobile */
     }
 
     .library-selector {
@@ -80,5 +88,39 @@
     .library-selector option {
         background: var(--bg-card);
         color: var(--text-primary);
+    }
+
+    /* Mobile styling: collapse text to just the icon */
+    @media (max-width: 768px) {
+        .library-selector-wrapper {
+            /* Position icon absolutely over the select on mobile */
+            gap: 0;
+        }
+
+        .library-icon {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            /* Accent color on mobile to make it look like a button */
+            color: var(--text-primary);
+        }
+
+        .library-selector {
+            /* Make the select invisible but still clickable */
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            color: transparent;
+            background: transparent;
+            border-color: transparent;
+            background-image: none; /* remove arrow */
+        }
+
+        .library-selector:hover,
+        .library-selector:focus {
+            background: var(--bg-card);
+            border-color: var(--border-primary);
+        }
     }
 </style>
