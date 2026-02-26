@@ -18,6 +18,7 @@
         libraryStore,
         musicFolderParam,
     } from "../../lib/stores/library.js";
+    import { untrack } from "svelte";
 
     /** @type {any[]} */
     let albums = $state([]);
@@ -49,15 +50,16 @@
         }
     }
 
-    async function loadAlbums() {
+    /**
+     * @param {number} pageOffset
+     * @param {string} folderParam
+     */
+    async function loadAlbums(pageOffset, folderParam) {
         loading = true;
-        const folderParam = musicFolderParam($libraryStore.selectedId);
         try {
             const [albumsData, countData] = await Promise.all([
-                getAlbums(offset, limit, "alphabeticalByName", folderParam),
-                totalAlbums === 0
-                    ? getAlbumCount(folderParam)
-                    : Promise.resolve(totalAlbums),
+                getAlbums(pageOffset, limit, "alphabeticalByName", folderParam),
+                getAlbumCount(folderParam),
             ]);
 
             if (
@@ -81,11 +83,11 @@
     }
 
     $effect(() => {
-        // Re-run when page OR library changes
-        if (currentPage || $libraryStore.selectedId !== undefined) {
-            totalAlbums = 0; // Reset count on library change
-            loadAlbums();
-        }
+        // Capture reactive dependencies here only
+        const pageOffset = offset;
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        // Use untrack so nothing inside loadAlbums creates new dependencies
+        untrack(() => loadAlbums(pageOffset, folderParam));
     });
 
     function nextPage() {

@@ -19,6 +19,7 @@
         libraryStore,
         musicFolderParam,
     } from "../../../lib/stores/library.js";
+    import { untrack } from "svelte";
 
     /** @type {any[]} */
     let allFavorites = $state([]);
@@ -52,11 +53,13 @@
         }
     }
 
-    async function loadFavorites() {
+    /**
+     * @param {string} folderParam
+     */
+    async function loadFavorites(folderParam) {
         loading = true;
         try {
             // Fetch ALL favorites to get correct count and data
-            const folderParam = musicFolderParam($libraryStore.selectedId);
             const starred = await subsonicFetch("getStarred", folderParam);
             if (starred && starred.starred && starred.starred.album) {
                 allFavorites = starred.starred.album;
@@ -71,10 +74,9 @@
     }
 
     $effect(() => {
-        // Re-run on library change OR page change
-        if ($libraryStore.selectedId !== undefined || currentPage) {
-            loadFavorites();
-        }
+        // Re-run on library change
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        untrack(() => loadFavorites(folderParam));
     });
 
     // Update displayed slice whenever allFavorites or currentPage changes

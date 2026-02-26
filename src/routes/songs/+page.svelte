@@ -9,6 +9,7 @@
         libraryStore,
         musicFolderParam,
     } from "../../lib/stores/library.js";
+    import { untrack } from "svelte";
 
     /** @type {any[]} */
     let songs = $state([]);
@@ -19,14 +20,17 @@
     let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
     let offset = $derived((currentPage - 1) * limit);
 
-    async function loadSongs() {
+    /**
+     * @param {number} pageOffset
+     * @param {string} folderParam
+     */
+    async function loadSongs(pageOffset, folderParam) {
         loading = true;
-        const folderParam = musicFolderParam($libraryStore.selectedId);
         try {
             // search3 supports musicFolderId
             const result = await subsonicFetch(
                 "search3",
-                `&query=&songOffset=${offset}&songCount=${limit}&artistCount=0&albumCount=0${folderParam}`,
+                `&query=&songOffset=${pageOffset}&songCount=${limit}&artistCount=0&albumCount=0${folderParam}`,
             );
             if (result && result.searchResult3) {
                 if (result.searchResult3.song) {
@@ -48,10 +52,9 @@
     }
 
     $effect(() => {
-        // Re-run when page OR library changes
-        if (currentPage || $libraryStore.selectedId !== undefined) {
-            loadSongs();
-        }
+        const pageOffset = offset;
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        untrack(() => loadSongs(pageOffset, folderParam));
     });
 
     function nextPage() {

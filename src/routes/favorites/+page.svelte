@@ -12,6 +12,7 @@
         libraryStore,
         musicFolderParam,
     } from "../../lib/stores/library.js";
+    import { untrack } from "svelte";
 
     /** @type {any[]} */
     let favoriteAlbums = $state([]);
@@ -28,33 +29,22 @@
         if (syncInterval) clearInterval(syncInterval);
     });
 
-    async function loadFavorites() {
-        const folderParam = musicFolderParam($libraryStore.selectedId);
+    /**
+     * @param {string} folderParam
+     */
+    async function loadFavorites(folderParam = "") {
         const starred = await subsonicFetch("getStarred", folderParam);
         if (starred && starred.starred) {
-            if (starred.starred.album) {
-                favoriteAlbums = starred.starred.album;
-            } else {
-                favoriteAlbums = [];
-            }
-            if (starred.starred.song) {
-                favoriteSongs = starred.starred.song;
-            } else {
-                favoriteSongs = [];
-            }
-            if (starred.starred.artist) {
-                favoriteArtists = starred.starred.artist;
-            } else {
-                favoriteArtists = [];
-            }
+            favoriteAlbums = starred.starred.album ?? [];
+            favoriteSongs = starred.starred.song ?? [];
+            favoriteArtists = starred.starred.artist ?? [];
         }
     }
 
     // Re-fetch when library selection changes
     $effect(() => {
-        if ($libraryStore.selectedId !== undefined) {
-            loadFavorites();
-        }
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        untrack(() => loadFavorites(folderParam));
     });
 
     /** @type {any} */

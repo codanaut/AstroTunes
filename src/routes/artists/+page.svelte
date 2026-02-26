@@ -18,6 +18,7 @@
         libraryStore,
         musicFolderParam,
     } from "../../lib/stores/library.js";
+    import { untrack } from "svelte";
 
     /** @type {any[]} */
     let allArtists = $state([]);
@@ -40,7 +41,7 @@
                 viewMode = saved;
             }
         }
-        await loadArtists();
+        // No loadArtists here — the $effect below handles initial load
     });
 
     function setViewMode(mode) {
@@ -55,9 +56,11 @@
         displayedArtists = allArtists.slice(offset, offset + limit);
     });
 
-    async function loadArtists() {
+    /**
+     * @param {string} folderParam
+     */
+    async function loadArtists(folderParam = "") {
         loading = true;
-        const folderParam = musicFolderParam($libraryStore.selectedId);
         try {
             // getArtists supports musicFolderId natively
             const data = await subsonicFetch("getArtists", folderParam);
@@ -82,9 +85,8 @@
 
     // Re-run when the library selection changes
     $effect(() => {
-        if ($libraryStore.selectedId !== undefined) {
-            loadArtists();
-        }
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        untrack(() => loadArtists(folderParam));
     });
 
     function nextPage() {
