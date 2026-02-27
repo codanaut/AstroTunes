@@ -15,6 +15,11 @@
     } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import { browser } from "$app/environment";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../../lib/stores/library.js";
+    import { untrack } from "svelte";
 
     /** @type {any[]} */
     let albums = $state([]);
@@ -46,10 +51,18 @@
         }
     }
 
-    async function loadAlbums() {
+    /**
+     * @param {string} folderParam
+     */
+    async function loadAlbums(folderParam = "") {
         loading = true;
         try {
-            const albumsData = await getAlbums(offset, limit, "random");
+            const albumsData = await getAlbums(
+                offset,
+                limit,
+                "random",
+                folderParam,
+            );
 
             if (
                 albumsData &&
@@ -69,7 +82,8 @@
 
     $effect(() => {
         if (currentPage) {
-            loadAlbums();
+            const folderParam = musicFolderParam($libraryStore.selectedId);
+            untrack(() => loadAlbums(folderParam));
         }
     });
 

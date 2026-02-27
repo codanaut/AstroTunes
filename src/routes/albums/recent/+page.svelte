@@ -15,6 +15,11 @@
     } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import { browser } from "$app/environment";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../../lib/stores/library.js";
+    import { untrack } from "svelte";
 
     /** @type {any[]} */
     let albums = $state([]);
@@ -39,7 +44,6 @@
                 viewMode = saved;
             }
         }
-        loadAlbums();
         startSyncLoop();
     });
 
@@ -55,10 +59,14 @@
         }
     }
 
-    async function loadAlbums(silent = false) {
+    /**
+     * @param {boolean} silent
+     * @param {string} folderParam
+     */
+    async function loadAlbums(silent = false, folderParam = "") {
         if (!silent) loading = true;
         try {
-            const albumsData = await getAlbums(offset, limit, "newest");
+            const albumsData = await getAlbums(offset, limit, "newest", folderParam);
 
             if (
                 albumsData &&
@@ -79,13 +87,15 @@
     function startSyncLoop() {
         if (syncInterval) clearInterval(syncInterval);
         syncInterval = setInterval(() => {
-            loadAlbums(true);
+            const folderParam = musicFolderParam(get(libraryStore).selectedId);
+            loadAlbums(true, folderParam);
         }, 10000);
     }
 
     $effect(() => {
         if (currentPage) {
-            loadAlbums(false);
+            const folderParam = musicFolderParam($libraryStore.selectedId);
+            untrack(() => loadAlbums(false, folderParam));
         }
     });
 
