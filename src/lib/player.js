@@ -16,6 +16,7 @@ let initialState = {
     volume: 1.0,
     repeatMode: 'off',
     context: null,
+    progress: 0,
     duration: 0
 };
 
@@ -35,7 +36,7 @@ export const isPlaying = writable(false);
 export const currentTrack = writable(initialState.currentTrack); // The song object
 /** @type {import('svelte/store').Writable<any[]>} */
 export const queue = writable(initialState.queue); // Array of songs
-export const progress = writable(0); // Current time in seconds
+export const progress = writable(initialState.progress); // Current time in seconds
 export const buffered = writable(0); // Buffered time as percentage (0 to 1)
 export const duration = writable(initialState.duration); // Total time in seconds
 export const repeatMode = writable(initialState.repeatMode); // 'off', 'all', 'one'
@@ -57,30 +58,6 @@ export const context = writable(initialState.context); // Context of current pla
 
 export const volume = writable(initialState.volume); // 0.0 to 1.0
 
-// Helper to save state
-function saveState() {
-    if (!browser) return;
-    const state = {
-        queue: get(queue),
-        currentTrack: get(currentTrack),
-        volume: get(volume),
-        repeatMode: get(repeatMode),
-        context: get(context),
-        duration: get(duration)
-    };
-    localStorage.setItem(STATE_KEY, JSON.stringify(state));
-}
-
-// Subscribe to changes (except progress which is handled in loop)
-if (browser) {
-    queue.subscribe(() => saveState());
-    currentTrack.subscribe(() => saveState());
-    volume.subscribe(() => saveState());
-    repeatMode.subscribe(() => saveState());
-    context.subscribe(() => saveState());
-    duration.subscribe(() => saveState());
-}
-
 /** @type {Howl | null} */
 let sound = null;
 /** @type {Howl | null} */
@@ -91,11 +68,45 @@ let fadingSound = null;
 let nextTrackMetadata = null;
 /** @type {boolean} */
 let isCrossfading = false;
+/** @type {boolean} */
+let needsPositionRestoration = initialState.progress > 0;
 
 /** @type {any} */
 let progressInterval = null;
 /** @type {any} */
 let starredCheckInterval = null;
+
+// Helper to save state
+function saveState() {
+    if (!browser) return;
+
+    const currentProgress = get(progress);
+    const currentDuration = get(duration);
+
+    // Don't save if we are in the middle of a restoration and haven't finished yet
+    if (needsPositionRestoration && currentProgress === 0) return;
+
+    const state = {
+        queue: get(queue),
+        currentTrack: get(currentTrack),
+        volume: get(volume),
+        repeatMode: get(repeatMode),
+        context: get(context),
+        progress: currentProgress,
+        duration: currentDuration > 0 ? currentDuration : initialState.duration
+    };
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+// Subscribe to changes (except progress and duration which are handled carefully)
+if (browser) {
+    queue.subscribe(() => saveState());
+    volume.subscribe(() => saveState());
+    repeatMode.subscribe(() => saveState());
+    context.subscribe(() => saveState());
+    // We don't subscribe to currentTrack or duration directly to avoid 
+    // saving 0 values before they are loaded/restored.
+}
 
 // FUNCTIONS
 
@@ -247,6 +258,7 @@ function playTrack(track) {
         // Update handlers for the promoted sound
         setupSoundHandlers(sound, track);
         progress.set(0);
+        needsPositionRestoration = false; // Never restore position on naturally playing next tracks
         sound.play();
         updateMediaSession(track);
         return;
@@ -278,8 +290,18 @@ function playTrack(track) {
 
     setupSoundHandlers(sound, track);
 
-    // Reset progress when playing a new track
-    progress.set(0);
+    // Reset progress when playing a new track manually
+    // If we are restoring the saved session, we only seek if it's the exact same song
+    if (needsPositionRestoration) {
+        if (initialState.currentTrack && track.id === initialState.currentTrack.id) {
+            // Keep needsPositionRestoration true, it will be handled in setupSoundHandlers
+        } else {
+            needsPositionRestoration = false;
+            progress.set(0);
+        }
+    } else {
+        progress.set(0);
+    }
 
     sound.play();
     updateMediaSession(track);
@@ -295,6 +317,19 @@ function setupSoundHandlers(h, track) {
         const d = h.duration();
         if (d > 0) {
             duration.set(d);
+
+            // Handle one-time position restoration after reload
+            if (needsPositionRestoration) {
+                const savedPos = initialState.progress;
+                if (savedPos > 0 && savedPos < d) {
+                    h.seek(savedPos);
+                    progress.set(savedPos);
+                }
+                needsPositionRestoration = false;
+            }
+
+            // Save state now that we have good metadata
+            saveState();
         }
     };
 
@@ -348,6 +383,16 @@ export function togglePlay() {
     if (!sound) {
         const track = get(currentTrack);
         if (track) {
+            // Check if we were at the end of the song when it was last saved
+            const savedPos = initialState.progress;
+            const savedDur = initialState.duration;
+
+            // If we were near the end, reset to 0 instead of restoring
+            if (savedPos > 0 && savedDur > 0 && savedDur - savedPos < 2) {
+                needsPositionRestoration = false;
+                progress.set(0);
+            }
+
             playTrack(track);
         }
         return;
@@ -541,6 +586,11 @@ function startProgressLoop() {
                     buffered.set(latestBuffered / totalDuration);
                 }
             }
+
+            // Save state every 5 seconds
+            if (Math.floor(get(progress)) % 5 === 0) {
+                saveState();
+            }
         }
     }, 1000); // Update every second
 }
@@ -605,6 +655,8 @@ function startStarredCheckLoop() {
                 if (serverStarred !== localStarred) {
                     isFavorite.set(serverStarred);
                     curr.starred = data.song.starred;
+                    currentTrack.set(curr); // This will trigger subscribers
+                    saveState();
                 }
             }
         } catch (error) {
@@ -687,6 +739,8 @@ export async function toggleFavorite() {
             // Update the track object's starred property
             curr.starred = new Date().toISOString();
         }
+        currentTrack.set(curr);
+        saveState();
     } catch (error) {
         console.error('Failed to toggle favorite:', error);
     }
