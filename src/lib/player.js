@@ -1,4 +1,5 @@
 import { writable, get } from 'svelte/store';
+import { browser } from '$app/environment';
 // @ts-ignore - Ignores missing type definitions for howler
 import { Howl } from 'howler';
 import { getStreamUrl, getCoverArtUrl } from './subsonic.js';
@@ -16,6 +17,16 @@ export const repeatMode = writable('off'); // 'off', 'all', 'one'
 export const isFavorite = writable(false); // Whether current track is favorited
 export const showQueue = writable(false); // Whether queue panel is visible
 export const showPlayer = writable(true); // Whether player bar is visible
+
+// Create persisted crossfadeDuration
+const initialCrossfade = browser ? parseInt(localStorage.getItem('crossfade_duration') || '0') : 0;
+export const crossfadeDuration = writable(initialCrossfade);
+if (browser) {
+    crossfadeDuration.subscribe(val => {
+        localStorage.setItem('crossfade_duration', val.toString());
+    });
+}
+
 /** @type {import('svelte/store').Writable<{type: string|null, id: string|null, name: string|null} | null>} */
 export const context = writable(null); // Context of current playback
 
@@ -23,8 +34,12 @@ export const context = writable(null); // Context of current playback
 let sound = null;
 /** @type {Howl | null} */
 let nextSound = null;
+/** @type {Howl | null} */
+let fadingSound = null;
 /** @type {any} */
 let nextTrackMetadata = null;
+/** @type {boolean} */
+let isCrossfading = false;
 
 /** @type {any} */
 let progressInterval = null;
@@ -71,6 +86,11 @@ function cleanup() {
         sound.unload();
         sound = null;
     }
+    if (fadingSound) {
+        fadingSound.unload();
+        fadingSound = null;
+    }
+    isCrossfading = false;
     clearInterval(progressInterval);
     clearInterval(starredCheckInterval);
 }
@@ -182,6 +202,11 @@ function playTrack(track) {
 
     // 2. Normal Load (no prebuffer match)
     cleanup();
+    if (fadingSound) {
+        fadingSound.unload();
+        fadingSound = null;
+    }
+    isCrossfading = false;
     if (nextSound) {
         nextSound.unload();
         nextSound = null;
@@ -229,6 +254,11 @@ function setupSoundHandlers(h, track) {
     });
 
     h.on('end', () => {
+        if (isCrossfading && h === fadingSound) {
+            // This was the old sound that just finished its fade
+            return;
+        }
+
         import('./subsonic.js').then(({ scrobble }) => {
             scrobble(track.id, true).catch(e => console.error("Failed to scrobble:", e));
         });
@@ -408,7 +438,13 @@ function startProgressLoop() {
             // Trigger prebuffering if we are at 90% or 10 seconds remaining
             const currentTime = sound.seek();
             const totalDuration = sound.duration();
-            if (totalDuration > 0 && (currentTime / totalDuration > 0.9 || totalDuration - currentTime < 10)) {
+            const crossfade = get(crossfadeDuration);
+
+            // Handle Crossfade trigger
+            if (crossfade > 0 && !isCrossfading && nextSound && totalDuration > 0 && totalDuration - currentTime <= crossfade) {
+                startCrossfade();
+            } else if (totalDuration > 0 && (currentTime / totalDuration > 0.9 || totalDuration - currentTime < 10)) {
+                // Regular prebuffer trigger (if not already crossfading or about to)
                 prepareNextTrack();
             }
 
@@ -436,6 +472,44 @@ function startProgressLoop() {
             }
         }
     }, 1000); // Update every second
+}
+
+function startCrossfade() {
+    if (!nextSound || !nextTrackMetadata) return;
+
+    isCrossfading = true;
+    const crossfade = get(crossfadeDuration);
+    const vol = get(volume);
+
+    fadingSound = sound;
+    sound = nextSound;
+    const currentTrackData = nextTrackMetadata;
+
+    nextSound = null;
+    nextTrackMetadata = null;
+
+    // Fade out old
+    if (fadingSound) {
+        fadingSound.fade(vol, 0, crossfade * 1000);
+        // We don't unload immediately, let it finish the fade
+        setTimeout(() => {
+            if (fadingSound) {
+                fadingSound.unload();
+                fadingSound = null;
+                isCrossfading = false;
+            }
+        }, crossfade * 1000 + 500);
+    }
+
+    // Fade in new
+    currentTrack.set(currentTrackData);
+    isFavorite.set(currentTrackData.starred ? true : false);
+    setupSoundHandlers(sound, currentTrackData);
+    sound.volume(0);
+    sound.play();
+    sound.fade(0, vol, crossfade * 1000);
+
+    updateMediaSession(currentTrackData);
 }
 
 /**

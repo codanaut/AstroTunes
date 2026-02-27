@@ -13,8 +13,16 @@
     import { theme } from "$lib/stores/theme";
     import { subsonicFetch } from "$lib/subsonic";
     import { goto } from "$app/navigation";
-    import { Loader2, Server, Music, Settings, Palette } from "lucide-svelte";
+    import {
+        Loader2,
+        Server,
+        Music,
+        Settings,
+        Palette,
+        Play,
+    } from "lucide-svelte";
     import AccentColorPicker from "$lib/components/AccentColorPicker.svelte";
+    import { crossfadeDuration } from "$lib/player";
 
     let serverUrl = $state("");
     let username = $state("");
@@ -204,6 +212,53 @@
                         {/if}
                     </div>
                 </form>
+            </div>
+        </section>
+
+        <!-- PLAYBACK SETTINGS -->
+        <section
+            class="bg-[var(--bg-sidebar)] border border-[var(--border-primary)] rounded-xl overflow-hidden"
+        >
+            <div
+                class="p-6 border-b border-[var(--border-primary)] flex items-center gap-3 bg-[var(--bg-main)]/50"
+            >
+                <Music size={20} class="text-[var(--accent)]" />
+                <h2 class="text-lg font-semibold text-[var(--text-primary)]">
+                    Playback
+                </h2>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-[var(--text-primary)] font-medium">
+                                Crossfade
+                            </h3>
+                            <p class="text-[var(--text-muted)] text-xs">
+                                Overlap songs for a smoother transition.
+                            </p>
+                        </div>
+                        <span class="text-[var(--accent)] font-mono text-sm"
+                            >{$crossfadeDuration}s</span
+                        >
+                    </div>
+
+                    <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="1"
+                        bind:value={$crossfadeDuration}
+                        class="w-full h-1.5 bg-[var(--bg-main)] rounded-full appearance-none cursor-pointer accent-[var(--accent)] border border-[var(--border-primary)]"
+                    />
+                    <div
+                        class="flex justify-between mt-2 text-[10px] text-[var(--text-muted)] font-mono"
+                    >
+                        <span>OFF</span>
+                        <span>5s</span>
+                        <span>10s</span>
+                    </div>
+                </div>
             </div>
         </section>
 
