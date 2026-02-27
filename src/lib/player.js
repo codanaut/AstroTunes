@@ -5,18 +5,43 @@ import { Howl } from 'howler';
 import { getStreamUrl, getCoverArtUrl } from './subsonic.js';
 
 // STATE
+const STATE_KEY = 'player_state';
+
+/**
+ * @type {any}
+ */
+let initialState = {
+    queue: [],
+    currentTrack: null,
+    volume: 1.0,
+    repeatMode: 'off',
+    context: null,
+    duration: 0
+};
+
+if (browser) {
+    const stored = localStorage.getItem(STATE_KEY);
+    if (stored) {
+        try {
+            initialState = { ...initialState, ...JSON.parse(stored) };
+        } catch (e) {
+            console.error("Failed to parse player state", e);
+        }
+    }
+}
+
 export const isPlaying = writable(false);
 /** @type {import('svelte/store').Writable<any>} */
-export const currentTrack = writable(null); // The song object
+export const currentTrack = writable(initialState.currentTrack); // The song object
 /** @type {import('svelte/store').Writable<any[]>} */
-export const queue = writable([]); // Array of songs
+export const queue = writable(initialState.queue); // Array of songs
 export const progress = writable(0); // Current time in seconds
 export const buffered = writable(0); // Buffered time as percentage (0 to 1)
-export const duration = writable(0); // Total time in seconds
-export const repeatMode = writable('off'); // 'off', 'all', 'one'
-export const isFavorite = writable(false); // Whether current track is favorited
+export const duration = writable(initialState.duration); // Total time in seconds
+export const repeatMode = writable(initialState.repeatMode); // 'off', 'all', 'one'
+export const isFavorite = writable(initialState.currentTrack?.starred ? true : false); // Whether current track is favorited
 export const showQueue = writable(false); // Whether queue panel is visible
-export const showPlayer = writable(true); // Whether player bar is visible
+export const showPlayer = writable(initialState.currentTrack ? true : false); // Whether player bar is visible
 
 // Create persisted crossfadeDuration
 const initialCrossfade = browser ? parseInt(localStorage.getItem('crossfade_duration') || '0') : 0;
@@ -28,7 +53,33 @@ if (browser) {
 }
 
 /** @type {import('svelte/store').Writable<{type: string|null, id: string|null, name: string|null} | null>} */
-export const context = writable(null); // Context of current playback
+export const context = writable(initialState.context); // Context of current playback
+
+export const volume = writable(initialState.volume); // 0.0 to 1.0
+
+// Helper to save state
+function saveState() {
+    if (!browser) return;
+    const state = {
+        queue: get(queue),
+        currentTrack: get(currentTrack),
+        volume: get(volume),
+        repeatMode: get(repeatMode),
+        context: get(context),
+        duration: get(duration)
+    };
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+// Subscribe to changes (except progress which is handled in loop)
+if (browser) {
+    queue.subscribe(() => saveState());
+    currentTrack.subscribe(() => saveState());
+    volume.subscribe(() => saveState());
+    repeatMode.subscribe(() => saveState());
+    context.subscribe(() => saveState());
+    duration.subscribe(() => saveState());
+}
 
 /** @type {Howl | null} */
 let sound = null;
@@ -195,6 +246,7 @@ function playTrack(track) {
 
         // Update handlers for the promoted sound
         setupSoundHandlers(sound, track);
+        progress.set(0);
         sound.play();
         updateMediaSession(track);
         return;
@@ -225,6 +277,10 @@ function playTrack(track) {
     });
 
     setupSoundHandlers(sound, track);
+
+    // Reset progress when playing a new track
+    progress.set(0);
+
     sound.play();
     updateMediaSession(track);
 }
@@ -235,8 +291,17 @@ function playTrack(track) {
  * @param {any} track 
  */
 function setupSoundHandlers(h, track) {
+    const handleMetadata = () => {
+        const d = h.duration();
+        if (d > 0) {
+            duration.set(d);
+        }
+    };
+
+    h.on('load', handleMetadata);
+
     h.on('play', () => {
-        duration.set(h.duration());
+        handleMetadata();
         startProgressLoop();
         startStarredCheckLoop();
         if (typeof navigator !== 'undefined' && navigator.mediaSession) {
@@ -280,19 +345,25 @@ function setupSoundHandlers(h, track) {
 }
 
 export function togglePlay() {
-    if (sound) {
-        if (sound.playing()) {
-            sound.pause();
-            isPlaying.set(false);
-            if (typeof navigator !== 'undefined' && navigator.mediaSession) {
-                navigator.mediaSession.playbackState = 'paused';
-            }
-        } else {
-            sound.play();
-            isPlaying.set(true);
-            if (typeof navigator !== 'undefined' && navigator.mediaSession) {
-                navigator.mediaSession.playbackState = 'playing';
-            }
+    if (!sound) {
+        const track = get(currentTrack);
+        if (track) {
+            playTrack(track);
+        }
+        return;
+    }
+
+    if (sound.playing()) {
+        sound.pause();
+        isPlaying.set(false);
+        if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+            navigator.mediaSession.playbackState = 'paused';
+        }
+    } else {
+        sound.play();
+        isPlaying.set(true);
+        if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+            navigator.mediaSession.playbackState = 'playing';
         }
     }
 }
@@ -566,8 +637,6 @@ export function seek(seconds) {
         progress.set(seconds);
     }
 }
-
-export const volume = writable(1.0); // 0.0 to 1.0
 
 /**
  * @param {number} val - 0.0 to 1.0
