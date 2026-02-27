@@ -142,9 +142,10 @@ export async function searchArtists(query = '', offset = 0, count = 50) {
  * @param {string} query 
  * @param {number} offset 
  * @param {number} count 
+ * @param {string} folderParam - Optional musicFolderId param, e.g. '&musicFolderId=1'
  */
-export async function search(query = '', offset = 0, count = 20) {
-    return await subsonicFetch('search3', `&query=${encodeURIComponent(query)}&songCount=${count}&songOffset=${offset}&artistCount=${count}&artistOffset=${offset}&albumCount=${count}&albumOffset=${offset}`);
+export async function search(query = '', offset = 0, count = 20, folderParam = '') {
+    return await subsonicFetch('search3', `&query=${encodeURIComponent(query)}&songCount=${count}&songOffset=${offset}&artistCount=${count}&artistOffset=${offset}&albumCount=${count}&albumOffset=${offset}${folderParam}`);
 }
 
 /**
@@ -177,27 +178,30 @@ export async function getAlbumCount(folderParam = '') {
  * Fetches top songs for an artist
  * @param {string} artistName
  * @param {number} count
+ * @param {string} folderParam - Optional musicFolderId param, e.g. '&musicFolderId=1'
  */
-export async function getTopSongs(artistName, count = 50) {
-    return await subsonicFetch('getTopSongs', `&artist=${encodeURIComponent(artistName)}&count=${count}`);
+export async function getTopSongs(artistName, count = 50, folderParam = '') {
+    return await subsonicFetch('getTopSongs', `&artist=${encodeURIComponent(artistName)}&count=${count}${folderParam}`);
 }
 
 /**
  * Fetches additional info for an artist (biography, images, similar artists)
  * @param {string} id - Artist ID
  * @param {number} count - Number of similar artists to return
+ * @param {string} folderParam - Optional musicFolderId param, e.g. '&musicFolderId=1'
  */
-export async function getArtistInfo(id, count = 20) {
-    return await subsonicFetch('getArtistInfo2', `&id=${id}&count=${count}`);
+export async function getArtistInfo(id, count = 20, folderParam = '') {
+    return await subsonicFetch('getArtistInfo2', `&id=${id}&count=${count}${folderParam}`);
 }
 
 /**
  * Fetches similar artists for a given artist
  * @param {string} id - Artist ID (ID3 tag)
  * @param {number} count
+ * @param {string} folderParam - Optional musicFolderId param, e.g. '&musicFolderId=1'
  */
-export async function getSimilarArtists(id, count = 20) {
-    const data = await getArtistInfo(id, count);
+export async function getSimilarArtists(id, count = 20, folderParam = '') {
+    const data = await getArtistInfo(id, count, folderParam);
     return data?.artistInfo2?.similarArtist || [];
 }
 

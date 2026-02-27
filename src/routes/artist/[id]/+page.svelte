@@ -23,6 +23,11 @@
   import SongList from "../../../lib/components/SongList.svelte";
   import AlbumCard from "../../../lib/components/AlbumCard.svelte";
   import SimilarArtists from "../../../lib/components/SimilarArtists.svelte";
+  import {
+    libraryStore,
+    musicFolderParam,
+  } from "../../../lib/stores/library.js";
+  import { untrack } from "svelte";
 
   /** @type {any} */
   let artist = $state(null);
@@ -37,17 +42,18 @@
   /** @type {any} */
   let syncInterval;
 
-  // Reactively load artist data when the ID changes
   $effect(() => {
     if ($page.params.id) {
-      loadArtist($page.params.id);
+      const folderParam = musicFolderParam($libraryStore.selectedId);
+      untrack(() => loadArtist($page.params.id || "", folderParam));
     }
   });
 
   /**
    * @param {string} artistId
+   * @param {string} folderParam
    */
-  async function loadArtist(artistId) {
+  async function loadArtist(artistId, folderParam = "") {
     loading = true;
     artist = null; // Reset artist
     appearsOnAlbums = [];
@@ -56,28 +62,83 @@
       artist = data.artist;
 
       // Fetch additional artist info (bio, etc)
-      const infoData = await getArtistInfo(artistId);
+      const infoData = await getArtistInfo(artistId, 20, folderParam);
       if (infoData && infoData.artistInfo2) {
         artistInfo = infoData.artistInfo2;
       }
 
-      // Fetch top songs
+      // Fetch top songs (global)
       const topSongsData = await getTopSongs(artist.name);
       //console.log(topSongsData);
+      let globalTopSongs = [];
       if (topSongsData && topSongsData.topSongs && topSongsData.topSongs.song) {
-        topSongs = Array.isArray(topSongsData.topSongs.song)
+        globalTopSongs = Array.isArray(topSongsData.topSongs.song)
           ? topSongsData.topSongs.song
           : [topSongsData.topSongs.song];
-      } else {
-        topSongs = [];
       }
 
-      // Process Appears On Albums
-      const artistAlbums = artist.album
+      // 1. Fetch library-specific items for intersection filtering
+      // We search for the artist name to find songs and albums in the selected library
+      const validAlbumIds = new Set();
+      const validSongIds = new Set();
+
+      try {
+        if (folderParam) {
+          const intersectionSearch = await search(
+            artist.name,
+            0,
+            500,
+            folderParam,
+          );
+          if (intersectionSearch && intersectionSearch.searchResult3) {
+            const rawAlbums = intersectionSearch.searchResult3.album;
+            if (rawAlbums) {
+              const albums = Array.isArray(rawAlbums) ? rawAlbums : [rawAlbums];
+              albums.forEach((a) => validAlbumIds.add(a.id));
+            }
+            const rawSongs = intersectionSearch.searchResult3.song;
+            if (rawSongs) {
+              const songs = Array.isArray(rawSongs) ? rawSongs : [rawSongs];
+              songs.forEach((s) => {
+                validSongIds.add(s.id);
+                if (s.albumId) validAlbumIds.add(s.albumId);
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed intersection search:", e);
+      }
+
+      // Filter global lists using the valid IDs if a folder is selected
+      if (folderParam && validSongIds.size > 0) {
+        topSongs = globalTopSongs.filter((/** @type {{ id: any; }} */ s) =>
+          validSongIds.has(s.id),
+        );
+      } else if (folderParam) {
+        topSongs = []; // Filter requested but no songs found in library
+      } else {
+        topSongs = globalTopSongs;
+      }
+
+      let globalArtistAlbums = artist.album
         ? Array.isArray(artist.album)
           ? artist.album
           : [artist.album]
         : [];
+
+      if (folderParam && validAlbumIds.size > 0) {
+        artist.album = globalArtistAlbums.filter(
+          (/** @type {{ id: any; }} */ a) => validAlbumIds.has(a.id),
+        );
+      } else if (folderParam) {
+        artist.album = [];
+      } else {
+        artist.album = globalArtistAlbums;
+      }
+
+      // Recalculate Appears On Albums
+      const artistAlbums = artist.album || [];
 
       const ownAlbumIds = new Set(
         artistAlbums.map((/** @type {{ id: any; }} */ a) => String(a.id)),
@@ -106,7 +167,7 @@
       // This is necessary because getArtist only returns albums where they are the ALBUM ARTIST
       try {
         // Fetch more results to increase chance of finding features
-        const searchResults = await search(artist.name, 0, 500);
+        const searchResults = await search(artist.name, 0, 500, folderParam);
         console.log(searchResults);
 
         if (
