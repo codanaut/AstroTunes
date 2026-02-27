@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 // @ts-ignore - Ignores missing type definitions for howler
 import { Howl } from 'howler';
-import { getStreamUrl } from './subsonic.js';
+import { getStreamUrl, getCoverArtUrl } from './subsonic.js';
 
 // STATE
 export const isPlaying = writable(false);
@@ -21,12 +21,96 @@ export const context = writable(null); // Context of current playback
 
 /** @type {Howl | null} */
 let sound = null;
+/** @type {Howl | null} */
+let nextSound = null;
+/** @type {any} */
+let nextTrackMetadata = null;
+
 /** @type {any} */
 let progressInterval = null;
 /** @type {any} */
 let starredCheckInterval = null;
 
 // FUNCTIONS
+
+/**
+ * Updates the OS Media Session metadata and handlers
+ * @param {any} track 
+ */
+function updateMediaSession(track) {
+    if (!track || typeof navigator === 'undefined' || !navigator.mediaSession) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        artwork: [
+            { src: getCoverArtUrl(track.id, 96), sizes: '96x96', type: 'image/png' },
+            { src: getCoverArtUrl(track.id, 128), sizes: '128x128', type: 'image/png' },
+            { src: getCoverArtUrl(track.id, 192), sizes: '192x192', type: 'image/png' },
+            { src: getCoverArtUrl(track.id, 256), sizes: '256x256', type: 'image/png' },
+            { src: getCoverArtUrl(track.id, 384), sizes: '384x384', type: 'image/png' },
+            { src: getCoverArtUrl(track.id, 512), sizes: '512x512', type: 'image/png' },
+        ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => togglePlay());
+    navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+    navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
+    navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined) seek(details.seekTime);
+    });
+}
+
+/**
+ * Cleans up existing audio and intervals
+ */
+function cleanup() {
+    if (sound) {
+        sound.unload();
+        sound = null;
+    }
+    clearInterval(progressInterval);
+    clearInterval(starredCheckInterval);
+}
+
+/**
+ * Prebuffering: Loads the next song in the queue
+ */
+function prepareNextTrack() {
+    const q = get(queue);
+    const curr = get(currentTrack);
+    if (!curr || q.length <= 1) return;
+
+    const index = curr.queueId
+        ? q.findIndex(s => s.queueId === curr.queueId)
+        : q.findIndex(s => s.id === curr.id);
+
+    let nextIndex = -1;
+    if (index < q.length - 1) {
+        nextIndex = index + 1;
+    } else if (get(repeatMode) === 'all') {
+        nextIndex = 0;
+    }
+
+    if (nextIndex !== -1) {
+        const nextTrack = q[nextIndex];
+        // Don't re-buffer if already buffered
+        if (nextTrackMetadata && nextTrackMetadata.id === nextTrack.id) return;
+
+        if (nextSound) nextSound.unload();
+
+        nextTrackMetadata = nextTrack;
+        nextSound = new Howl({
+            src: [getStreamUrl(nextTrack.id)],
+            html5: true,
+            format: ['mp3', 'flac'],
+            volume: get(volume),
+            preload: true
+        });
+    }
+}
 
 // Create a safe UUID fallback
 const generateId = () => {
@@ -75,52 +159,94 @@ export function addToQueue(song) {
 function playTrack(track) {
     if (!track) return;
 
-    // 1. Cleanup old audio
-    if (sound) {
-        sound.unload();
-        clearInterval(progressInterval);
-        clearInterval(starredCheckInterval);
+    // 1. Logic for prebuffered track
+    if (nextSound && nextTrackMetadata && nextTrackMetadata.id === track.id) {
+        // We have it prebuffered!
+        // Swap currently playing
+        if (sound) sound.unload();
+        sound = nextSound;
+        nextSound = null;
+        nextTrackMetadata = null;
+
+        // Restart intervals and state
+        currentTrack.set(track);
+        isPlaying.set(true);
+        isFavorite.set(track.starred ? true : false);
+
+        // Update handlers for the promoted sound
+        setupSoundHandlers(sound, track);
+        sound.play();
+        updateMediaSession(track);
+        return;
     }
 
-    // 2. Update State
+    // 2. Normal Load (no prebuffer match)
+    cleanup();
+    if (nextSound) {
+        nextSound.unload();
+        nextSound = null;
+        nextTrackMetadata = null;
+    }
+
     currentTrack.set(track);
     isPlaying.set(true);
-
-    // Set favorite state based on track's starred property
     isFavorite.set(track.starred ? true : false);
 
-    // 3. Init Howler
     sound = new Howl({
         src: [getStreamUrl(track.id)],
-        html5: true, // Forces HTML5 Audio (better for large streams)
+        html5: true,
         format: ['mp3', 'flac'],
         volume: get(volume),
-        onplay: () => {
-            duration.set(sound ? sound.duration() : 0);
-            startProgressLoop();
-            startStarredCheckLoop();
-            // Register "Now Playing"
-            import('./subsonic.js').then(({ scrobble }) => {
-                scrobble(track.id, false).catch(e => console.error("Failed to set Now Playing:", e));
-            });
-        },
-        onend: () => {
-            // Scrobble the song (submission=true is default)
-            import('./subsonic.js').then(({ scrobble }) => {
-                scrobble(track.id, true).catch(e => console.error("Failed to scrobble:", e));
-            });
+    });
 
-            const repeat = get(repeatMode);
-            if (repeat === 'one') {
-                sound?.seek(0);
-                sound?.play();
-            } else {
-                playNext();
-            }
+    setupSoundHandlers(sound, track);
+    sound.play();
+    updateMediaSession(track);
+}
+
+/**
+ * Setup Howl event handlers
+ * @param {Howl} h 
+ * @param {any} track 
+ */
+function setupSoundHandlers(h, track) {
+    h.on('play', () => {
+        duration.set(h.duration());
+        startProgressLoop();
+        startStarredCheckLoop();
+        if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+            navigator.mediaSession.playbackState = 'playing';
+        }
+        import('./subsonic.js').then(({ scrobble }) => {
+            scrobble(track.id, false).catch(e => console.error("Failed to set Now Playing:", e));
+        });
+    });
+
+    h.on('pause', () => {
+        if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+            navigator.mediaSession.playbackState = 'paused';
         }
     });
 
-    sound.play();
+    h.on('end', () => {
+        import('./subsonic.js').then(({ scrobble }) => {
+            scrobble(track.id, true).catch(e => console.error("Failed to scrobble:", e));
+        });
+
+        const repeat = get(repeatMode);
+        if (repeat === 'one') {
+            h.seek(0);
+            h.play();
+        } else {
+            playNext();
+        }
+    });
+
+    h.on('loaderror', (/** @type {any} */ _id, /** @type {any} */ err) => {
+        console.error("Howler load error:", err);
+        // Automatically try next if this one failed
+        playNext();
+    });
 }
 
 export function togglePlay() {
@@ -128,9 +254,15 @@ export function togglePlay() {
         if (sound.playing()) {
             sound.pause();
             isPlaying.set(false);
+            if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+                navigator.mediaSession.playbackState = 'paused';
+            }
         } else {
             sound.play();
             isPlaying.set(true);
+            if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+                navigator.mediaSession.playbackState = 'playing';
+            }
         }
     }
 }
@@ -273,6 +405,13 @@ function startProgressLoop() {
             // @ts-ignore
             progress.set(sound.seek());
 
+            // Trigger prebuffering if we are at 90% or 10 seconds remaining
+            const currentTime = sound.seek();
+            const totalDuration = sound.duration();
+            if (totalDuration > 0 && (currentTime / totalDuration > 0.9 || totalDuration - currentTime < 10)) {
+                prepareNextTrack();
+            }
+
             // Handle buffering
             // @ts-ignore - _sounds and _node are internal Howler properties
             const audioNode = sound._sounds[0]?._node;
@@ -337,6 +476,9 @@ export function stop() {
     }
     isPlaying.set(false);
     progress.set(0);
+    if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+        navigator.mediaSession.playbackState = 'none';
+    }
     clearInterval(progressInterval);
     clearInterval(starredCheckInterval);
 }
