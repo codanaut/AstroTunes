@@ -87,7 +87,7 @@
     function startSyncLoop() {
         if (syncInterval) clearInterval(syncInterval);
         syncInterval = setInterval(() => {
-            const folderParam = musicFolderParam(get(libraryStore).selectedId);
+            const folderParam = musicFolderParam($libraryStore.selectedId);
             loadAlbums(true, folderParam);
         }, 10000);
     }

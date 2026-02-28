@@ -53,7 +53,8 @@
     function startSyncLoop() {
         if (syncInterval) clearInterval(syncInterval);
         syncInterval = setInterval(async () => {
-            await loadFavorites();
+            const folderParam = musicFolderParam($libraryStore.selectedId);
+            await loadFavorites(folderParam);
         }, 10000);
     }
 </script>
