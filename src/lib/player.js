@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
 // @ts-ignore - Ignores missing type definitions for howler
-import { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 import { getStreamUrl, getCoverArtUrl } from './subsonic.js';
 
 // STATE
@@ -57,6 +57,10 @@ if (browser) {
 export const context = writable(initialState.context); // Context of current playback
 
 export const volume = writable(initialState.volume); // 0.0 to 1.0
+
+if (browser) {
+    Howler.volume(initialState.volume);
+}
 
 /** @type {Howl | null} */
 let sound = null;
@@ -188,7 +192,7 @@ function prepareNextTrack() {
             src: [getStreamUrl(nextTrack.id)],
             html5: true,
             format: ['mp3', 'flac'],
-            volume: get(volume),
+            volume: 1.0,
             preload: true
         });
     }
@@ -285,13 +289,11 @@ function playTrack(track) {
         src: [getStreamUrl(track.id)],
         html5: true,
         format: ['mp3', 'flac'],
-        volume: get(volume),
+        volume: 1.0,
     });
 
     setupSoundHandlers(sound, track);
 
-    // Reset progress when playing a new track manually
-    // If we are restoring the saved session, we only seek if it's the exact same song
     if (needsPositionRestoration) {
         if (initialState.currentTrack && track.id === initialState.currentTrack.id) {
             // Keep needsPositionRestoration true, it will be handled in setupSoundHandlers
@@ -336,6 +338,10 @@ function setupSoundHandlers(h, track) {
     h.on('load', handleMetadata);
 
     h.on('play', () => {
+        // Force volume sync on play event to combat HTML5 audio resets
+        h.volume(1.0);
+        Howler.volume(get(volume));
+
         handleMetadata();
         startProgressLoop();
         startStarredCheckLoop();
@@ -600,7 +606,6 @@ function startCrossfade() {
 
     isCrossfading = true;
     const crossfade = get(crossfadeDuration);
-    const vol = get(volume);
 
     fadingSound = sound;
     sound = nextSound;
@@ -611,7 +616,7 @@ function startCrossfade() {
 
     // Fade out old
     if (fadingSound) {
-        fadingSound.fade(vol, 0, crossfade * 1000);
+        fadingSound.fade(1.0, 0, crossfade * 1000);
         // We don't unload immediately, let it finish the fade
         setTimeout(() => {
             if (fadingSound) {
@@ -628,7 +633,7 @@ function startCrossfade() {
     setupSoundHandlers(sound, currentTrackData);
     sound.volume(0);
     sound.play();
-    sound.fade(0, vol, crossfade * 1000);
+    sound.fade(0, 1.0, crossfade * 1000);
 
     updateMediaSession(currentTrackData);
 }
@@ -694,9 +699,7 @@ export function seek(seconds) {
  * @param {number} val - 0.0 to 1.0
  */
 export function setVolume(val) {
-    if (sound) {
-        sound.volume(val);
-    }
+    Howler.volume(val);
     volume.set(val);
 }
 
