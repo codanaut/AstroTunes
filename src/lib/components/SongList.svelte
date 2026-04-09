@@ -159,6 +159,16 @@
         (() => {
             let result = [...songs];
 
+            // 0. Deduplicate to prevent Svelte each_key_duplicate errors
+            // (e.g. if Navidrome returns duplicate songs for Top Songs or multiple same-id tracks)
+            const seen = new Set();
+            result = result.filter(s => {
+                if (!s || !s.id) return false;
+                if (seen.has(s.id)) return false;
+                seen.add(s.id);
+                return true;
+            });
+
             // 1. Filter
             if (localSearchQuery.trim()) {
                 const q = localSearchQuery.toLowerCase();
@@ -640,7 +650,7 @@
         onconsider={handleDndConsider}
         onfinalize={handleDndFinalize}
     >
-        {#each groupedSongs as group (group.disc)}
+        {#each groupedSongs as group, groupIndex (group.disc + '-' + groupIndex)}
             {#if useDiscGrouping && groupedSongs.length > 1}
                 <div
                     class="flex items-center gap-2 px-4 py-2 bg-[var(--bg-main)]/50 text-xs font-bold text-[var(--text-secondary)] uppercase border-b border-[var(--border-primary)]"
