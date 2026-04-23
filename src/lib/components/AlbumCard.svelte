@@ -86,22 +86,22 @@
     }
 </script>
 
-<div class="text-left group block relative {className}">
+<div class="text-left group flex flex-col relative h-full {className}">
+    <!-- Main Full-Card Link for Touch Targets -->
+    <a href={resolve(`/album/${album.id}`)} class="absolute inset-0 z-10 no-underline rounded-xl" aria-label={album.title || album.name}></a>
+
     <!-- Album Cover Link -->
     <div
-        class="relative aspect-square mb-3 overflow-hidden rounded-xl bg-[var(--bg-card)] shadow-lg transition-all duration-300 group-hover:shadow-[var(--theme-glow)]"
+        class="relative aspect-square mb-3 overflow-hidden rounded-xl bg-[var(--bg-card)] shadow-lg transition-all duration-300 group-hover:shadow-[var(--theme-glow)] shrink-0"
     >
-        <a
-            href={resolve(`/album/${album.id}`)}
-            class="block w-full h-full no-underline"
-        >
+        <div class="block w-full h-full pointer-events-none">
             <img
                 src={getCoverArtUrl(album.id)}
                 alt={album.title}
                 class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
             />
-        </a>
+        </div>
 
         <!-- Play Button (Top Left) -->
         <button
@@ -147,22 +147,38 @@
         </div>
     </div>
 
-    <!-- Album Title -->
-    <a
-        href={resolve(`/album/${album.id}`)}
-        class="block font-bold truncate text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors text-base no-underline"
-    >
-        {album.title || album.name}
-    </a>
-
-    <!-- Artist Link -->
-    {#if album.artist}
+    <!-- Text Area -->
+    <div class="flex flex-col relative z-20 pointer-events-none flex-grow mt-1">
+        <!-- Album Title -->
         <div
-            class="text-sm text-[var(--text-muted)] truncate hover:text-[var(--text-primary)] transition-colors"
+            class="font-bold text-[var(--text-primary)] text-sm md:text-base leading-tight line-clamp-2 group-hover:text-[var(--accent)] transition-colors mb-0.5"
         >
-            <a href={resolve(`/artist/${album.artistId}`)} class="no-underline"
-                >{album.artist}</a
-            >
+            {album.title || album.name}
         </div>
-    {/if}
+
+        <!-- Artist Link -->
+        {#if album.artist}
+            <a 
+                href={resolve(`/artist/${album.artistId}`)} 
+                class="text-sm text-[var(--text-muted)] truncate hover:text-[var(--text-primary)] transition-colors pointer-events-auto w-fit max-w-full block no-underline mb-1"
+            >
+                {album.artist}
+            </a>
+        {/if}
+
+        <!-- Metadata Row (Year, Tracks, Runtime) -->
+        <div class="text-[11px] text-[var(--text-muted)] truncate w-full flex items-center">
+            <span class="truncate flex-grow">
+                {#if album.year}{album.year}{/if}
+                {#if album.year && (album.songCount || album.duration)}<span class="opacity-50 mx-1">•</span>{/if}
+                {#if album.songCount}{album.songCount} Tracks{/if}
+                {#if album.songCount && album.duration}<span class="opacity-50 mx-1">•</span>{/if}
+                {#if album.duration}{Math.max(1, Math.round(album.duration / 60))} mins{/if}
+            </span>
+            <!-- Desktop Quality Tag Slot -->
+            <div class="ml-2 pointer-events-auto shrink-0 empty:hidden">
+                <!-- e.g. <span class="px-1 py-0.5 rounded bg-[var(--bg-hover)] text-[9px] font-bold">HD</span> -->
+            </div>
+        </div>
+    </div>
 </div>
