@@ -92,7 +92,7 @@
 
     <!-- Album Cover Link -->
     <div
-        class="relative aspect-square mb-3 overflow-hidden rounded-xl bg-[var(--bg-card)] shadow-lg transition-all duration-300 group-hover:shadow-[var(--theme-glow)] shrink-0"
+        class="relative aspect-square mb-2 overflow-hidden rounded-xl bg-[var(--bg-card)] shadow-lg transition-all duration-300 group-hover:shadow-[var(--theme-glow)] shrink-0"
     >
         <div class="block w-full h-full pointer-events-none">
             <img
@@ -148,7 +148,7 @@
     </div>
 
     <!-- Text Area -->
-    <div class="flex flex-col relative z-20 pointer-events-none flex-grow mt-1">
+    <div class="flex flex-col relative z-20 pointer-events-none flex-grow">
         <!-- Album Title -->
         <div
             class="font-bold text-[var(--text-primary)] text-sm md:text-base leading-tight line-clamp-2 group-hover:text-[var(--accent)] transition-colors mb-0.5"
