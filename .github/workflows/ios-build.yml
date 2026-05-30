@@ -1,7 +1,7 @@
 name: Build iOS App (Unsigned for SideStore)
 
 on:
-  workflow_dispatch: # Allows you to manually trigger this build from the GitHub Actions tab
+  workflow_dispatch: # Allows you to manually trigger this build from the Actions tab
 
 jobs:
   build-ios:
@@ -23,32 +23,51 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
       - name: Install dependencies
         run: npm install
 
       - name: Initialize Tauri iOS project
         run: npx tauri ios init
 
-      - name: Build Unsigned Application Bundle
-        run: |
-          npx tauri ios build --no-sign
-        # Troubleshooting Note: If the CLI ever demands a signing team on older point releases,
-        # you can alternatively bypass it by executing a raw xcodebuild instruction:
-        # xcodebuild -workspace src-tauri/gen/apple/AstroTunes.xcworkspace -scheme AstroTunes_iOS -configuration Release -sdk iphoneos CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+      # Explicitly pre-build frontend assets into the distribution directory
+      - name: Build Frontend Assets
+        run: npm run build
 
+      # This runs headlessly. It will compile your frontend and Rust backend completely,
+      # and then safely exit with a signing crash. continue-on-error bypasses the crash.
+      - name: Build Application with Tauri (Expect Signing Failure)
+        run: npx tauri ios build
+        continue-on-error: true
+
+      # Manually compile and archive the project via Xcode CLI, forcing code-signing to OFF
+      - name: Package Unsigned Archive via Xcode
+        run: |
+          xcodebuild archive \
+            -workspace src-tauri/gen/apple/AstroTunes.xcworkspace \
+            -scheme AstroTunes_iOS \
+            -archivePath src-tauri/gen/apple/build/AstroTunes.xcarchive \
+            -configuration Release \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      # Bundle the raw compiled .app directory into a SideStore-ready .ipa folder structure
       - name: Package into IPA for SideStore
         run: |
           mkdir -p Payload
           
-          # Dynamically locate the compiled .app directory to avoid toolchain path mismatches
-          APP_PATH=$(find src-tauri/gen/apple -name "AstroTunes.app" -type d | head -n 1)
+          # Locates the compiled app inside the newly generated Xcode archive folder
+          APP_PATH=$(find src-tauri/gen/apple/build -name "AstroTunes.app" -type d | head -n 1)
           if [ -z "$APP_PATH" ]; then
             echo "Error: AstroTunes.app bundle could not be found!"
             exit 1
           fi
           echo "Found compiled app at: $APP_PATH"
           
-          # An .ipa file is structurally a zipped folder named "Payload" containing the .app bundle
           cp -r "$APP_PATH" Payload/
           zip -r AstroTunes.ipa Payload
 
