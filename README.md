@@ -23,6 +23,10 @@ Give the latest build a spin right here: [AstroTunes on GitHub Pages](https://co
 
 None of these issues will happen with the desktop app or self-hosted versions. It's just a GitHub Pages quirk!
 
+## 📱 Download the latest iOS build for SideStore
+Head over to the [releases page](https://github.com/Codanaut/AstroTunes/releases/tag/ios-latest) to download the latest iOS IPA build. You can then install it on your device using [SideStore](https://sidestore.io/).
+
+
 ## 🛰️ My Goal for AstroTunes
 * **Be fast.** (Built with Svelte 5 and Vite).
 * **Look good.** (Dark mode, modern UI, no clutter).
