@@ -37,7 +37,7 @@
 
 <!-- TOP BAR -->
 <header
-    class="bg-[var(--bg-sidebar)] backdrop-blur-xl border-b border-[var(--border-primary)] grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 md:px-8 shrink-0 sticky top-0 z-40 gap-4"
+    class="bg-[var(--bg-sidebar)] backdrop-blur-xl border-b border-[var(--border-primary)] grid grid-cols-[auto_1fr_auto] md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 md:px-8 shrink-0 sticky top-0 z-40 gap-2 md:gap-4"
     style="padding-top: env(safe-area-inset-top); height: calc(4rem + env(safe-area-inset-top));"
 >
     <div class="flex items-center justify-start gap-3">

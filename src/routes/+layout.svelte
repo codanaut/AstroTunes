@@ -24,6 +24,7 @@
   import Sidebar from "../lib/components/Sidebar.svelte";
   import { resolve } from "$app/paths";
   import { libraryStore } from "../lib/stores/library.js";
+  import { theme } from "../lib/stores/theme.js";
 
   let isSidebarOpen = $state(false);
 
