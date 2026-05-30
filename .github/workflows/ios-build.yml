@@ -51,19 +51,20 @@ jobs:
             }
           '
 
-      # Since code-signing has been stripped from the project configuration, 
-      # this command will build cleanly and complete with an exit code of 0.
+      # The compilation succeeds completely, but Tauri commands an export cycle that crashes 
+      # without developer profiles. continue-on-error lets us keep the compiled app binary.
       - name: Build Unsigned Application Bundle via Tauri
         run: npx tauri ios build
+        continue-on-error: true
 
       - name: Package into IPA for SideStore
         run: |
           mkdir -p Payload
           
-          # Dynamically sweeps the generation folder to grab the compiled AstroTunes.app bundle
-          APP_PATH=$(find src-tauri/gen/apple -name "AstroTunes.app" -type d | head -n 1)
+          # Searches both the project directory and the global Xcode cache for the compiled app bundle
+          APP_PATH=$(find . ~/Library/Developer/Xcode/DerivedData -name "AstroTunes.app" -type d 2>/dev/null | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "Error: AstroTunes.app bundle could not be found!"
+            echo "Error: AstroTunes.app bundle could not be found anywhere!"
             exit 1
           fi
           echo "Found compiled app at: $APP_PATH"
