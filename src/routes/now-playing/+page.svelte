@@ -60,6 +60,7 @@
 
 <div
     class="h-full flex flex-col md:flex-row overflow-hidden bg-gradient-to-b from-[var(--bg-card)] to-[var(--bg-main)]"
+    style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);"
 >
     {#if $currentTrack}
         <!-- MAIN CONTENT (Left/Top) -->

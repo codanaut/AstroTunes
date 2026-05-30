@@ -235,7 +235,8 @@
 />
 
 <div
-  class="h-screen flex bg-[var(--bg-main)] text-[var(--text-primary)] overflow-hidden relative"
+  class="h-full flex bg-[var(--bg-main)] text-[var(--text-primary)] overflow-hidden relative"
+  style="height: 100dvh;"
 >
   <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
@@ -253,7 +254,8 @@
     <main
       class="flex-1 overflow-y-auto {isNowPlayingPage
         ? ''
-        : 'p-4 md:p-8 pb-24'}"
+        : 'p-4 md:p-8'}"
+      style={isNowPlayingPage ? '' : 'padding-bottom: calc(6rem + env(safe-area-inset-bottom));'}
     >
       {@render children()}
     </main>

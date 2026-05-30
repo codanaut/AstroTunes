@@ -55,6 +55,7 @@
     class="fixed inset-y-0 left-0 z-[70] bg-[var(--bg-sidebar)] backdrop-blur-xl flex flex-col border-r border-[var(--border-primary)] transition-all duration-300 ease-in-out md:relative md:translate-x-0 w-64
     {isOpen ? 'translate-x-0' : '-translate-x-full'}
     {$ui.isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}"
+    style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);"
 >
     <div class="p-6 flex items-center justify-between">
         {#if !$ui.isSidebarCollapsed}

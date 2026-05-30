@@ -18,6 +18,7 @@
 
 <aside
     class="fixed inset-0 z-[60] md:static w-full md:w-80 bg-[var(--bg-sidebar)] border-l border-[var(--border-primary)] flex flex-col overflow-hidden"
+    style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);"
 >
     <div
         class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center mt-16 md:mt-0"

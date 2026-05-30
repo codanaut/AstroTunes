@@ -129,12 +129,13 @@
 </script>
 
 <div
-    class="absolute bottom-6 left-1/2 -translate-x-1/2 w-[98%] max-w-5xl h-24 z-50
+    class="absolute left-1/2 -translate-x-1/2 w-[98%] max-w-5xl h-24 z-50
          transition-all duration-500 ease-in-out
          {isNowPlayingPage
         ? 'translate-y-40 opacity-0 pointer-events-none'
         : 'translate-y-0 opacity-100'}
          flex items-center justify-between bg-[var(--bg-sidebar)]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-3 gap-4"
+    style="bottom: calc(1.5rem + env(safe-area-inset-bottom));"
 >
     <a
         href={resolve("/now-playing")}
