@@ -44,11 +44,11 @@ jobs:
         run: npx tauri ios build
         continue-on-error: true
 
-      # Manually compile and archive the project via Xcode CLI, forcing code-signing to OFF
+      # Manually compile and archive the project via Xcode CLI using the .xcodeproj file, forcing code-signing to OFF
       - name: Package Unsigned Archive via Xcode
         run: |
           xcodebuild archive \
-            -workspace src-tauri/gen/apple/AstroTunes.xcworkspace \
+            -project src-tauri/gen/apple/AstroTunes.xcodeproj \
             -scheme AstroTunes_iOS \
             -archivePath src-tauri/gen/apple/build/AstroTunes.xcarchive \
             -configuration Release \
