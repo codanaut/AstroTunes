@@ -1,0 +1,59 @@
+name: Build iOS App (Unsigned for SideStore)
+
+on:
+  workflow_dispatch: # Allows you to manually trigger this build from the GitHub Actions tab
+
+jobs:
+  build-ios:
+    name: Build Unsigned iOS IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Initialize Tauri iOS project
+        run: npx tauri ios init
+
+      - name: Build Unsigned Application Bundle
+        run: |
+          npx tauri ios build --no-sign
+        # Troubleshooting Note: If the CLI ever demands a signing team on older point releases,
+        # you can alternatively bypass it by executing a raw xcodebuild instruction:
+        # xcodebuild -workspace src-tauri/gen/apple/AstroTunes.xcworkspace -scheme AstroTunes_iOS -configuration Release -sdk iphoneos CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Package into IPA for SideStore
+        run: |
+          mkdir -p Payload
+          
+          # Dynamically locate the compiled .app directory to avoid toolchain path mismatches
+          APP_PATH=$(find src-tauri/gen/apple -name "AstroTunes.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: AstroTunes.app bundle could not be found!"
+            exit 1
+          fi
+          echo "Found compiled app at: $APP_PATH"
+          
+          # An .ipa file is structurally a zipped folder named "Payload" containing the .app bundle
+          cp -r "$APP_PATH" Payload/
+          zip -r AstroTunes.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstroTunes-iOS-Unsigned
+          path: AstroTunes.ipa
