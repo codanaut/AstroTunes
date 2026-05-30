@@ -1,12 +1,16 @@
 name: Build iOS App (Unsigned for SideStore)
 
 on:
-  workflow_dispatch: # Allows you to manually trigger this build from the Actions tab
+  workflow_dispatch: # Allows manual trigger from the Actions tab
 
 jobs:
   build-ios:
     name: Build Unsigned iOS IPA
     runs-on: macos-latest
+    
+    # Crucial: Gives the workflow permission to create and overwrite releases
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -34,7 +38,6 @@ jobs:
       - name: Initialize Tauri iOS project
         run: npx tauri ios init
 
-      # Modifies the generated Xcode configuration to turn off signing globally
       - name: Disable Code Signing in Xcode Project Configuration
         run: |
           node -e '
@@ -51,8 +54,6 @@ jobs:
             }
           '
 
-      # The compilation succeeds completely, but Tauri commands an export cycle that crashes 
-      # without developer profiles. continue-on-error lets us keep the compiled app binary.
       - name: Build Unsigned Application Bundle via Tauri
         run: npx tauri ios build
         continue-on-error: true
@@ -60,20 +61,26 @@ jobs:
       - name: Package into IPA for SideStore
         run: |
           mkdir -p Payload
-          
-          # Searches both the project directory and the global Xcode cache for the compiled app bundle
           APP_PATH=$(find . ~/Library/Developer/Xcode/DerivedData -name "AstroTunes.app" -type d 2>/dev/null | head -n 1)
           if [ -z "$APP_PATH" ]; then
             echo "Error: AstroTunes.app bundle could not be found anywhere!"
             exit 1
           fi
           echo "Found compiled app at: $APP_PATH"
-          
           cp -r "$APP_PATH" Payload/
           zip -r AstroTunes.ipa Payload
 
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: AstroTunes-iOS-Unsigned
-          path: AstroTunes.ipa
+      # New Step: Creates a release tagged "ios-latest" or overwrites the file if it already exists
+      - name: Upload IPA to GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Checking/Creating rolling release..."
+          gh release create ios-latest \
+            --title "Latest iOS Build (SideStore)" \
+            --notes "Automated unsigned iOS build for SideStore side-loading. Refreshed on $(date)." \
+            --prerelease \
+            2>/dev/null || true
+          
+          echo "Uploading AstroTunes.ipa to release..."
+          gh release upload ios-latest AstroTunes.ipa --clobber
