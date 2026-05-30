@@ -34,34 +34,34 @@ jobs:
       - name: Initialize Tauri iOS project
         run: npx tauri ios init
 
-      # Explicitly pre-build frontend assets into the distribution directory
-      - name: Build Frontend Assets
-        run: npm run build
-
-      # This runs headlessly. It will compile your frontend and Rust backend completely,
-      # and then safely exit with a signing crash. continue-on-error bypasses the crash.
-      - name: Build Application with Tauri (Expect Signing Failure)
-        run: npx tauri ios build
-        continue-on-error: true
-
-      # Manually compile and archive the project via Xcode CLI using the .xcodeproj file, forcing code-signing to OFF
-      - name: Package Unsigned Archive via Xcode
+      # Modifies the generated Xcode configuration to turn off signing globally
+      - name: Disable Code Signing in Xcode Project Configuration
         run: |
-          xcodebuild archive \
-            -project src-tauri/gen/apple/AstroTunes.xcodeproj \
-            -scheme AstroTunes_iOS \
-            -archivePath src-tauri/gen/apple/build/AstroTunes.xcarchive \
-            -configuration Release \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+          node -e '
+            const fs = require("fs");
+            const path = "src-tauri/gen/apple/AstroTunes.xcodeproj/project.pbxproj";
+            if (fs.existsSync(path)) {
+              let content = fs.readFileSync(path, "utf8");
+              content = content.replace(/buildSettings = \{/g, "buildSettings = {\n\t\t\t\tCODE_SIGNING_ALLOWED = NO;\n\t\t\t\tCODE_SIGNING_REQUIRED = NO;");
+              fs.writeFileSync(path, content, "utf8");
+              console.log("Successfully patched project.pbxproj to turn off code-signing.");
+            } else {
+              console.error("Error: project.pbxproj not found at " + path);
+              process.exit(1);
+            }
+          '
 
-      # Bundle the raw compiled .app directory into a SideStore-ready .ipa folder structure
+      # Since code-signing has been stripped from the project configuration, 
+      # this command will build cleanly and complete with an exit code of 0.
+      - name: Build Unsigned Application Bundle via Tauri
+        run: npx tauri ios build
+
       - name: Package into IPA for SideStore
         run: |
           mkdir -p Payload
           
-          # Locates the compiled app inside the newly generated Xcode archive folder
-          APP_PATH=$(find src-tauri/gen/apple/build -name "AstroTunes.app" -type d | head -n 1)
+          # Dynamically sweeps the generation folder to grab the compiled AstroTunes.app bundle
+          APP_PATH=$(find src-tauri/gen/apple -name "AstroTunes.app" -type d | head -n 1)
           if [ -z "$APP_PATH" ]; then
             echo "Error: AstroTunes.app bundle could not be found!"
             exit 1
