@@ -55,7 +55,9 @@
             >
                 <Music size={24} />
             </div>
-            <h1 class="text-3xl font-bold text-[var(--text-primary)]">
+            <h1
+                class="text-2xl md:text-3xl font-bold text-[var(--text-primary)]"
+            >
                 Favorite Songs
                 {#if favoriteSongs.length > 0}
                     <span
@@ -74,14 +76,14 @@
                                 id: "all",
                                 name: "Favorite Songs",
                             })}
-                        class="p-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-md hover:opacity-90 transition-opacity"
+                        class="p-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-full hover:opacity-90 transition-opacity"
                         title="Play All"
                     >
                         <Play size={20} fill="currentColor" />
                     </button>
                     <button
                         onclick={() => playQueueShuffled(favoriteSongs)}
-                        class="p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-md hover:bg-[var(--bg-hover)] transition-colors"
+                        class="p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-hover)] transition-colors"
                         title="Shuffle Play"
                     >
                         <Shuffle size={20} />
