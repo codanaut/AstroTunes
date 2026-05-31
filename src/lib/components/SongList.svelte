@@ -718,7 +718,8 @@
                             class="flex gap-2 md:hidden text-xs text-[var(--text-muted)] truncate items-center mt-0.5"
                         >
                             <span class="truncate">{song.artist}</span>
-                            {#if song.album && context !== "album"}
+                            <!-- If the screen is small (mobile) hide album. Look into removing this totally since pc doesnt need it. -->
+                            {#if song.album && context !== "album" && !isMobileDevice}
                                 <span>•</span>
                                 <span class="truncate">{song.album}</span>
                             {/if}
