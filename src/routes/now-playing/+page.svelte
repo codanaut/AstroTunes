@@ -321,14 +321,13 @@
             <div
                 class="fixed inset-0 z-50 bg-[var(--bg-main)] backdrop-blur-lg md:hidden flex flex-col"
                 transition:slide={{ axis: "y", duration: 300 }}
+                style="padding-top: env(safe-area-inset-top, 0px);"
             >
-                <div
-                    class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--bg-card)]"
-                >
+                <div class="p-4 flex justify-center items-center relative">
                     <h2 class="font-bold text-lg">Queue</h2>
                     <button
                         onclick={() => (showQueuePanel = false)}
-                        class="p-2"
+                        class="p-2 absolute right-4"
                     >
                         <X size={24} />
                     </button>

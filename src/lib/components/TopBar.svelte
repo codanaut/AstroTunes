@@ -71,7 +71,7 @@
             onclick={toggleQueue}
             class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300
             {$showQueue
-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                ? 'md:bg-[var(--accent)] md:text-white shadow-lg shadow-[var(--accent)]/20'
                 : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}"
             title="Toggle Queue"
         >
