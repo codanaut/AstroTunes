@@ -162,7 +162,7 @@
             // 0. Deduplicate to prevent Svelte each_key_duplicate errors
             // (e.g. if Navidrome returns duplicate songs for Top Songs or multiple same-id tracks)
             const seen = new Set();
-            result = result.filter(s => {
+            result = result.filter((s) => {
                 if (!s || !s.id) return false;
                 if (seen.has(s.id)) return false;
                 seen.add(s.id);
@@ -545,11 +545,11 @@
             </div>
 
             <button
-                class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-2 text-xs uppercase font-bold tracking-wider transition-colors ml-auto"
+                class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-2 text-xs uppercase font-bold tracking-wider transition-colors ml-auto hidden md:inline-flex"
                 onclick={() => (showColumnSelector = !showColumnSelector)}
             >
                 <Settings2 size={16} />
-                <span class="hidden sm:inline">Customize</span>
+                <span>Customize</span>
             </button>
         </div>
 
@@ -650,7 +650,7 @@
         onconsider={handleDndConsider}
         onfinalize={handleDndFinalize}
     >
-        {#each groupedSongs as group, groupIndex (group.disc + '-' + groupIndex)}
+        {#each groupedSongs as group, groupIndex (group.disc + "-" + groupIndex)}
             {#if useDiscGrouping && groupedSongs.length > 1}
                 <div
                     class="flex items-center gap-2 px-4 py-2 bg-[var(--bg-main)]/50 text-xs font-bold text-[var(--text-secondary)] uppercase border-b border-[var(--border-primary)]"

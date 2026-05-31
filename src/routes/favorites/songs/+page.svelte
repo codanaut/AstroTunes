@@ -45,7 +45,7 @@
     }
 </script>
 
-<div class="w-full mx-auto p-4 md:p-8 pb-32">
+<div class="w-full mx-auto md:p-8 pb-32">
     <BackButton />
 
     <div class="flex items-center justify-between mb-6">
