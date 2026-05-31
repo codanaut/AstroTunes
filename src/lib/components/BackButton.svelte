@@ -15,5 +15,5 @@
     >
         <ArrowLeft size={20} />
     </div>
-    <span class="font-medium">{label}</span>
+    <!--<span class="font-medium">{label}</span>-->
 </button>
