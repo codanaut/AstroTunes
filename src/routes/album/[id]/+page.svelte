@@ -274,7 +274,7 @@
     </div>
 
     <!-- TRACKLIST -->
-    <div class="flex flex-col">
+    <div class="flex flex-col -mx-4 md:mx-0">
       <SongList
         {songs}
         context="album"

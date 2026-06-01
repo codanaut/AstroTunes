@@ -31,6 +31,8 @@
     import { resolve } from "$app/paths";
     import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
+    let isDesktop = $state(!isMobileDevice());
+
     /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'songs', limit?: number, contextId?: string|null, contextName?: string|null, showToolbar?: boolean, onPlaylistUpdated?: () => void }} */
     let {
         songs = $bindable([]),
@@ -108,7 +110,6 @@
     let visibleColumnIds = [];
     if (isMobileDevice()) {
         visibleColumnIds = [
-            "track",
             "title",
             "duration",
             "starred",
@@ -594,47 +595,57 @@
         {/if}
     {/if}
 
-    <div
-        class="song-grid gap-4 px-4 py-3 text-xs text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center font-semibold bg-[var(--bg-card)]/50 select-none"
-        style="--desktop-cols: {desktopGridColumns};"
-    >
-        {#if context === "playlist"}<span class="text-center"></span>{/if}
+    <!-- Desktop Song Header / Hide on mobile -->
+    {#if isDesktop}
+        <div
+            class="song-grid gap-4 px-4 py-3 text-xs text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center font-semibold bg-[var(--bg-card)]/50 select-none"
+            style="--desktop-cols: {desktopGridColumns};"
+        >
+            {#if context === "playlist"}<span class="text-center"></span>{/if}
 
-        {#each ALL_COLUMNS as col}
-            {#if isColumnVisible(col.id)}
-                <div
-                    class="flex items-center gap-1 {col.id === 'track' ||
-                    col.id === 'starred' ||
-                    col.id === 'options'
-                        ? 'justify-center'
-                        : ''} {col.id === 'duration' || col.id === 'playCount'
-                        ? 'justify-end'
-                        : ''} {col.sortable
-                        ? 'cursor-pointer hover:text-[var(--text-primary)]'
-                        : ''}"
-                    onclick={() => handleSort(col.id)}
-                    role="button"
-                    tabindex="0"
-                    onkeydown={() => handleSort(col.id)}
-                >
-                    {#if col.icon}
-                        {@const Icon = col.icon}
-                        <Icon size={16} />
-                    {:else}
-                        {col.label}
-                    {/if}
-
-                    {#if sortField === col.id}
-                        {#if sortDirection === "asc"}
-                            <ArrowUp size={12} class="text-[var(--accent)]" />
+            {#each ALL_COLUMNS as col}
+                {#if isColumnVisible(col.id)}
+                    <div
+                        class="flex items-center gap-1 {col.id === 'track' ||
+                        col.id === 'starred' ||
+                        col.id === 'options'
+                            ? 'justify-center'
+                            : ''} {col.id === 'duration' ||
+                        col.id === 'playCount'
+                            ? 'justify-end'
+                            : ''} {col.sortable
+                            ? 'cursor-pointer hover:text-[var(--text-primary)]'
+                            : ''}"
+                        onclick={() => handleSort(col.id)}
+                        role="button"
+                        tabindex="0"
+                        onkeydown={() => handleSort(col.id)}
+                    >
+                        {#if col.icon}
+                            {@const Icon = col.icon}
+                            <Icon size={16} />
                         {:else}
-                            <ArrowDown size={12} class="text-[var(--accent)]" />
+                            {col.label}
                         {/if}
-                    {/if}
-                </div>
-            {/if}
-        {/each}
-    </div>
+
+                        {#if sortField === col.id}
+                            {#if sortDirection === "asc"}
+                                <ArrowUp
+                                    size={12}
+                                    class="text-[var(--accent)]"
+                                />
+                            {:else}
+                                <ArrowDown
+                                    size={12}
+                                    class="text-[var(--accent)]"
+                                />
+                            {/if}
+                        {/if}
+                    </div>
+                {/if}
+            {/each}
+        </div>
+    {/if}
 
     <div
         class="flex flex-col"
