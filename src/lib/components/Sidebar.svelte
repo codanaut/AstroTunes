@@ -12,23 +12,13 @@
         ListMusic,
     } from "lucide-svelte";
     import { goto } from "$app/navigation";
-    import { page } from "$app/stores";
+    import { page, navigating } from "$app/stores";
     import { auth } from "../../lib/auth";
     import { resolve } from "$app/paths";
     import { ui } from "../../lib/stores/ui";
     import { ChevronLeft, ChevronRight } from "lucide-svelte";
 
     let { isOpen, onClose } = $props();
-
-    let isMobileMenuOpen = $state(false);
-
-    function toggleMobileMenu() {
-        isMobileMenuOpen = !isMobileMenuOpen;
-    }
-
-    function closeMobileMenu() {
-        isMobileMenuOpen = false;
-    }
 
     const navItems = [
         { label: "Home", href: resolve("/"), icon: Home },
@@ -62,7 +52,7 @@
             <h1
                 class="text-2xl font-bold tracking-tight text-[var(--accent)] truncate"
             >
-                <a href={resolve("/")} onclick={closeMobileMenu}>AstroTunes</a>
+                <a href={resolve("/")} onclick={onClose}>AstroTunes</a>
             </h1>
         {/if}
         <button
@@ -84,7 +74,7 @@
         {#each navItems as item}
             <a
                 href={item.href}
-                onclick={closeMobileMenu}
+                onclick={onClose}
                 title={$ui.isSidebarCollapsed ? item.label : ""}
                 class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200
           {$page.url.pathname === item.href
@@ -108,7 +98,7 @@
     <div class="p-4 border-t border-[var(--border-primary)]">
         <a
             href={resolve("/settings")}
-            onclick={closeMobileMenu}
+            onclick={onClose}
             title={$ui.isSidebarCollapsed ? "Settings" : ""}
             class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200
         {$page.url.pathname === '/settings'
