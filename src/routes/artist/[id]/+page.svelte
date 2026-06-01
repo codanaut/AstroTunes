@@ -369,12 +369,14 @@
           />
         </button>
       </div>
-      <div class="flex flex-col gap-4 mb-2 flex-1">
+      <div class="flex flex-col gap-4 mb-2 flex-1 items-center md:items-start">
         <span
           class="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] inline-flex items-center gap-2"
           ><Mic2 size={24} /> Artist</span
         >
-        <h1 class="text-5xl font-bold text-[var(--text-primary)]">
+        <h1
+          class="text-5xl font-bold text-[var(--text-primary)] text-center md:text-start"
+        >
           {artist.name}
         </h1>
         <div class="flex items-center gap-2 text-[var(--text-secondary)]">
