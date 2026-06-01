@@ -59,7 +59,7 @@
     }
 </script>
 
-<div class="container mx-auto p-4 md:p-8 pb-32">
+<div class="container mx-auto p-2 md:p-8 pb-32">
     <!-- FAVORITE SONGS SECTION -->
     <div
         class="flex flex-col md:flex-row items-center justify-between mt-12 mb-6 gap-4"
