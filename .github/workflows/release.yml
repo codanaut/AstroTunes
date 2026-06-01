@@ -106,9 +106,10 @@ jobs:
           BASE_PATH: '/${{ github.event.repository.name }}'
         run: npm run build
 
-      - name: Disable Jekyll
-        # Necessary for the _app folder to be readable on Pages
-        run: touch build/.nojekyll
+      - name: GitHub Pages Fallback Fix
+        run: |
+          cp build/index.html build/404.html
+          touch build/.nojekyll
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
