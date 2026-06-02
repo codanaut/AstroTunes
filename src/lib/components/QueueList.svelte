@@ -27,11 +27,11 @@
 
     // Find current track index based on queueId (unique per instance in queue) or fallback to ID
     const currentIndex = $derived(
-        $queue.findIndex((t) => 
-            $currentTrack?.queueId && t.queueId 
-                ? t.queueId === $currentTrack.queueId 
-                : t.id === $currentTrack?.id
-        )
+        $queue.findIndex((t) =>
+            $currentTrack?.queueId && t.queueId
+                ? t.queueId === $currentTrack.queueId
+                : t.id === $currentTrack?.id,
+        ),
     );
 
     // Scroll active track into view when current track changes
@@ -41,7 +41,9 @@
     $effect(() => {
         if (currentIndex !== -1 && containerEl) {
             setTimeout(() => {
-                const activeEl = containerEl?.querySelector('[data-current="true"]');
+                const activeEl = containerEl?.querySelector(
+                    '[data-current="true"]',
+                );
                 if (activeEl) {
                     activeEl.scrollIntoView({
                         behavior: "smooth",
@@ -108,19 +110,29 @@
         >
             <!-- SECTION HEADERS -->
             {#if index === 0 && currentIndex > 0}
-                <div class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-2 select-none">
+                <div
+                    class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-2 select-none"
+                >
                     <span>History</span>
-                    <div class="h-[1px] bg-[var(--border-primary)] flex-1 opacity-30"></div>
+                    <div
+                        class="h-[1px] bg-[var(--border-primary)] flex-1 opacity-30"
+                    ></div>
                 </div>
             {:else if isCurrent}
-                <div class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--accent)] flex items-center gap-2 select-none">
+                <div
+                    class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--accent)] flex items-center gap-2 select-none"
+                >
                     <span>Now Playing</span>
                     <div class="h-[1px] bg-[var(--accent)]/20 flex-1"></div>
                 </div>
             {:else if index === currentIndex + 1}
-                <div class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-2 select-none">
+                <div
+                    class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-2 select-none"
+                >
                     <span>Up Next</span>
-                    <div class="h-[1px] bg-[var(--border-primary)] flex-1 opacity-30"></div>
+                    <div
+                        class="h-[1px] bg-[var(--border-primary)] flex-1 opacity-30"
+                    ></div>
                 </div>
             {/if}
 
@@ -216,7 +228,7 @@
                             e.stopPropagation();
                             removeFromQueue(index);
                         }}
-                        class="p-1 text-[var(--text-secondary)] hover:text-red-500 transition-colors rounded-md {isMobile ? 'opacity-85' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}"
+                        class="p-1 text-[var(--text-secondary)] hover:text-red-500 transition-colors rounded-md opacity-70"
                         title="Remove from queue"
                     >
                         <X size={isMobile ? 18 : 14} />
@@ -226,4 +238,3 @@
         </div>
     {/each}
 </div>
-
