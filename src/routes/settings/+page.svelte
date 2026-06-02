@@ -30,6 +30,20 @@
     let loading = $state(false);
     let error = $state("");
 
+    let serverVersion = $state("");
+
+    async function getServerVersion() {
+        const res = await subsonicFetch("ping");
+        try {
+            const data = await res;
+            serverVersion = data.serverVersion;
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    getServerVersion();
+
     async function handleLogin() {
         loading = true;
         error = "";
@@ -201,14 +215,22 @@
                         </div>
 
                         {#if $auth.isConnected}
-                            <span
+                            <div
                                 class="text-[var(--primary)] text-sm font-medium flex items-center gap-2 md:ml-auto order-2 md:order-none px-1"
                             >
                                 <div
                                     class="w-2 h-2 bg-green-500 rounded-full"
                                 ></div>
-                                Connected as {$auth.username}
-                            </span>
+                                <div>
+                                    <div>
+                                        Connected as{" "}
+                                        <span class="text-[var(--accent)]"
+                                            >{$auth.username}</span
+                                        >
+                                    </div>
+                                    <div>Server Version: {serverVersion}</div>
+                                </div>
+                            </div>
                         {/if}
                     </div>
                 </form>
@@ -336,6 +358,36 @@
                 {/if}
 
                 <AccentColorPicker />
+            </div>
+        </section>
+
+        <section
+            class="bg-[var(--bg-sidebar)] border border-[var(--border-primary)] rounded-xl overflow-hidden"
+        >
+            <div
+                class="p-6 border-b border-[var(--border-primary)] flex items-center gap-3 bg-[var(--bg-main)]/50"
+            >
+                <Settings size={20} class="text-[var(--accent)]" />
+                <h2 class="text-lg font-semibold text-[var(--text-primary)]">
+                    About AstroTunes
+                </h2>
+            </div>
+
+            <div class="p-6 text-sm space-y-2">
+                <p class="text-[var(--text-primary)] font-medium">
+                    Version: <span
+                        class="font-mono bg-[var(--bg-main)] px-2 py-0.5 rounded border border-[var(--border-primary)] text-[var(--accent)]"
+                        >{__APP_VERSION__}</span
+                    >
+                </p>
+                <p>
+                    Github:{" "}
+                    <a
+                        href="https://github.com/codanaut/AstroTunes"
+                        class="text-[var(--accent)] underline"
+                        target="_blank">github.com/codanaut/AstroTunes</a
+                    >
+                </p>
             </div>
         </section>
     </div>
