@@ -1,4 +1,4 @@
-# 🚀 AstroTunes
+# ![Astrotunes](/src-tauri/icons/192x192.png) AstroTunes 
 
 > *My take on a Navidrome frontend.*
 
@@ -24,13 +24,14 @@ Give the latest build a spin right here: [AstroTunes on GitHub Pages](https://co
 None of these issues will happen with the desktop app or self-hosted versions. It's just a GitHub Pages quirk!
 
 ## 📱 Download the latest iOS build for SideStore
-Head over to the [releases page](https://github.com/Codanaut/AstroTunes/releases/tag/ios-latest) to download the latest iOS IPA build. You can then install it on your device using [SideStore](https://sidestore.io/).
-
+Head over to the [releases page](https://github.com/Codanaut/AstroTunes/releases/) to download the latest iOS IPA build. 
+Or the [latest beta build can be found here](https://github.com/Codanaut/AstroTunes/releases/tag/ios-latest).
+You can then install it on your device using [SideStore](https://sidestore.io/).
 
 ## 🛰️ My Goal for AstroTunes
 * **Be fast.** (Built with Svelte 5 and Vite).
 * **Look good.** (Dark mode, modern UI, no clutter).
-* **Work everywhere.** (Browser or desktop app).
+* **Work everywhere.** (Browser/Desktop/Mobile).
 
 ## 🛠 Features?
 * **Your whole library:** Browse Albums, Artists, and Songs without a headache.
@@ -56,9 +57,9 @@ You can track my to-do list in the issues tab. I try to keep it updated as I go,
 Once I have all the core features I want and everything is stable, I'd like to take it a step further. I want to add a small local database to support a bunch of features I've been dreaming up but currently can't do because I'm limited by being a serverless frontend relying purely on the Navidrome API.
 
 ## 🧪 Development Status
-**This is very much a Work in Progress.**
+**This is very much a Work in Progress!** - UI may change at any time and functionality is subject to breaking changes.
 
-AstroTunes was partially "vibe coded." It started as a solo side project, and then I let Google's Antigravity IDE agent manager take the wheel for a bit. It worked surprisingly well, but right now it's a mix of feature skeletons put in place by AI, and me going through to flesh them out and "de-slop" the codebase.
+AstroTunes was partially "vibe coded." I do some and Gemini does some, but right now it's a mix of features that were put in place by AI, and me going through to flesh them out and "de-slop" the codebase.
 
 So that's AstroTunes. Use it or don't use it 🤷‍♂️ I'll be using it either way and improving it along the way.
 
