@@ -134,3 +134,118 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+# ===================================================
+  # JOB 5: Build Unsigned iOS IPA (SideStore)
+  # ===================================================
+  build-ios:
+    name: Build Unsigned iOS IPA
+    needs: release-app # Ensures the official GitHub Release is created first
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Initialize Tauri iOS project
+        run: npx tauri ios init
+      
+      - name: Generate iOS App Icons from Desktop Icon
+        run: |
+          TARGET_DIR="src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset"
+          mkdir -p "$TARGET_DIR"
+          SOURCE_ICON="src-tauri/icons/512x512.png"
+          
+          echo "Generating all required iOS icons into $TARGET_DIR..."
+          sips -z 20 20   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-20x20@1x.png"
+          sips -z 40 40   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-20x20@2x.png"
+          sips -z 60 60   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-20x20@3x.png"
+          sips -z 40 40   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-20x20@2x-1.png"
+          sips -z 29 29   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-29x29@1x.png"
+          sips -z 58 58   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-29x29@2x.png"
+          sips -z 87 87   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-29x29@3x.png"
+          sips -z 58 58   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-29x29@2x-1.png"
+          sips -z 40 40   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-40x40@1x.png"
+          sips -z 80 80   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-40x40@2x.png"
+          sips -z 120 120 "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-40x40@3x.png"
+          sips -z 80 80   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-40x40@2x-1.png"
+          sips -z 120 120 "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-60x60@2x.png"
+          sips -z 180 180 "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-60x60@3x.png"
+          sips -z 76 76   "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-76x76@1x.png"
+          sips -z 152 152 "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-76x76@2x.png"
+          sips -z 167 167 "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-83.5x83.5@2x.png"
+          sips -z 1024 1024 "$SOURCE_ICON" --out "$TARGET_DIR/AppIcon-512@2x.png"
+          echo "All iOS app icons generated successfully!"
+
+      - name: Disable Code Signing in Xcode Project Configuration
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = "src-tauri/gen/apple/AstroTunes.xcodeproj/project.pbxproj";
+            if (fs.existsSync(path)) {
+              let content = fs.readFileSync(path, "utf8");
+              content = content.replace(/buildSettings = \{/g, "buildSettings = {\n\t\t\t\tCODE_SIGNING_ALLOWED = NO;\n\t\t\t\tCODE_SIGNING_REQUIRED = NO;");
+              fs.writeFileSync(path, content, "utf8");
+              console.log("Successfully patched project.pbxproj to turn off code-signing.");
+            } else {
+              console.error("Error: project.pbxproj not found at " + path);
+              process.exit(1);
+            }
+          '
+
+      - name: Build Unsigned Application Bundle via Tauri
+        run: npx tauri ios build
+        continue-on-error: true
+
+      - name: Package into IPA for SideStore
+        run: |
+          mkdir -p Payload
+          APP_PATH=$(find . ~/Library/Developer/Xcode/DerivedData -name "AstroTunes.app" -type d 2>/dev/null | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: AstroTunes.app bundle could not be found anywhere!"
+            exit 1
+          fi
+          echo "Found compiled app at: $APP_PATH"
+          cp -r "$APP_PATH" Payload/
+          zip -r AstroTunes.ipa Payload
+
+      - name: Upload IPA to GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            TAG_NAME="${{ github.ref_name }}"
+            echo "Tag detected: $TAG_NAME. Injecting IPA into the official release..."
+          else
+            TAG_NAME="ios-latest"
+            echo "No tag detected (manual workflow dispatch). Using rolling release: $TAG_NAME"
+            gh release create ios-latest \
+              --title "Latest iOS Build (SideStore)" \
+              --notes "Automated unsigned iOS build for SideStore side-loading. Refreshed on $(date)." \
+              --prerelease \
+              2>/dev/null || true
+          fi
+          
+          echo "Uploading AstroTunes.ipa to release ($TAG_NAME)..."
+          gh release upload "$TAG_NAME" AstroTunes.ipa --clobber
