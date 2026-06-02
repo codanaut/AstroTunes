@@ -9,6 +9,7 @@
     import { toggleQueue, showQueue } from "../player.js";
     import { goto } from "$app/navigation";
     import { resolve } from "$app/paths";
+    import { page } from "$app/stores";
     import LibrarySelector from "./LibrarySelector.svelte";
 
     let { onToggle } = $props();
@@ -67,25 +68,27 @@
     </div>
 
     <div class="flex items-center justify-end">
-        <button
-            onclick={toggleQueue}
-            class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300
-            {$showQueue
-                ? 'md:bg-[var(--accent)] md:text-white shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}"
-            title="Toggle Queue"
-        >
-            {#if !$showQueue}
-                <ChevronLeft size={18} />
-            {/if}
+        {#if $page.url.pathname !== resolve("/now-playing")}
+            <button
+                onclick={toggleQueue}
+                class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300
+                {$showQueue
+                    ? 'md:bg-[var(--accent)] md:text-white shadow-lg shadow-[var(--accent)]/20'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'}"
+                title="Toggle Queue"
+            >
+                {#if !$showQueue}
+                    <ChevronLeft size={18} />
+                {/if}
 
-            <ListMusic size={20} />
+                <ListMusic size={20} />
 
-            <span class="hidden md:inline font-medium text-sm">Queue</span>
+                <span class="hidden md:inline font-medium text-sm">Queue</span>
 
-            {#if $showQueue}
-                <ChevronRight size={18} />
-            {/if}
-        </button>
+                {#if $showQueue}
+                    <ChevronRight size={18} />
+                {/if}
+            </button>
+        {/if}
     </div>
 </header>

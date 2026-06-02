@@ -4,16 +4,9 @@
         clearQueue,
         shuffleCurrentQueue,
         toggleQueue,
-        isPlaying,
-        togglePlay,
     } from "$lib/player.js";
-    import { X, Trash2, Shuffle, Play, Pause } from "lucide-svelte";
+    import { X, Trash2, Shuffle } from "lucide-svelte";
     import QueueList from "./QueueList.svelte";
-
-    function handleHeaderPlay() {
-        if ($queue.length === 0) return;
-        togglePlay();
-    }
 </script>
 
 <aside
@@ -30,17 +23,6 @@
             </p>
         </div>
         <div class="flex gap-1">
-            <button
-                onclick={handleHeaderPlay}
-                class="p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
-                title={$isPlaying ? "Pause" : "Play"}
-            >
-                {#if $isPlaying}
-                    <Pause size={18} fill="currentColor" />
-                {:else}
-                    <Play size={18} fill="currentColor" />
-                {/if}
-            </button>
             <button
                 onclick={shuffleCurrentQueue}
                 class="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"

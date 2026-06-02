@@ -287,17 +287,6 @@
                 </div>
                 <div class="flex gap-1">
                     <button
-                        onclick={togglePlay}
-                        class="p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
-                        title={$isPlaying ? "Pause" : "Play"}
-                    >
-                        {#if $isPlaying}
-                            <Pause size={18} fill="currentColor" />
-                        {:else}
-                            <Play size={18} fill="currentColor" />
-                        {/if}
-                    </button>
-                    <button
                         onclick={shuffleCurrentQueue}
                         class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                         title="Shuffle Queue"
@@ -323,18 +312,38 @@
                 transition:slide={{ axis: "y", duration: 300 }}
                 style="padding-top: env(safe-area-inset-top, 0px);"
             >
-                <div class="p-4 flex justify-center items-center relative">
-                    <h2 class="font-bold text-lg">Queue</h2>
-                    <button
-                        onclick={() => (showQueuePanel = false)}
-                        class="p-2 absolute right-4"
-                    >
-                        <X size={24} />
-                    </button>
+                <div class="p-4 flex justify-between items-center relative border-b border-[var(--border-primary)] shrink-0">
+                    <div class="flex flex-col">
+                        <h2 class="font-bold text-lg">Queue</h2>
+                        <p class="text-xs text-[var(--text-secondary)]">
+                            {$queue.length} tracks
+                        </p>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <button
+                            onclick={shuffleCurrentQueue}
+                            class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                            title="Shuffle Queue"
+                        >
+                            <Shuffle size={20} />
+                        </button>
+                        <button
+                            onclick={clearQueue}
+                            class="p-2 text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                            title="Clear Queue"
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                        <button
+                            onclick={() => (showQueuePanel = false)}
+                            class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                            title="Close"
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4">
-                    <QueueList isMobile={true} />
-                </div>
+                <QueueList isMobile={true} className="p-4" />
             </div>
         {/if}
     {:else}
