@@ -1,5 +1,5 @@
 <script>
-    import { getPlaylists, createPlaylist, updatePlaylist } from "../subsonic";
+    import { getPlaylists, getPlaylist, createPlaylist, updatePlaylist } from "../subsonic";
     import { X, Loader2, Plus, ListMusic, Check } from "lucide-svelte";
     import { fade, scale } from "svelte/transition";
     import { portal } from "../utils/portal";
@@ -14,6 +14,10 @@
     let searchQuery = $state("");
     let showCreateInput = $state(false);
     let newPlaylistName = $state("");
+
+    /** @type {Record<string, Set<string>>} */
+    let playlistSongsMap = $state({});
+    let isScanningDuplicates = $state(false);
 
     let filteredPlaylists = $derived(
         playlists.filter((p) =>
@@ -34,6 +38,7 @@
         showCreateInput = false;
         newPlaylistName = "";
         isProcessing = false;
+        playlistSongsMap = {};
     }
 
     async function loadPlaylists() {
@@ -50,6 +55,9 @@
                     const dateA = a.created ? new Date(a.created).getTime() : 0;
                     return dateB - dateA;
                 });
+
+                // Start parallel scanning for duplicates
+                scanDuplicates();
             } else {
                 playlists = [];
             }
@@ -59,6 +67,50 @@
         } finally {
             isLoadingPlaylists = false;
         }
+    }
+
+    async function scanDuplicates() {
+        if (playlists.length === 0 || songs.length === 0) return;
+        isScanningDuplicates = true;
+        try {
+            const promises = playlists.map(async (playlist) => {
+                try {
+                    const res = await getPlaylist(playlist.id);
+                    if (res && res.playlist && res.playlist.entry) {
+                        /** @type {any[]} */
+                        const entries = res.playlist.entry;
+                        const songIds = new Set(entries.map((item) => item.id));
+                        playlistSongsMap[playlist.id] = songIds;
+                    } else {
+                        playlistSongsMap[playlist.id] = new Set();
+                    }
+                } catch (e) {
+                    console.error(`Failed to scan playlist ${playlist.id}`, e);
+                    playlistSongsMap[playlist.id] = new Set();
+                }
+            });
+            await Promise.all(promises);
+        } finally {
+            isScanningDuplicates = false;
+        }
+    }
+
+    /**
+     * @param {string} playlistId
+     */
+    function hasDuplicate(playlistId) {
+        const existing = playlistSongsMap[playlistId];
+        if (!existing) return false;
+        return songs.some((song) => existing.has(song.id));
+    }
+
+    /**
+     * @param {string} playlistId
+     */
+    function getDuplicateCount(playlistId) {
+        const existing = playlistSongsMap[playlistId];
+        if (!existing) return 0;
+        return songs.filter((song) => existing.has(song.id)).length;
     }
 
     /** @param {any} playlist */
@@ -213,11 +265,11 @@
                             disabled={isProcessing}
                         >
                             <div
-                                class="w-8 h-8 rounded bg-[var(--bg-sidebar)] border border-[var(--border-secondary)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
+                                class="w-8 h-8 rounded bg-[var(--bg-sidebar)] border border-[var(--border-secondary)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] flex-shrink-0"
                             >
                                 <ListMusic size={16} />
                             </div>
-                            <div class="flex flex-col overflow-hidden">
+                            <div class="flex flex-col overflow-hidden min-w-0 flex-1">
                                 <span
                                     class="font-medium text-[var(--text-primary)] truncate"
                                     >{playlist.name}</span
@@ -226,8 +278,20 @@
                                     >{playlist.songCount} songs</span
                                 >
                             </div>
+                            {#if hasDuplicate(playlist.id)}
+                                {@const dupCount = getDuplicateCount(playlist.id)}
+                                <div class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 flex-shrink-0">
+                                    {#if songs.length === 1}
+                                        Already present
+                                    {:else if dupCount === songs.length}
+                                        All present
+                                    {:else}
+                                        {dupCount} dups
+                                    {/if}
+                                </div>
+                            {/if}
                             <div
-                                class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                                class="w-5 flex-shrink-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                                 {#if isProcessing}
                                     <Loader2
