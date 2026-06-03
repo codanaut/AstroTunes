@@ -28,6 +28,10 @@ Head over to the [releases page](https://github.com/Codanaut/AstroTunes/releases
 Or the [latest beta build can be found here](https://github.com/Codanaut/AstroTunes/releases/tag/ios-latest).
 You can then install it on your device using [SideStore](https://sidestore.io/).
 
+> An official version for the App Store will hopefully be available at some point when I can justify paying Apple $99 a year for it.
+
+> Android build will be available soon!
+
 ## 🛰️ My Goal for AstroTunes
 * **Be fast.** (Built with Svelte 5 and Vite).
 * **Look good.** (Dark mode, modern UI, no clutter).
