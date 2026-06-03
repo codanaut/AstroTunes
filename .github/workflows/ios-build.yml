@@ -2,6 +2,11 @@ name: Build iOS App (Unsigned for SideStore)
 
 on:
   workflow_dispatch: # Allows manual trigger from the Actions tab
+    inputs:
+      suffix:
+        description: 'Version Suffix (e.g., -beta, -nightly)'
+        required: true
+        default: '-beta'
 
 jobs:
   build-ios:
@@ -97,6 +102,8 @@ jobs:
           '
 
       - name: Build Unsigned Application Bundle via Tauri
+        env:
+          VERSION_SUFFIX: ${{ github.event.inputs.suffix }}
         run: npx tauri ios build
         continue-on-error: true
 
