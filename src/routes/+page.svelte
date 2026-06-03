@@ -145,13 +145,7 @@
       </a>
     </div>
   {:else}
-    <div class="w-full py-8">
-      <!-- Section Title
-      <h2 class="text-2xl font-bold text-[var(--accent)] mb-6">
-        Your Collections
-      </h2>
-      -->
-
+    <div class="w-full lg:max-w-[80%] mx-auto">
       <!-- Cards Grid -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Favorite Songs Card -->
