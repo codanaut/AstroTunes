@@ -1,6 +1,11 @@
 name: Deploy To GitHub Pages
 on:
   workflow_dispatch:
+    inputs:
+      suffix:
+        description: 'Version Suffix (e.g., -beta, -nightly)'
+        required: true
+        default: '-beta'
 
 permissions:
   contents: read

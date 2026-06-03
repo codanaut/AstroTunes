@@ -197,9 +197,7 @@
             <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-1">
               Favorite Albums
             </h3>
-            <p class="text-sm text-[var(--text-muted)]">
-              Saved full-length records
-            </p>
+            <p class="text-sm text-[var(--text-muted)]">Your favorite albums</p>
           </div>
 
           <div
@@ -229,7 +227,9 @@
             <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-1">
               Favorite Artists
             </h3>
-            <p class="text-sm text-[var(--text-muted)]">Your top performers</p>
+            <p class="text-sm text-[var(--text-muted)]">
+              Your favorite artists
+            </p>
           </div>
 
           <div
