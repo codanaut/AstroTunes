@@ -5,7 +5,7 @@ import pkg from './package.json';
 export default defineConfig({
 	plugins: [sveltekit()],
 	define: {
-		__APP_VERSION__: JSON.stringify(pkg.version)
+		__APP_VERSION__: JSON.stringify(pkg.version + (process.env.VERSION_SUFFIX || ''))
 	},
 	server: {
 		host: '0.0.0.0', // or true to expose to all local IPs

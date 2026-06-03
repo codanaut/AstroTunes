@@ -32,6 +32,7 @@ jobs:
         env:
           # This dynamically sets /astrotunes as the base path
           BASE_PATH: '/${{ github.event.repository.name }}'
+          VERSION_SUFFIX: ${{ github.event.inputs.suffix }}
         run: npm run build
 
       - name: GitHub Pages Fallback Fix
