@@ -24,7 +24,7 @@
     import { slide, fade, scale } from "svelte/transition";
 
     import { parseArtistString } from "../utils/artistUtils.js";
-    import { dndzone } from "svelte-dnd-action";
+    import { dragHandleZone, dragHandle } from "svelte-dnd-action";
     import { flip } from "svelte/animate";
     import { reorderPlaylist } from "../subsonic.js";
     import { GripVertical } from "lucide-svelte";
@@ -649,7 +649,7 @@
 
     <div
         class="flex flex-col"
-        use:dndzone={{
+        use:dragHandleZone={{
             items: processedSongs, // Use processedSongs for dnd to keep visual sync, but updates happen on 'songs'
             flipDurationMs: 300,
             dragDisabled:
@@ -686,6 +686,7 @@
                 >
                     {#if context === "playlist"}
                         <div
+                            use:dragHandle
                             class="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-primary)] flex justify-center {sortField !==
                                 'original' || localSearchQuery
                                 ? 'opacity-20 cursor-not-allowed'
