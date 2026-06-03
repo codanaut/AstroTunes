@@ -366,7 +366,9 @@
     onsuccess={handleCreateSuccess}
 />
 
-<div class="h-[calc(100%+6rem)] -m-4 md:-m-8 flex overflow-hidden">
+<div
+    class="h-[calc(100%+7rem+env(safe-area-inset-bottom))] md:h-[calc(100%+8rem)] -mt-4 -mx-4 mb-[calc(-6rem-env(safe-area-inset-bottom))] md:-mt-8 md:-mx-8 md:-mb-24 flex overflow-hidden"
+>
     <!-- Playlist Sidebar -->
     <!-- Hidden on mobile if playlist is selected, visible on desktop always -->
     <div
@@ -486,7 +488,7 @@
             </div>
 
             <div
-                class="p-4 md:p-8 flex flex-col md:flex-row md:items-end gap-6 bg-[var(--bg-main)] relative border-b border-[var(--border-primary)]"
+                class="p-4 md:p-8 flex flex-col md:flex-row md:items-end gap-6 bg-[var(--bg-main)] relative"
             >
                 <div
                     class="w-40 h-40 md:w-56 md:h-56 shadow-2xl rounded-lg bg-[var(--bg-card)] border border-[var(--border-primary)] flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 mt-4 md:mt-0 overflow-hidden"
