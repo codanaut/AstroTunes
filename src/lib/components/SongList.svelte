@@ -33,7 +33,8 @@
 
     let isDesktop = $state(!isMobileDevice());
 
-    /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'songs', limit?: number, contextId?: string|null, contextName?: string|null, showToolbar?: boolean, onPlaylistUpdated?: () => void }} */
+    /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' |
+    'songs', limit?: number, contextId?: string|null, contextName?: string|null, showToolbar?: boolean, onPlaylistUpdated?: () => void }} */
     let {
         songs = $bindable([]),
         context = "playlist",
@@ -45,12 +46,53 @@
     } = $props();
 
     // --- SORTING & FILTERING STATE ---
-    let sortField = $state("original"); // 'original' means no sorting (respects track order/server order)
+    let sortField = $state("original");
     let sortDirection = $state("asc");
     let localSearchQuery = $state("");
 
+    // Core internal state tracking localized unique entries
+    /** @type {any[]}**/
+    let localSongs = $state([]);
+
+    // Keep localSongs synchronized with incoming songs from props safely
+    $effect(() => {
+        const currentPropsSongs = songs;
+
+        // Map songs to local state, preserving local IDs if the real track ID at that index hasn't changed
+        const updatedLocal = currentPropsSongs.map((song, index) => {
+            const existing = localSongs[index];
+            if (existing && existing.realId === song.id) {
+                return {
+                    ...song,
+                    realId: song.id,
+                    id: existing.id, // Keep existing ID to avoid DND flickering
+                };
+            } else {
+                return {
+                    ...song,
+                    realId: song.id,
+                    // Guarantee absolute uniqueness across identical songs
+                    id: `${song.id}_${index}_${Math.random().toString(36).substring(2, 11)}`,
+                };
+            }
+        });
+
+        // Evaluate changes before assigning to prevent recursive/infinite update loops
+        const structuralChanged =
+            localSongs.length !== updatedLocal.length ||
+            localSongs.some(
+                (s, i) =>
+                    s.id !== updatedLocal[i].id ||
+                    s.starred !== updatedLocal[i].starred ||
+                    s.playCount !== updatedLocal[i].playCount,
+            );
+
+        if (structuralChanged) {
+            localSongs = updatedLocal;
+        }
+    });
+
     // Column definitions
-    // Columns Configuration
     const ALL_COLUMNS = [
         { id: "track", label: "#", alwaysVisible: true, sortable: true },
         { id: "title", label: "Title", alwaysVisible: true, sortable: true },
@@ -92,7 +134,6 @@
             alwaysVisible: true,
             sortable: true,
         },
-
         {
             id: "options",
             label: "",
@@ -102,11 +143,7 @@
         },
     ];
 
-    // Default Visible Columns
-    // Determine default visible columns based on device type
-    /**
-     * @type {string[]}
-     */
+    /** @type {string[]}*/
     let visibleColumnIds = [];
     if (isMobileDevice()) {
         visibleColumnIds = [
@@ -130,21 +167,16 @@
         ];
     }
 
-    // Add context-specific columns
     if (context !== "album") visibleColumnIds.splice(2, 0, "album");
     if (context !== "artist") visibleColumnIds.splice(2, 0, "artist");
-    // Add extra details for the big lists
     if (context === "songs" || context === "playlist") {
         visibleColumnIds = [...visibleColumnIds, "genre"];
     }
 
-    // --- SORT & FILTER LOGIC ---
     /** @param {string} field */
     function handleSort(field) {
         if (!ALL_COLUMNS.find((c) => c.id === field)?.sortable) return;
-
         if (sortField === field) {
-            // Cycle: asc -> desc -> original
             if (sortDirection === "asc") sortDirection = "desc";
             else {
                 sortField = "original";
@@ -158,17 +190,8 @@
 
     let processedSongs = $derived(
         (() => {
-            let result = [...songs];
-
-            // 0. Deduplicate to prevent Svelte each_key_duplicate errors
-            // (e.g. if Navidrome returns duplicate songs for Top Songs or multiple same-id tracks)
-            const seen = new Set();
-            result = result.filter((s) => {
-                if (!s || !s.id) return false;
-                if (seen.has(s.id)) return false;
-                seen.add(s.id);
-                return true;
-            });
+            // Read from localized list
+            let result = [...localSongs];
 
             // 1. Filter
             if (localSearchQuery.trim()) {
@@ -187,7 +210,6 @@
                     let valA = a[sortField];
                     let valB = b[sortField];
 
-                    // Handle specific cases
                     if (sortField === "quality")
                         valA = (a.bitDepth || 0) + (a.samplingRate || 0);
                     if (sortField === "quality")
@@ -195,7 +217,6 @@
                     if (sortField === "starred") valA = a.starred ? 1 : 0;
                     if (sortField === "starred") valB = b.starred ? 1 : 0;
 
-                    // String comparison
                     if (typeof valA === "string") valA = valA.toLowerCase();
                     if (typeof valB === "string") valB = valB.toLowerCase();
 
@@ -214,7 +235,6 @@
         })(),
     );
 
-    // Only group by disc if we are in Album context AND NOT sorting/searching
     let useDiscGrouping = $derived(
         context === "album" &&
             sortField === "original" &&
@@ -225,8 +245,8 @@
     let groupedSongs = $derived(
         useDiscGrouping
             ? processedSongs.reduce((acc, song, index) => {
-                  // Preserve original global index for playback context
-                  const originalIndex = songs.findIndex(
+                  // Find the exact local unique ID's index position
+                  const originalIndex = localSongs.findIndex(
                       (s) => s.id === song.id,
                   );
                   const songWithIndex = {
@@ -247,7 +267,7 @@
                   {
                       disc: 1,
                       songs: processedSongs.map((s, i) => {
-                          const originalIndex = songs.findIndex(
+                          const originalIndex = localSongs.findIndex(
                               (raw) => raw.id === s.id,
                           );
                           return {
@@ -261,33 +281,27 @@
     );
 
     /**
-     * Handles row clicks safely, ignoring clicks on interactive elements like buttons/links
      * @param {MouseEvent} e
      * @param {any} song
      */
     function handleRowClick(e, song) {
-        // Safe cast: assert that target is an HTMLElement so we can use .closest()
         const target = /** @type {HTMLElement} */ (e.target);
-
-        // If the click was on a button or link (or their children), do nothing
         if (target && (target.closest("a") || target.closest("button"))) {
             return;
         }
-
         playSong(song);
     }
 
-    // --- PLAYBACK & ACTIONS ---
     /** @param {any} song */
     function playSong(song) {
-        // We pass the FULL original list to the player, but start at the clicked song's index
-        // If sorting is active, the queue experience might feel jumpy if we play the 'sorted' index against the 'original' list.
-        // Better UX: Play the filtered/sorted view as a *new* ad-hoc queue.
-
         if (sortField !== "original" || localSearchQuery) {
-            // Play the VISIBLE list
+            // Map items back to original schemas matching playback requirements
+            const standardProcessedSongs = processedSongs.map((s) => ({
+                ...s,
+                id: s.realId,
+            }));
             playQueue(
-                processedSongs,
+                standardProcessedSongs,
                 processedSongs.findIndex((s) => s.id === song.id),
                 {
                     type: context,
@@ -296,31 +310,42 @@
                 },
             );
         } else {
-            // Play the original context
-            playQueue(songs, song.globalIndex, {
+            const standardSongs = localSongs.map((s) => ({
+                ...s,
+                id: s.realId,
+            }));
+            playQueue(standardSongs, song.globalIndex, {
                 type: context,
-                // Fixed: Ensure string types
                 id: contextId || "",
                 name: contextName || "",
             });
         }
     }
 
-    // --- DND HANDLERS (Disable when sorted) ---
+    // --- DND HANDLERS ---
     /** @param {any} e */
     function handleDndConsider(e) {
-        if (sortField === "original" && !localSearchQuery)
-            songs = e.detail.items;
+        if (sortField === "original" && !localSearchQuery) {
+            localSongs = e.detail.items;
+        }
     }
+
     /** @param {any} e */
     async function handleDndFinalize(e) {
         if (sortField === "original" && !localSearchQuery) {
-            songs = e.detail.items;
+            localSongs = e.detail.items;
+
+            // Map changes upstream to the parent components
+            songs = localSongs.map((s) => {
+                const { realId, id, ...rest } = s;
+                return { ...rest, id: realId };
+            });
+
             if (context === "playlist" && contextId) {
                 try {
                     await reorderPlaylist(
                         contextId,
-                        songs.map((s) => s.id),
+                        localSongs.map((s) => s.realId),
                     );
                     onPlaylistUpdated?.();
                 } catch (err) {
@@ -338,9 +363,7 @@
         return `${min}:${sec.toString().padStart(2, "0")}`;
     }
 
-    /**
-     * @param {number | undefined} bitrate
-     */
+    /** @param {number | undefined} bitrate */
     function formatBitrate(bitrate) {
         return bitrate ? `${bitrate} kbps` : "";
     }
@@ -355,7 +378,6 @@
 
     /** @param {any} song */
     function getTrackNumber(song) {
-        // If in artist context (Top Songs), we want 1-10 ranking, not album track number
         if (
             context === "artist" ||
             context === "playlist" ||
@@ -372,67 +394,83 @@
      */
     async function toggleFavorite(song, event) {
         event.stopPropagation();
-
-        // Find the index in the source array to ensure we update the source of truth
-        const songIndex = songs.findIndex((s) => s.id === song.id);
+        const songIndex = localSongs.findIndex((s) => s.id === song.id);
         if (songIndex === -1) return;
 
-        const targetSong = songs[songIndex];
+        const targetSong = localSongs[songIndex];
         const isStarred = !!targetSong.starred;
-
         try {
             if (isStarred) {
-                await unstarTrack(targetSong.id);
-                const updated = { ...targetSong, starred: undefined };
-                songs[songIndex] = updated;
+                await unstarTrack(targetSong.realId);
 
-                // Sync with global player if it's the current track
-                if ($currentTrack && $currentTrack.id === targetSong.id) {
+                // Track favoriting is global; update all local duplicates to match state
+                localSongs = localSongs.map((s) =>
+                    s.realId === targetSong.realId
+                        ? { ...s, starred: undefined }
+                        : s,
+                );
+
+                if ($currentTrack && $currentTrack.id === targetSong.realId) {
                     isFavorite.set(false);
                     currentTrack.update((t) => ({ ...t, starred: undefined }));
                 }
             } else {
-                await starTrack(targetSong.id);
-                const updated = {
-                    ...targetSong,
-                    starred: new Date().toISOString(),
-                };
-                songs[songIndex] = updated;
+                await starTrack(targetSong.realId);
+                const starredTime = new Date().toISOString();
 
-                // Sync with global player if it's the current track
-                if ($currentTrack && $currentTrack.id === targetSong.id) {
+                localSongs = localSongs.map((s) =>
+                    s.realId === targetSong.realId
+                        ? { ...s, starred: starredTime }
+                        : s,
+                );
+
+                if ($currentTrack && $currentTrack.id === targetSong.realId) {
                     isFavorite.set(true);
                     currentTrack.update((t) => ({
                         ...t,
-                        starred: updated.starred,
+                        starred: starredTime,
                     }));
                 }
             }
-            songs = songs; // Trigger reactivity
+
+            // Sync up to parent array
+            songs = localSongs.map((s) => {
+                const { realId, id, ...rest } = s;
+                return { ...rest, id: realId };
+            });
         } catch (error) {
             console.error("Failed to toggle favorite:", error);
         }
     }
 
-    // Sync external favorite changes (from player bar) to the list
+    // Sync external favorite changes (from player bar) across all duplicates
     $effect(() => {
         if ($currentTrack && $isFavorite !== undefined) {
-            const idx = songs.findIndex((s) => s.id === $currentTrack.id);
-            if (idx !== -1) {
-                const song = songs[idx];
-                const shouldBeStarred = $isFavorite;
-                const isStarred = !!song.starred;
+            let changed = false;
+            const updatedLocalSongs = localSongs.map((song) => {
+                if (song.realId === $currentTrack.id) {
+                    const shouldBeStarred = $isFavorite;
+                    const isStarred = !!song.starred;
 
-                if (shouldBeStarred !== isStarred) {
-                    // Update local list to match global state
-                    songs[idx] = {
-                        ...song,
-                        starred: shouldBeStarred
-                            ? song.starred || new Date().toISOString()
-                            : undefined,
-                    };
-                    songs = songs; // Trigger reactivity
+                    if (shouldBeStarred !== isStarred) {
+                        changed = true;
+                        return {
+                            ...song,
+                            starred: shouldBeStarred
+                                ? song.starred || new Date().toISOString()
+                                : undefined,
+                        };
+                    }
                 }
+                return song;
+            });
+
+            if (changed) {
+                localSongs = updatedLocalSongs;
+                songs = localSongs.map((s) => {
+                    const { realId, id, ...rest } = s;
+                    return { ...rest, id: realId };
+                });
             }
         }
     });
@@ -448,16 +486,10 @@
         }
     }
 
-    let containerWidth = $state(1024); // Default to wide to prevent flash
-
-    // If the container (not the window) is smaller than 768px, switch to mobile view
+    let containerWidth = $state(1024);
     let isMobile = $derived(containerWidth < 768);
-
-    // Tablet/Compact view (< 1200px) - Triggers when queue is open on laptops
     let isCompact = $derived(containerWidth < 1200);
 
-    // 2. Define columns that should NEVER show on mobile (even if enabled)
-    // Note: We hide 'artist' and 'album' here because they are shown under the Title on mobile
     const DESKTOP_ONLY_COLUMNS = [
         "artist",
         "album",
@@ -469,8 +501,6 @@
         "bpm",
         "playCount",
     ];
-
-    // Columns hidden on Compact Desktop (when queue is open)
     const COMPACT_HIDDEN_COLUMNS = [
         "year",
         "quality",
@@ -481,29 +511,18 @@
         "genre",
     ];
 
-    // 3. Smart Visibility Check
-    // This overrides the settings: if on mobile, force-hide the heavy columns
     /** @param {string} id */
     function isColumnVisible(id) {
-        // Force hide on mobile
         if (isMobile && DESKTOP_ONLY_COLUMNS.includes(id)) return false;
-
-        // Force hide on compact/tablet (unless it's the specific context, e.g. don't hide artist if sorting by artist)
         if (isCompact && COMPACT_HIDDEN_COLUMNS.includes(id)) return false;
-
         return visibleColumnIds.includes(id);
     }
 
-    // 4. Grid Generation
     let desktopGridColumns = $derived(
         `
         ${context === "playlist" ? "2rem" : ""}
         ${isColumnVisible("track") ? "3rem" : ""} 
-        
-        /* Title: 1fr on Mobile (fills space), 2.5fr on Desktop */
         ${isMobile ? "minmax(0, 1fr)" : "minmax(180px, 2.5fr)"}
-        
-        /* Since isColumnVisible returns false on mobile for these, they effectively vanish from the grid definition */
         ${isColumnVisible("artist") ? "minmax(140px, 2fr)" : ""} 
         ${isColumnVisible("album") ? "minmax(140px, 2fr)" : ""} 
         ${isColumnVisible("year") ? "4rem" : ""} 
@@ -679,7 +698,7 @@
                         (e.key === "Enter" || e.key === " ") && playSong(song)}
                     onclick={(e) => handleRowClick(e, song)}
                     class="w-full song-grid gap-4 px-4 py-2.5 text-left items-center hover:bg-[var(--bg-hover)] group transition-colors text-sm cursor-pointer border-b border-[var(--border-secondary)]/50 last:border-0
-                    {$currentTrack?.id === song.id
+                    {$currentTrack?.id === song.realId
                         ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
                         : 'text-[var(--text-secondary)]'}"
                     style="--desktop-cols: {desktopGridColumns};"
@@ -700,7 +719,7 @@
                         <span
                             class="text-center flex justify-center text-[var(--text-muted)] w-full"
                         >
-                            {#if $currentTrack?.id === song.id && $isPlaying}
+                            {#if $currentTrack?.id === song.realId && $isPlaying}
                                 <Music
                                     size={16}
                                     class="text-[var(--accent)] animate-pulse"
@@ -720,7 +739,7 @@
                     <div class="flex flex-col overflow-hidden min-w-0">
                         <span
                             class="font-medium truncate text-base {$currentTrack?.id ===
-                            song.id
+                            song.realId
                                 ? 'text-[var(--accent)]'
                                 : 'text-[var(--text-primary)]'}"
                             >{song.title}</span
@@ -813,7 +832,7 @@
                     {#if isColumnVisible("options")}
                         <div class="flex justify-end">
                             <OptionsButton
-                                item={song}
+                                item={{ ...song, id: song.realId }}
                                 {context}
                                 {contextId}
                                 {onPlaylistUpdated}
