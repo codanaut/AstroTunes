@@ -7,7 +7,7 @@
         updatePlaylist,
         createPlaylist,
         getCoverArtUrl,
-        getStreamUrl
+        getStreamUrl,
     } from "$lib/subsonic";
     import { playQueue } from "$lib/player";
     import SongList from "$lib/components/SongList.svelte";
@@ -18,13 +18,14 @@
         Play,
         Shuffle,
         ChevronLeft,
+        ChevronRight,
         Plus,
         Trash2,
         Pencil,
         Check,
         Download,
         Upload,
-        X
+        X,
     } from "lucide-svelte";
     import { fade } from "svelte/transition";
     import { formatDuration } from "$lib/utils/formatDuration.js";
@@ -39,6 +40,7 @@
     let loading = $state(true);
     let loadingSongs = $state(false);
     let showCreateModal = $state(false);
+    let sidebarCollapsed = $state(false);
 
     // Edit Header State
     let isEditingHeader = $state(false);
@@ -249,7 +251,9 @@
                     }
 
                     await createPlaylist(name, songIds);
-                    alert(`Successfully imported playlist "${name}" with ${songIds.length} songs!`);
+                    alert(
+                        `Successfully imported playlist "${name}" with ${songIds.length} songs!`,
+                    );
                     await loadPlaylists();
                 } else if (file.name.endsWith(".m3u")) {
                     const lines = content.split(/\r?\n/);
@@ -270,18 +274,24 @@
                     }
 
                     if (songIds.length === 0) {
-                        alert("No valid Subsonic song IDs or stream URLs found in the M3U file.");
+                        alert(
+                            "No valid Subsonic song IDs or stream URLs found in the M3U file.",
+                        );
                         return;
                     }
 
                     const name = file.name.replace(/\.m3u$/i, "");
                     await createPlaylist(name, songIds);
-                    alert(`Successfully imported playlist "${name}" with ${songIds.length} songs!`);
+                    alert(
+                        `Successfully imported playlist "${name}" with ${songIds.length} songs!`,
+                    );
                     await loadPlaylists();
                 }
             } catch (err) {
                 console.error("Failed to parse file", err);
-                alert("Failed to parse the playlist file. Make sure it is valid.");
+                alert(
+                    "Failed to parse the playlist file. Make sure it is valid.",
+                );
             } finally {
                 target.value = "";
             }
@@ -360,9 +370,9 @@
     <!-- Playlist Sidebar -->
     <!-- Hidden on mobile if playlist is selected, visible on desktop always -->
     <div
-        class="w-full md:w-80 border-r border-[var(--border-primary)] bg-[var(--bg-sidebar)] flex-shrink-0 flex flex-col {selectedPlaylist
-            ? 'hidden md:flex'
-            : 'flex'}"
+        class="w-full border-r border-[var(--border-primary)] bg-[var(--bg-sidebar)] flex-shrink-0 flex flex-col transition-all duration-200 {sidebarCollapsed
+            ? 'md:w-0 md:opacity-0 overflow-hidden border-r-0'
+            : 'md:w-80'} {selectedPlaylist ? 'hidden md:flex' : 'flex'}"
     >
         <div
             class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--bg-sidebar)] z-10"
@@ -387,6 +397,13 @@
                     title="Create New Playlist"
                 >
                     <Plus size={20} />
+                </button>
+                <button
+                    class="hidden md:block p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                    onclick={() => (sidebarCollapsed = true)}
+                    title="Collapse Sidebar"
+                >
+                    <ChevronLeft size={20} />
                 </button>
             </div>
         </div>
@@ -440,6 +457,16 @@
             ? 'block'
             : 'hidden md:block'}"
     >
+        {#if sidebarCollapsed}
+            <button
+                class="hidden md:flex absolute top-4 left-4 z-40 p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all shadow-md"
+                onclick={() => (sidebarCollapsed = false)}
+                title="Expand Sidebar"
+            >
+                <ChevronRight size={20} />
+            </button>
+        {/if}
+
         {#if selectedPlaylist}
             <!-- Playlist Header -->
             <!-- Back button is now sticky on mobile so it doesn't get lost -->
@@ -465,10 +492,15 @@
                     class="w-40 h-40 md:w-56 md:h-56 shadow-2xl rounded-lg bg-[var(--bg-card)] border border-[var(--border-primary)] flex items-center justify-center flex-shrink-0 mx-auto md:mx-0 mt-4 md:mt-0 overflow-hidden"
                 >
                     {#if selectedPlaylistSongs && selectedPlaylistSongs.length >= 4}
-                        <div class="grid grid-cols-2 grid-rows-2 w-full h-full gap-px bg-[var(--border-secondary)]/50">
+                        <div
+                            class="grid grid-cols-2 grid-rows-2 w-full h-full gap-px bg-[var(--border-secondary)]/50"
+                        >
                             {#each selectedPlaylistSongs.slice(0, 4) as song}
                                 <img
-                                    src={getCoverArtUrl(song.coverArt || song.id, 120)}
+                                    src={getCoverArtUrl(
+                                        song.coverArt || song.id,
+                                        120,
+                                    )}
                                     alt={song.title}
                                     class="w-full h-full object-cover"
                                     loading="lazy"
@@ -477,12 +509,19 @@
                         </div>
                     {:else if selectedPlaylistSongs && selectedPlaylistSongs.length > 0}
                         <img
-                            src={getCoverArtUrl(selectedPlaylistSongs[0].coverArt || selectedPlaylistSongs[0].id, 300)}
+                            src={getCoverArtUrl(
+                                selectedPlaylistSongs[0].coverArt ||
+                                    selectedPlaylistSongs[0].id,
+                                300,
+                            )}
                             alt={selectedPlaylistSongs[0].title}
                             class="w-full h-full object-cover"
                         />
                     {:else}
-                        <ListMusic size={80} class="text-[var(--text-muted)] animate-pulse" />
+                        <ListMusic
+                            size={80}
+                            class="text-[var(--text-muted)] animate-pulse"
+                        />
                     {/if}
                 </div>
 
@@ -491,9 +530,15 @@
                 >
                     {#if isEditingHeader}
                         <!-- Edit Mode -->
-                        <div class="flex flex-col gap-3 w-full max-w-xl text-left">
+                        <div
+                            class="flex flex-col gap-3 w-full max-w-xl text-left"
+                        >
                             <div class="flex flex-col gap-1">
-                                <label for="edit-playlist-name" class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Playlist Name</label>
+                                <label
+                                    for="edit-playlist-name"
+                                    class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]"
+                                    >Playlist Name</label
+                                >
                                 <input
                                     type="text"
                                     id="edit-playlist-name"
@@ -503,7 +548,11 @@
                                 />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label for="edit-playlist-description" class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Description</label>
+                                <label
+                                    for="edit-playlist-description"
+                                    class="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]"
+                                    >Description</label
+                                >
                                 <textarea
                                     id="edit-playlist-description"
                                     bind:value={editedComment}
@@ -522,7 +571,9 @@
                                 </button>
                                 <button
                                     class="bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-primary)] px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-1.5 cursor-pointer"
-                                    onclick={() => { isEditingHeader = false; }}
+                                    onclick={() => {
+                                        isEditingHeader = false;
+                                    }}
                                 >
                                     Cancel
                                 </button>
@@ -548,7 +599,9 @@
                             </h1>
 
                             {#if selectedPlaylist.comment}
-                                <p class="text-sm text-[var(--text-secondary)] mt-2 line-clamp-2 max-w-2xl">
+                                <p
+                                    class="text-sm text-[var(--text-secondary)] mt-2 line-clamp-2 max-w-2xl"
+                                >
                                     {selectedPlaylist.comment}
                                 </p>
                             {/if}
@@ -556,7 +609,8 @@
                             <div
                                 class="flex flex-wrap items-center justify-center md:justify-start gap-x-2 gap-y-1 text-sm text-[var(--text-secondary)] mt-2"
                             >
-                                <span class="text-[var(--text-primary)] font-medium"
+                                <span
+                                    class="text-[var(--text-primary)] font-medium"
                                     >{selectedPlaylist.owner ||
                                         "Unknown User"}</span
                                 >
@@ -596,7 +650,7 @@
                             >
                                 <Pencil size={24} />
                             </button>
-                            
+
                             <!-- Export Button & Dropdown -->
                             <div class="relative">
                                 <button
@@ -627,7 +681,7 @@
                             </div>
 
                             <div class="flex-1 md:hidden"></div>
-                            
+
                             <button
                                 class="bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-primary)] rounded-full p-3 md:p-4 hover:scale-105 transition-transform hover:bg-[var(--bg-hover)] hover:text-red-500 hover:border-red-500 flex items-center justify-center cursor-pointer"
                                 onclick={handleDelete}

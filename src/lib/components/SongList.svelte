@@ -143,36 +143,58 @@
         },
     ];
 
-    /** @type {string[]}*/
-    let visibleColumnIds = [];
-    if (isMobileDevice()) {
-        visibleColumnIds = [
-            "title",
-            "duration",
-            "starred",
-            "playCount",
-            "options",
-        ];
-    } else {
-        visibleColumnIds = [
-            "track",
-            "title",
-            "duration",
-            "starred",
-            "format",
-            "bitrate",
-            "quality",
-            "playCount",
-            "options",
-        ];
-    }
+    // --- COLUMN VISIBILITY & CUSTOMIZATION ---
 
-    if (context !== "album") visibleColumnIds.splice(2, 0, "album");
-    if (context !== "artist") visibleColumnIds.splice(2, 0, "artist");
-    if (context === "songs" || context === "playlist") {
-        visibleColumnIds = [...visibleColumnIds, "genre"];
-    }
+    // Track manual user overrides (e.g., { album: true, genre: false })
+    /** @type {Record<string, boolean>} */
+    let userColumnPreferences = $state({});
 
+    // Completely derived list of visible columns that automatically updates if device or context changes
+    let visibleColumnIds = $derived(
+        (() => {
+            // 1. Establish the baseline columns based on device type
+            let ids = isMobileDevice()
+                ? ["title", "duration", "starred", "playCount", "options"]
+                : [
+                      "track",
+                      "title",
+                      "duration",
+                      "starred",
+                      "format",
+                      "bitrate",
+                      "quality",
+                      "playCount",
+                      "options",
+                  ];
+
+            // 2. Safely apply context-specific modifications reactively
+            if (context !== "album") ids.splice(2, 0, "album");
+            if (context !== "artist") ids.splice(2, 0, "artist");
+
+            if (context === "songs" || context === "playlist") {
+                ids = [...ids, "genre"];
+            }
+
+            // 3. Layer the user's manual customization choices on top
+            for (const [id, isVisible] of Object.entries(
+                userColumnPreferences,
+            )) {
+                if (isVisible && !ids.includes(id)) {
+                    ids.push(id);
+                } else if (!isVisible && ids.includes(id)) {
+                    ids = ids.filter((c) => c !== id);
+                }
+            }
+
+            return ids;
+        })(),
+    );
+
+    /** @param {string} id */
+    function toggleColumn(id) {
+        // Toggle the preference state based on current dynamic visibility
+        userColumnPreferences[id] = !visibleColumnIds.includes(id);
+    }
     /** @param {string} field */
     function handleSort(field) {
         if (!ALL_COLUMNS.find((c) => c.id === field)?.sortable) return;
@@ -476,15 +498,6 @@
     });
 
     let showColumnSelector = $state(false);
-
-    /** @param {string} id */
-    function toggleColumn(id) {
-        if (visibleColumnIds.includes(id)) {
-            visibleColumnIds = visibleColumnIds.filter((c) => c !== id);
-        } else {
-            visibleColumnIds = [...visibleColumnIds, id];
-        }
-    }
 
     let containerWidth = $state(1024);
     let isMobile = $derived(containerWidth < 768);
