@@ -474,11 +474,58 @@ export function playPrev() {
  * @param {number} index
  */
 export function removeFromQueue(index) {
+    const q = get(queue);
+    const curr = get(currentTrack);
+
+    if (index < 0 || index >= q.length) return;
+
+    // 1. Identify if the track being removed is the one currently playing
+    const trackToRemove = q[index];
+    const isRemovingCurrent = curr && (
+        curr.queueId && trackToRemove.queueId
+            ? curr.queueId === trackToRemove.queueId
+            : curr.id === trackToRemove.id
+    );
+
+    // 2. Remove it from the queue
     queue.update(q => {
         const newQ = [...q];
         newQ.splice(index, 1);
         return newQ;
     });
+
+    const updatedQueue = get(queue);
+
+    // 3. Handle playback logic if the active track was removed
+    if (isRemovingCurrent) {
+        if (updatedQueue.length === 0) {
+            // 🚀 Queue is completely empty now! Clean up and shut down the player bar
+            stop();
+            currentTrack.set(null);
+            context.set(null);
+            showPlayer.set(false);
+            saveState();
+        } else {
+            // There are still tracks left in the queue! 
+            // Play whatever track shifted into this index, or handle wrap-around if it was the last track.
+            if (index < updatedQueue.length) {
+                playTrack(updatedQueue[index]);
+            } else if (get(repeatMode) === 'all') {
+                playTrack(updatedQueue[0]);
+            } else {
+                // It was the last track and repeat is off, treat it like an ended queue
+                stop();
+                queue.set([]);
+                currentTrack.set(null);
+                context.set(null);
+                showPlayer.set(false);
+                saveState();
+            }
+        }
+    } else {
+        // If we just removed a background track, just save the updated layout state
+        saveState();
+    }
 }
 
 /**
