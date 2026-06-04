@@ -200,7 +200,9 @@
           class="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] inline-flex items-center gap-2"
           ><Disc size={24} /> Album</span
         >
-        <h1 class="text-5xl font-bold text-[var(--text-primary)] text-center">
+        <h1
+          class="text-3xl md:text-5xl font-bold text-[var(--text-primary)] text-center"
+        >
           {album.title || album.name}
         </h1>
         <div

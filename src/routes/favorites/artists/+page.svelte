@@ -38,7 +38,7 @@
 <div class="container mx-auto p-6">
     <BackButton />
     <div class="flex items-center gap-4 mb-6">
-        <h1 class="text-3xl font-bold text-[var(--accent)]">
+        <h1 class="text-3xl font-bold text-[var(--text-primary)]">
             Favorite Artists
         </h1>
     </div>
