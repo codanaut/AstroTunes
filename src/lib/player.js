@@ -436,6 +436,15 @@ export function playNext() {
         // If we're at the end and repeat all is on, go back to start
         playTrack(q[0]);
     }
+    else {
+        // 🚀 QUEUE HAS ENDED: Clear everything out and close the player bar
+        stop();                // Stops the howler audio instance and cleans up loops
+        queue.set([]);         // Wipes the queue completely clean
+        currentTrack.set(null); // Clears out the currently active song metadata
+        context.set(null);      // Clears the album/playlist context tracking
+        showPlayer.set(false);  // Closes/hides the now playing bar component
+        saveState();            // Commits this clean state to localStorage
+    }
 }
 
 export function playPrev() {
