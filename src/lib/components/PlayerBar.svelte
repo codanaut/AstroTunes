@@ -165,9 +165,9 @@
                 {$currentTrack.title}
             </div>
             <div
-                class="flex items-center gap-2 text-xs md:text-sm text-[var(--text-secondary)] truncate"
+                class="items-center gap-2 text-xs md:text-sm text-[var(--text-secondary)] truncate mt-1 md:0"
             >
-                <span class="truncate">
+                <div class="truncate">
                     {#each parseArtistString($currentTrack.artist, $currentTrack.artistId, $currentTrack.artists) as part}
                         {#if part.type === "artist"}
                             <a
@@ -182,13 +182,14 @@
                             <span>{part.name}</span>
                         {/if}
                     {/each}
-                </span>
-                <span class="text-[var(--text-muted)]">•</span>
-                <a
-                    class="hover:text-[var(--accent)] transition-colors truncate"
-                    href={resolve(`/album/${$currentTrack.albumId}`)}
-                    >{$currentTrack.album}</a
-                >
+                </div>
+                <div class="truncate hidden md:block">
+                    <a
+                        class="hover:text-[var(--accent)] transition-colors"
+                        href={resolve(`/album/${$currentTrack.albumId}`)}
+                        >{$currentTrack.album}</a
+                    >
+                </div>
             </div>
             {#if $context && $context.type && $context.name}
                 <div
