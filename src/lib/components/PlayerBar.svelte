@@ -305,63 +305,68 @@
         </div>
     </div>
 
-    <div class="hidden md:flex justify-end gap-4 items-center flex-1 min-w-0">
-        <div
-            class="flex flex-col items-end text-xs text-[var(--text-secondary)] mr-2"
-        >
-            <span class="font-semibold text-[var(--text-secondary)] uppercase"
-                >{$currentTrack.suffix}</span
-            >
-            <span class="text-right">
-                {formatBitDepth($currentTrack.bitDepth)}
-                {formatSampleRate($currentTrack.samplingRate)}
-            </span>
-        </div>
+    <div class="hidden md:flex items-center justify-end flex-1 min-w-0 h-full">
+        <div class="relative">
+            <div class="flex items-center gap-4">
+                <OptionsButton
+                    item={$currentTrack}
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                />
 
-        <OptionsButton
-            item={$currentTrack}
-            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-        />
+                <button
+                    onclick={toggleQueue}
+                    class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                    title="Queue"
+                >
+                    <ListMusic
+                        size={20}
+                        class={$showQueue ? "text-[var(--accent)]" : ""}
+                    />
+                </button>
 
-        <button
-            onclick={toggleQueue}
-            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-            title="Queue"
-        >
-            <ListMusic
-                size={20}
-                class={$showQueue ? "text-[var(--accent)]" : ""}
-            />
-        </button>
+                <button
+                    onclick={toggleMute}
+                    class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                    {#if isMuted}<VolumeX size={20} />{:else}<Volume2
+                            size={20}
+                        />{/if}
+                </button>
 
-        <button
-            onclick={toggleMute}
-            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-        >
-            {#if isMuted}<VolumeX size={20} />{:else}<Volume2 size={20} />{/if}
-        </button>
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <div
+                    class="volume-slider w-24 h-1.5 bg-[var(--bg-hover)] rounded-full relative cursor-pointer group"
+                    onmousedown={handleVolumeMouseDown}
+                    onwheel={handleVolumeWheel}
+                >
+                    <div
+                        class="h-full bg-[var(--text-primary)] rounded-full absolute top-0 left-0 group-hover:bg-[var(--accent)] transition-colors"
+                        style="width: {$volume * 100}%"
+                    ></div>
+                </div>
 
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-            class="volume-slider w-24 h-1.5 bg-[var(--bg-hover)] rounded-full relative cursor-pointer group"
-            onmousedown={handleVolumeMouseDown}
-            onwheel={handleVolumeWheel}
-        >
+                <a
+                    href={resolve("/now-playing")}
+                    class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors ml-2"
+                    title="Expand Player"><Maximize2 size={20} /></a
+                >
+                <button
+                    onclick={closePlayer}
+                    class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors ml-2"
+                    title="Close Player"><X size={20} /></button
+                >
+            </div>
+
             <div
-                class="h-full bg-[var(--text-primary)] rounded-full absolute top-0 left-0 group-hover:bg-[var(--accent)] transition-colors"
-                style="width: {$volume * 100}%"
-            ></div>
+                class="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-[11px] text-[var(--text-secondary)] font-mono text-center tracking-wider opacity-80 whitespace-nowrap"
+            >
+                <span class="font-bold uppercase">{$currentTrack.suffix}</span>
+                {#if $currentTrack.bitDepth || $currentTrack.samplingRate}
+                    • {formatBitDepth($currentTrack.bitDepth)}
+                    {formatSampleRate($currentTrack.samplingRate)}
+                {/if}
+            </div>
         </div>
-
-        <a
-            href={resolve("/now-playing")}
-            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors ml-2"
-            title="Expand Player"><Maximize2 size={20} /></a
-        >
-        <button
-            onclick={closePlayer}
-            class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors ml-2"
-            title="Close Player"><X size={20} /></button
-        >
     </div>
 </div>
