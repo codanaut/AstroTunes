@@ -461,7 +461,7 @@
     >
         {#if sidebarCollapsed}
             <button
-                class="hidden md:flex absolute top-4 left-4 z-40 p-2 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all shadow-md"
+                class="hidden md:flex absolute mt-2 left-4 z-40 p-2 bg-[var(--bg-sidebar)] border border-[var(--border-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all shadow-md"
                 onclick={() => (sidebarCollapsed = false)}
                 title="Expand Sidebar"
             >
