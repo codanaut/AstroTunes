@@ -35,20 +35,39 @@
         contextId = null,
         onPlaylistUpdated,
         className = "",
+        isOpen = false,
+        onToggle,
     } = $props();
 
     let showAddModal = $state(false);
-    let isOpen = $state(false);
+    let localIsOpen = $state(false);
     let menuPosition = $state({ x: 0, y: 0 });
     /** @type {any[]} */
     let songsToProcess = $state([]);
     let showInfoModal = $state(false);
 
+    // Determine if the menu is open by checking if parent controls it, otherwise use local fallback
+    let isMenuOpen = $derived(onToggle ? isOpen : localIsOpen);
+
+    // Helper function to safely update the state regardless of who owns it
+    /** @param {boolean} value */
+    function setOpenState(value) {
+        if (onToggle) {
+            onToggle(value);
+        } else {
+            localIsOpen = value;
+        }
+    }
+
     /** @param {MouseEvent} event */
     function openMenu(event) {
         event.preventDefault();
         event.stopPropagation();
-        isOpen = true;
+
+        if (isMenuOpen) {
+            setOpenState(false);
+            return;
+        }
 
         const target = /** @type {HTMLElement} */ (event.currentTarget);
         const rect = target.getBoundingClientRect();
@@ -73,10 +92,11 @@
         }
 
         menuPosition = { x: xPos, y: yPos };
+        setOpenState(true);
     }
 
     function closeMenu() {
-        isOpen = false;
+        setOpenState(false);
     }
 
     async function getSongsForItem() {
@@ -108,7 +128,7 @@
     }
 
     function handleWindowClick() {
-        if (isOpen) closeMenu();
+        if (isMenuOpen) closeMenu();
     }
 
     /** @param {MouseEvent} event */
@@ -172,7 +192,7 @@
     <MoreVertical size={16} />
 </button>
 
-{#if isOpen}
+{#if isMenuOpen}
     <div
         use:portal
         class="fixed z-[9999] bg-[var(--bg-card)] backdrop-blur-lg border border-[var(--border-primary)] rounded-lg shadow-xl py-1 min-w-[180px]"

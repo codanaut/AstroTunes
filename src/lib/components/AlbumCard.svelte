@@ -10,7 +10,7 @@
     import { resolve } from "$app/paths";
     import OptionsButton from "./OptionsButton.svelte";
 
-    let { album, className = "" } = $props();
+    let { album, className = "", isOpen = false, onToggle } = $props();
 
     /**
      * @param {Event} event
@@ -88,7 +88,11 @@
 
 <div class="text-left group flex flex-col relative h-full {className}">
     <!-- Main Full-Card Link for Touch Targets -->
-    <a href={resolve(`/album/${album.id}`)} class="absolute inset-0 z-10 no-underline rounded-xl" aria-label={album.title || album.name}></a>
+    <a
+        href={resolve(`/album/${album.id}`)}
+        class="absolute inset-0 z-10 no-underline rounded-xl"
+        aria-label={album.title || album.name}
+    ></a>
 
     <!-- Album Cover Link -->
     <div
@@ -143,6 +147,8 @@
                 item={album}
                 itemType="album"
                 className="p-2 bg-black/40 backdrop-blur-md text-white hover:bg-black/60"
+                {isOpen}
+                {onToggle}
             />
         </div>
     </div>
@@ -158,8 +164,8 @@
 
         <!-- Artist Link -->
         {#if album.artist}
-            <a 
-                href={resolve(`/artist/${album.artistId}`)} 
+            <a
+                href={resolve(`/artist/${album.artistId}`)}
                 class="text-sm text-[var(--text-muted)] truncate hover:text-[var(--text-primary)] transition-colors pointer-events-auto w-fit max-w-full block no-underline mb-1"
             >
                 {album.artist}
@@ -167,13 +173,22 @@
         {/if}
 
         <!-- Metadata Row (Year, Tracks, Runtime) -->
-        <div class="text-[11px] text-[var(--text-muted)] truncate w-full flex items-center">
+        <div
+            class="text-[11px] text-[var(--text-muted)] truncate w-full flex items-center"
+        >
             <span class="truncate flex-grow">
                 {#if album.year}{album.year}{/if}
-                {#if album.year && (album.songCount || album.duration)}<span class="opacity-50 mx-1">•</span>{/if}
+                {#if album.year && (album.songCount || album.duration)}<span
+                        class="opacity-50 mx-1">•</span
+                    >{/if}
                 {#if album.songCount}{album.songCount} Tracks{/if}
-                {#if album.songCount && album.duration}<span class="opacity-50 mx-1">•</span>{/if}
-                {#if album.duration}{Math.max(1, Math.round(album.duration / 60))} mins{/if}
+                {#if album.songCount && album.duration}<span
+                        class="opacity-50 mx-1">•</span
+                    >{/if}
+                {#if album.duration}{Math.max(
+                        1,
+                        Math.round(album.duration / 60),
+                    )} mins{/if}
             </span>
             <!-- Desktop Quality Tag Slot -->
             <div class="ml-2 pointer-events-auto shrink-0 empty:hidden">

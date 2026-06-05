@@ -30,6 +30,8 @@
     let viewMode = $state("grid");
     const storageKey = "section-view-mode-album";
 
+    let activeMenuAlbumId = $state(null);
+
     let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
     let offset = $derived((currentPage - 1) * limit);
 
@@ -196,7 +198,12 @@
         {#if viewMode === "grid"}
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {#each albums as album (album.id)}
-                    <AlbumCard {album} />
+                    <AlbumCard
+                        {album}
+                        isOpen={activeMenuAlbumId === album.id}
+                        onToggle={(open) =>
+                            (activeMenuAlbumId = open ? album.id : null)}
+                    />
                 {/each}
             </div>
         {:else}

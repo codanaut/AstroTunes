@@ -49,6 +49,7 @@
     let sortField = $state("original");
     let sortDirection = $state("asc");
     let localSearchQuery = $state("");
+    let activeMenuSongId = $state(null);
 
     // Core internal state tracking localized unique entries
     /** @type {any[]}**/
@@ -849,6 +850,9 @@
                                 {contextId}
                                 {onPlaylistUpdated}
                                 className="p-1.5 opacity-100 md:opacity-0 group-hover:opacity-100"
+                                isOpen={activeMenuSongId === song.id}
+                                onToggle={(open) =>
+                                    (activeMenuSongId = open ? song.id : null)}
                             />
                         </div>
                     {/if}
