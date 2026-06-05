@@ -314,7 +314,7 @@
         <div class="flex justify-between items-center mx-auto">
           <h2 class="text-xl font-bold tracking-tight text-[var(--text-main)]">
             <a
-              href="/favorites/songs"
+              href={resolve("/favorites/songs")}
               class="hover:text-[var(--accent)] hover:underline">Top Songs</a
             >
           </h2>
@@ -344,7 +344,7 @@
         <div class="flex justify-between items-center mx-auto">
           <h2 class="text-xl font-bold tracking-tight text-[var(--text-main)]">
             <a
-              href="/favorites/albums"
+              href={resolve("/favorites/albums")}
               class="hover:text-[var(--accent)] hover:underline">Top Albums</a
             >
           </h2>
