@@ -45,16 +45,16 @@
             sortable: true,
         },
         {
-            id: "duration",
-            label: "Duration",
-            icon: Clock,
+            id: "starred",
+            label: "",
+            icon: Heart,
             alwaysVisible: true,
             sortable: true,
         },
         {
-            id: "starred",
-            label: "",
-            icon: Heart,
+            id: "duration",
+            label: "Duration",
+            icon: Clock,
             alwaysVisible: true,
             sortable: true,
         },
@@ -294,13 +294,6 @@
                     </div>
                 {/if}
 
-                <!-- Duration -->
-                {#if isColumnVisible("duration")}
-                    <div class="text-right tabular-nums">
-                        {formatDuration(album.duration)}
-                    </div>
-                {/if}
-
                 <!-- Starred -->
                 {#if isColumnVisible("starred")}
                     <div class="flex justify-center">
@@ -317,6 +310,13 @@
                                     : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}
                             />
                         </button>
+                    </div>
+                {/if}
+
+                <!-- Duration -->
+                {#if isColumnVisible("duration")}
+                    <div class="text-center tabular-nums">
+                        {formatDuration(album.duration)}
                     </div>
                 {/if}
             </a>
