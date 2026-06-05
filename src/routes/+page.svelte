@@ -4,6 +4,8 @@
   import { PlugZap, Disc, Mic2, Music, ListMusic } from "lucide-svelte";
   import { auth } from "../lib/auth";
   import SectionWrapper from "../lib/components/SectionWrapper.svelte";
+  import AlbumList from "../lib/components/AlbumList.svelte";
+  import SongList from "$lib/components/SongList.svelte";
   import { resolve } from "$app/paths";
   import { libraryStore, musicFolderParam } from "../lib/stores/library.js";
 
@@ -17,6 +19,8 @@
   let topAlbums = $state([]);
   /** @type {any[]} */
   let albums2026 = $state([]);
+  /** @type {any[]} */
+  let topSongs = $state([]);
 
   // Reactive: re-fetch whenever the selected library changes (or on mount)
   $effect(() => {
@@ -28,17 +32,24 @@
   });
 
   async function loadAllSections(folderParam = "") {
-    const [data, favs, recentlyAddedAlbumsData, topAlbumsData, albums2026Data] =
-      await Promise.all([
-        subsonicFetch("getAlbumList", `&type=random&size=5${folderParam}`),
-        subsonicFetch("getAlbumList", `&type=starred&size=5${folderParam}`),
-        subsonicFetch("getAlbumList", `&type=newest&size=5${folderParam}`),
-        subsonicFetch("getAlbumList", `&type=frequent&size=5${folderParam}`),
-        subsonicFetch(
-          "getAlbumList",
-          `&type=byYear&fromYear=2026&toYear=2026&size=5${folderParam}`,
-        ),
-      ]);
+    const [
+      data,
+      favs,
+      recentlyAddedAlbumsData,
+      topAlbumsData,
+      albums2026Data,
+      starredData,
+    ] = await Promise.all([
+      subsonicFetch("getAlbumList", `&type=random&size=5${folderParam}`),
+      subsonicFetch("getAlbumList", `&type=starred&size=5${folderParam}`),
+      subsonicFetch("getAlbumList", `&type=newest&size=5${folderParam}`),
+      subsonicFetch("getAlbumList", `&type=frequent&size=5${folderParam}`),
+      subsonicFetch(
+        "getAlbumList",
+        `&type=byYear&fromYear=2026&toYear=2026&size=5${folderParam}`,
+      ),
+      subsonicFetch("getStarred"),
+    ]);
 
     if (data?.albumList?.album) albums = data.albumList.album;
     if (favs?.albumList?.album) favlist = favs.albumList.album;
@@ -48,6 +59,14 @@
       topAlbums = topAlbumsData.albumList.album;
     if (albums2026Data?.albumList?.album)
       albums2026 = albums2026Data.albumList.album;
+
+    if (starredData && starredData.starred?.song) {
+      /** @type {any[]} */
+      let starredSongs = starredData.starred.song;
+      topSongs = starredSongs
+        .sort((a, b) => b.playCount - a.playCount)
+        .slice(0, 5);
+    }
 
     startSyncLoop();
   }
@@ -267,7 +286,7 @@
       </div>
     </div>
 
-    <div class="w-full lg:max-w-[80%] mx-auto">
+    <!--<div class="w-full lg:max-w-[80%] mx-auto">
       <SectionWrapper
         title="Top Played Albums"
         items={topAlbums}
@@ -277,7 +296,7 @@
         layout="featured"
         headerClass=""
       />
-    </div>
+    </div>-->
 
     <!--
     <SectionWrapper
@@ -287,6 +306,59 @@
       showAllLink={resolve("/favorites/albums")}
       enableViewToggle={true}
     />-->
+
+    <!-- New Side-by-Side Dashboard Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8 px-4 sm:px-6">
+      <!-- Left Column: Top Songs -->
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold tracking-tight text-[var(--text-main)]">
+            Top Songs
+          </h2>
+          <a
+            href="/favorites/songs"
+            class="text-sm font-semibold text-[var(--accent)] hover:underline"
+            >Show More</a
+          >
+        </div>
+
+        <!-- Renders the top 5 song rows -->
+        {#if topSongs && topSongs.length > 0}
+          <SongList
+            songs={topSongs.slice(0, 5)}
+            showToolbar={false}
+            context="homescreen"
+          />
+        {:else}
+          <div class="text-sm text-[var(--text-muted)] py-4">
+            No top songs available.
+          </div>
+        {/if}
+      </div>
+
+      <!-- Right Column: Top Albums -->
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold tracking-tight text-[var(--text-main)]">
+            Top Albums
+          </h2>
+          <a
+            href="/favorites/albums"
+            class="text-sm font-semibold text-[var(--accent)] hover:underline"
+            >Show More</a
+          >
+        </div>
+
+        <!-- Option A: Renders as a clean vertical list matching the songs layout -->
+        {#if topAlbums && topAlbums.length > 0}
+          <AlbumList albums={topAlbums.slice(0, 5)} />
+        {:else}
+          <div class="text-sm text-[var(--text-muted)] py-4">
+            No top albums available.
+          </div>
+        {/if}
+      </div>
+    </div>
 
     <SectionWrapper
       title="Recently Added"

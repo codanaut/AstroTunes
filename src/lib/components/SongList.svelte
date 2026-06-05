@@ -22,7 +22,7 @@
         Search,
     } from "lucide-svelte";
     import { slide, fade, scale } from "svelte/transition";
-
+    import { untrack } from "svelte";
     import { parseArtistString } from "../utils/artistUtils.js";
     import { dragHandleZone, dragHandle } from "svelte-dnd-action";
     import { flip } from "svelte/animate";
@@ -33,7 +33,7 @@
 
     let isDesktop = $state(!isMobileDevice());
 
-    /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' |
+    /** @type {{ songs?: any[], context?: 'album' | 'artist' | 'playlist' | 'showAll' | 'favorites' | 'homescreen' |
     'songs', limit?: number, contextId?: string|null, contextName?: string|null, showToolbar?: boolean, onPlaylistUpdated?: () => void }} */
     let {
         songs = $bindable([]),
@@ -58,38 +58,40 @@
     $effect(() => {
         const currentPropsSongs = songs;
 
-        // Map songs to local state, preserving local IDs if the real track ID at that index hasn't changed
-        const updatedLocal = currentPropsSongs.map((song, index) => {
-            const existing = localSongs[index];
-            if (existing && existing.realId === song.id) {
-                return {
-                    ...song,
-                    realId: song.id,
-                    id: existing.id, // Keep existing ID to avoid DND flickering
-                };
-            } else {
-                return {
-                    ...song,
-                    realId: song.id,
-                    // Guarantee absolute uniqueness across identical songs
-                    id: `${song.id}_${index}_${Math.random().toString(36).substring(2, 11)}`,
-                };
+        untrack(() => {
+            // Map songs to local state, preserving local IDs if the real track ID at that index hasn't changed
+            const updatedLocal = currentPropsSongs.map((song, index) => {
+                const existing = localSongs[index];
+                if (existing && existing.realId === song.id) {
+                    return {
+                        ...song,
+                        realId: song.id,
+                        id: existing.id, // Keep existing ID to avoid DND flickering
+                    };
+                } else {
+                    return {
+                        ...song,
+                        realId: song.id,
+                        // Guarantee absolute uniqueness across identical songs
+                        id: `${song.id}_${index}_${Math.random().toString(36).substring(2, 11)}`,
+                    };
+                }
+            });
+
+            // Evaluate changes before assigning to prevent recursive/infinite update loops
+            const structuralChanged =
+                localSongs.length !== updatedLocal.length ||
+                localSongs.some(
+                    (s, i) =>
+                        s.id !== updatedLocal[i].id ||
+                        s.starred !== updatedLocal[i].starred ||
+                        s.playCount !== updatedLocal[i].playCount,
+                );
+
+            if (structuralChanged) {
+                localSongs = updatedLocal;
             }
         });
-
-        // Evaluate changes before assigning to prevent recursive/infinite update loops
-        const structuralChanged =
-            localSongs.length !== updatedLocal.length ||
-            localSongs.some(
-                (s, i) =>
-                    s.id !== updatedLocal[i].id ||
-                    s.starred !== updatedLocal[i].starred ||
-                    s.playCount !== updatedLocal[i].playCount,
-            );
-
-        if (structuralChanged) {
-            localSongs = updatedLocal;
-        }
     });
 
     // Column definitions
@@ -266,38 +268,20 @@
 
     let groupedSongs = $derived(
         useDiscGrouping
-            ? processedSongs.reduce((acc, song, index) => {
-                  // Find the exact local unique ID's index position
-                  const originalIndex = localSongs.findIndex(
-                      (s) => s.id === song.id,
-                  );
-                  const songWithIndex = {
-                      ...song,
-                      globalIndex: originalIndex !== -1 ? originalIndex : index,
-                  };
-
+            ? processedSongs.reduce((acc, song) => {
                   const disc = song.discNumber || 1;
                   let lastGroup = acc[acc.length - 1];
                   if (!lastGroup || lastGroup.disc !== disc) {
                       lastGroup = { disc, songs: [] };
                       acc.push(lastGroup);
                   }
-                  lastGroup.songs.push(songWithIndex);
+                  lastGroup.songs.push(song); // Keeps original object reference intact
                   return acc;
               }, [])
             : [
                   {
                       disc: 1,
-                      songs: processedSongs.map((s, i) => {
-                          const originalIndex = localSongs.findIndex(
-                              (raw) => raw.id === s.id,
-                          );
-                          return {
-                              ...s,
-                              globalIndex:
-                                  originalIndex !== -1 ? originalIndex : i,
-                          };
-                      }),
+                      songs: processedSongs, // Direct reference, no mapping or copying
                   },
               ],
     );
@@ -336,7 +320,10 @@
                 ...s,
                 id: s.realId,
             }));
-            playQueue(standardSongs, song.globalIndex, {
+            const gIndex = localSongs.findIndex((s) => s.id === song.id);
+            const globalIndex = gIndex !== -1 ? gIndex : 0;
+
+            playQueue(standardSongs, globalIndex, {
                 type: context,
                 id: contextId || "",
                 name: contextName || "",
@@ -400,14 +387,19 @@
 
     /** @param {any} song */
     function getTrackNumber(song) {
+        const gIndex = localSongs.findIndex((s) => s.id === song.id);
+        const globalIndex = gIndex !== -1 ? gIndex : 0;
+
         if (
             context === "artist" ||
             context === "playlist" ||
             context === "favorites"
         ) {
-            return song.globalIndex + 1;
+            return globalIndex + 1;
+        } else if (context === "homescreen") {
+            return song.playCount;
         }
-        return song.track || song.globalIndex + 1;
+        return song.track || globalIndex + 1;
     }
 
     /**
