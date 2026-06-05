@@ -751,7 +751,9 @@
                         >
 
                         <div
-                            class="flex gap-2 md:hidden text-xs text-[var(--text-muted)] truncate items-center mt-0.5"
+                            class="flex gap-2 {context === 'homescreen'
+                                ? ''
+                                : 'md:hidden'} text-xs text-[var(--text-muted)] truncate items-center mt-0.5"
                         >
                             <span class="truncate">{song.artist}</span>
                             <!-- If the screen is small (mobile) hide album. Look into removing this totally since pc doesnt need it. -->

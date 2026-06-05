@@ -311,15 +311,18 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8 px-4 sm:px-6">
       <!-- Left Column: Top Songs -->
       <div class="flex flex-col gap-4">
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center mx-auto">
           <h2 class="text-xl font-bold tracking-tight text-[var(--text-main)]">
-            Top Songs
+            <a
+              href="/favorites/songs"
+              class="hover:text-[var(--accent)] hover:underline">Top Songs</a
+            >
           </h2>
-          <a
+          <!--<a
             href="/favorites/songs"
             class="text-sm font-semibold text-[var(--accent)] hover:underline"
             >Show More</a
-          >
+          >-->
         </div>
 
         <!-- Renders the top 5 song rows -->
@@ -338,15 +341,18 @@
 
       <!-- Right Column: Top Albums -->
       <div class="flex flex-col gap-4">
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center mx-auto">
           <h2 class="text-xl font-bold tracking-tight text-[var(--text-main)]">
-            Top Albums
+            <a
+              href="/favorites/albums"
+              class="hover:text-[var(--accent)] hover:underline">Top Albums</a
+            >
           </h2>
-          <a
+          <!--<a
             href="/favorites/albums"
             class="text-sm font-semibold text-[var(--accent)] hover:underline"
             >Show More</a
-          >
+          >-->
         </div>
 
         <!-- Option A: Renders as a clean vertical list matching the songs layout -->

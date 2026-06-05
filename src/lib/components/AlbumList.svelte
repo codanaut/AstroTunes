@@ -1,11 +1,25 @@
 <script>
-    import { Heart, Clock, Disc, Music, User, Calendar, ArrowUp, ArrowDown } from "lucide-svelte";
-    import { getCoverArtUrl, starAlbum, unstarAlbum, getAlbumCount } from "../subsonic.js";
+    import {
+        Heart,
+        Clock,
+        Disc,
+        Music,
+        User,
+        Calendar,
+        ArrowUp,
+        ArrowDown,
+    } from "lucide-svelte";
+    import {
+        getCoverArtUrl,
+        starAlbum,
+        unstarAlbum,
+        getAlbumCount,
+    } from "../subsonic.js";
     import { playQueue, playQueueShuffled } from "../player.js";
     import { resolve } from "$app/paths";
     import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
-    let { albums = $bindable([]) } = $props();
+    let { albums = $bindable([]), context = "" } = $props();
 
     // --- SORTING STATE ---
     let sortField = $state("original");
@@ -16,17 +30,50 @@
         { id: "cover", label: "", alwaysVisible: true, sortable: false },
         { id: "title", label: "Album", alwaysVisible: true, sortable: true },
         { id: "artist", label: "Artist", alwaysVisible: false, sortable: true },
-        { id: "songCount", label: "Tracks", icon: Music, alwaysVisible: false, sortable: true },
-        { id: "year", label: "Year", icon: Calendar, alwaysVisible: false, sortable: true },
-        { id: "duration", label: "Duration", icon: Clock, alwaysVisible: true, sortable: true },
-        { id: "starred", label: "", icon: Heart, alwaysVisible: true, sortable: true },
+        {
+            id: "songCount",
+            label: "Tracks",
+            icon: Music,
+            alwaysVisible: false,
+            sortable: true,
+        },
+        {
+            id: "year",
+            label: "Year",
+            icon: Calendar,
+            alwaysVisible: false,
+            sortable: true,
+        },
+        {
+            id: "duration",
+            label: "Duration",
+            icon: Clock,
+            alwaysVisible: true,
+            sortable: true,
+        },
+        {
+            id: "starred",
+            label: "",
+            icon: Heart,
+            alwaysVisible: true,
+            sortable: true,
+        },
     ];
 
     let containerWidth = $state(1024);
     let isMobile = $derived(containerWidth < 768);
 
+    /**
+     * @param {string} id
+     */
     function isColumnVisible(id) {
-        if (id === "cover" || id === "title" || id === "starred" || id === "duration") return true;
+        if (
+            id === "cover" ||
+            id === "title" ||
+            id === "starred" ||
+            id === "duration"
+        )
+            return true;
         if (isMobile) return false;
         return true;
     }
@@ -43,10 +90,13 @@
         40px /* Heart */
     `
             .replace(/\s+/g, " ")
-            .trim()
+            .trim(),
     );
 
     // Sorting Logic
+    /**
+     * @param {string} field
+     */
     function handleSort(field) {
         if (!ALL_COLUMNS.find((c) => c.id === field)?.sortable) return;
 
@@ -84,7 +134,7 @@
                 });
             }
             return result;
-        })()
+        })(),
     );
 
     /**
@@ -94,17 +144,17 @@
     async function toggleAlbumFavorite(album, event) {
         event.preventDefault();
         event.stopPropagation();
-        
+
         // Optimistic UI Update
         const originalStarred = album.starred;
         const isStarred = !!album.starred;
-        
+
         // Update local state immediately
-        const index = albums.findIndex(a => a.id === album.id);
+        const index = albums.findIndex((a) => a.id === album.id);
         if (index !== -1) {
-             albums[index] = { 
-                ...album, 
-                starred: isStarred ? undefined : new Date().toISOString() 
+            albums[index] = {
+                ...album,
+                starred: isStarred ? undefined : new Date().toISOString(),
             };
         }
 
@@ -138,49 +188,69 @@
     bind:clientWidth={containerWidth}
     class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl overflow-x-auto border border-[var(--border-primary)]"
 >
-    <!-- Header -->
-    <div
-        class="grid gap-4 px-4 py-3 text-xs text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center font-semibold bg-[var(--bg-card)]/50 select-none"
-        style="grid-template-columns: {desktopGridColumns};"
-    >
-        {#each ALL_COLUMNS as col}
-            {#if isColumnVisible(col.id)}
-                <div
-                    class="flex items-center gap-1 {col.id === 'duration' || col.id === 'songCount' || col.id === 'year' ? 'justify-end' : ''} {col.id === 'starred' ? 'justify-center' : ''} {col.sortable ? 'cursor-pointer hover:text-[var(--text-primary)]' : ''}"
-                    onclick={() => handleSort(col.id)}
-                    role="button"
-                    tabindex="0"
-                    onkeydown={(e) => (e.key === "Enter" || e.key === " ") && handleSort(col.id)}
-                >
-                    {#if col.icon}
-                        {@const Icon = col.icon}
-                        <Icon size={14} />
-                    {:else}
-                        {col.label}
-                    {/if}
-
-                    {#if sortField === col.id}
-                        {#if sortDirection === "asc"}
-                            <ArrowUp size={12} class="text-[var(--accent)]" />
+    {#if !isMobileDevice()}
+        <!-- Header -->
+        <div
+            class="grid gap-4 px-4 py-3 text-xs text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center font-semibold bg-[var(--bg-card)]/50 select-none"
+            style="grid-template-columns: {desktopGridColumns};"
+        >
+            {#each ALL_COLUMNS as col}
+                {#if isColumnVisible(col.id)}
+                    <div
+                        class="flex items-center gap-1 {col.id === 'duration' ||
+                        col.id === 'songCount' ||
+                        col.id === 'year'
+                            ? 'justify-end'
+                            : ''} {col.id === 'starred'
+                            ? 'justify-center'
+                            : ''} {col.sortable
+                            ? 'cursor-pointer hover:text-[var(--text-primary)]'
+                            : ''}"
+                        onclick={() => handleSort(col.id)}
+                        role="button"
+                        tabindex="0"
+                        onkeydown={(e) =>
+                            (e.key === "Enter" || e.key === " ") &&
+                            handleSort(col.id)}
+                    >
+                        {#if col.icon}
+                            {@const Icon = col.icon}
+                            <Icon size={14} />
                         {:else}
-                            <ArrowDown size={12} class="text-[var(--accent)]" />
+                            {col.label}
                         {/if}
-                    {/if}
-                </div>
-            {/if}
-        {/each}
-    </div>
+
+                        {#if sortField === col.id}
+                            {#if sortDirection === "asc"}
+                                <ArrowUp
+                                    size={12}
+                                    class="text-[var(--accent)]"
+                                />
+                            {:else}
+                                <ArrowDown
+                                    size={12}
+                                    class="text-[var(--accent)]"
+                                />
+                            {/if}
+                        {/if}
+                    </div>
+                {/if}
+            {/each}
+        </div>
+    {/if}
 
     <!-- Rows -->
     <div class="flex flex-col">
         {#each processedAlbums as album (album.id)}
             <a
                 href={resolve(`/album/${album.id}`)}
-                class="grid gap-4 px-4 py-2 text-sm items-center hover:bg-[var(--bg-hover)] group transition-colors border-b border-[var(--border-secondary)]/50 last:border-0 text-[var(--text-secondary)]"
+                class="grid gap-4 px-4 py-2.5 text-sm items-center hover:bg-[var(--bg-hover)] group transition-colors border-b border-[var(--border-secondary)]/50 last:border-0 text-[var(--text-secondary)]"
                 style="grid-template-columns: {desktopGridColumns};"
             >
                 <!-- Cover -->
-                <div class="w-10 h-10 rounded overflow-hidden bg-[var(--bg-card)] shrink-0">
+                <div
+                    class="w-10 h-10 rounded overflow-hidden bg-[var(--bg-card)] shrink-0"
+                >
                     <img
                         src={getCoverArtUrl(album.id, 100)}
                         alt=""
@@ -190,10 +260,16 @@
                 </div>
 
                 <!-- Title -->
-                <div class="font-medium text-[var(--text-primary)] truncate">
+                <div
+                    class="font-medium text-base text-[var(--text-primary)] truncate"
+                >
                     {album.title}
                     {#if isMobile}
-                         <div class="text-xs text-[var(--text-muted)] truncate">{album.artist}</div>
+                        <div
+                            class="text-xs text-[var(--text-muted)] truncate mt-0.5"
+                        >
+                            {album.artist}
+                        </div>
                     {/if}
                 </div>
 
@@ -212,21 +288,21 @@
                 {/if}
 
                 <!-- Year -->
-                 {#if isColumnVisible("year")}
+                {#if isColumnVisible("year")}
                     <div class="text-right tabular-nums">
                         {album.year || "-"}
                     </div>
                 {/if}
 
                 <!-- Duration -->
-                 {#if isColumnVisible("duration")}
+                {#if isColumnVisible("duration")}
                     <div class="text-right tabular-nums">
                         {formatDuration(album.duration)}
                     </div>
                 {/if}
 
                 <!-- Starred -->
-                 {#if isColumnVisible("starred")}
+                {#if isColumnVisible("starred")}
                     <div class="flex justify-center">
                         <button
                             onclick={(e) => toggleAlbumFavorite(album, e)}
