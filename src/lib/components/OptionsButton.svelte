@@ -25,6 +25,8 @@
      * @property {string|null} [contextId] - The ID of the context (e.g. playlist ID)
      * @property {() => void} [onPlaylistUpdated] - Callback for when context playlist updates
      * @property {string} [className] - Optional CSS classes for the trigger button
+     * @property {boolean} [isOpen] - Whether the menu is currently open
+     * @property {(open: boolean) => void} [onToggle] - Callback to toggle the open state
      */
 
     /** @type {Props} */

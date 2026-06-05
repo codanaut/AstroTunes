@@ -201,7 +201,7 @@
                     <AlbumCard
                         {album}
                         isOpen={activeMenuAlbumId === album.id}
-                        onToggle={(open) =>
+                        onToggle={(/** @type {boolean} */ open) =>
                             (activeMenuAlbumId = open ? album.id : null)}
                     />
                 {/each}

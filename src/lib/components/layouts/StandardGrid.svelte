@@ -15,7 +15,7 @@
             <AlbumCard
                 album={item}
                 isOpen={activeMenuAlbumId === item.id}
-                onToggle={(open) => {
+                onToggle={(/** @type {boolean} */ open) => {
                     activeMenuAlbumId = open ? item.id : null;
                 }}
             />
