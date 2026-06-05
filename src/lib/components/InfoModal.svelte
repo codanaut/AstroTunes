@@ -16,7 +16,6 @@
         if (isOpen) {
             getInfo(type, id).then((data) => {
                 info = data;
-                console.log(info);
             });
         }
     });
