@@ -98,8 +98,8 @@
     const ALL_COLUMNS = [
         { id: "track", label: "#", alwaysVisible: true, sortable: true },
         { id: "title", label: "Title", alwaysVisible: true, sortable: true },
-        { id: "album", label: "Album", alwaysVisible: false, sortable: true },
         { id: "artist", label: "Artist", alwaysVisible: false, sortable: true },
+        { id: "album", label: "Album", alwaysVisible: false, sortable: true },
         { id: "year", label: "Year", alwaysVisible: false, sortable: true },
         {
             id: "quality",
