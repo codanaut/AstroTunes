@@ -41,6 +41,7 @@
   let showFullBio = $state(false);
   /** @type {any} */
   let syncInterval;
+  let activeMenuAlbumId = $state(null);
 
   $effect(() => {
     if ($page.params.id) {
@@ -538,7 +539,12 @@
         <h1 class="text-2xl font-bold mt-6 mb-6">All Albums</h1>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {#each artist.album as album, i}
-            <AlbumCard album={artist.album[i]} />
+            <AlbumCard
+              album={artist.album[i]}
+              isOpen={activeMenuAlbumId === album.id}
+              onToggle={(/** @type {boolean} */ open) =>
+                (activeMenuAlbumId = open ? album.id : null)}
+            />
           {/each}
         </div>
       </div>
@@ -550,7 +556,12 @@
         <h1 class="text-2xl font-bold mt-6 mb-6">Appears On</h1>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {#each appearsOnAlbums as album}
-            <AlbumCard {album} />
+            <AlbumCard
+              {album}
+              isOpen={activeMenuAlbumId === album.id}
+              onToggle={(/** @type {boolean} */ open) =>
+                (activeMenuAlbumId = open ? album.id : null)}
+            />
           {/each}
         </div>
       </div>

@@ -32,6 +32,8 @@
     let viewMode = $state("grid");
     const storageKey = "section-view-mode-album";
 
+    let activeMenuAlbumId = $state(null);
+
     let currentPage = $derived(Number($page.url.searchParams.get("page")) || 1);
     let offset = $derived((currentPage - 1) * limit);
 
@@ -53,14 +55,11 @@
         }
     }
 
-    /**
-     * @param {string} folderParam
-     */
-    async function loadFavorites(folderParam) {
+    async function loadFavorites() {
         loading = true;
         try {
             // Fetch ALL favorites to get correct count and data
-            const starred = await subsonicFetch("getStarred", folderParam);
+            const starred = await subsonicFetch("getStarred");
             if (starred && starred.starred && starred.starred.album) {
                 allFavorites = starred.starred.album;
             } else {
@@ -72,12 +71,6 @@
             loading = false;
         }
     }
-
-    $effect(() => {
-        // Re-run on library change
-        const folderParam = musicFolderParam($libraryStore.selectedId);
-        untrack(() => loadFavorites(folderParam));
-    });
 
     // Update displayed slice whenever allFavorites or currentPage changes
     $effect(() => {
@@ -203,7 +196,12 @@
         {#if viewMode === "grid"}
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {#each displayedAlbums as album (album.id)}
-                    <AlbumCard {album} />
+                    <AlbumCard
+                        {album}
+                        isOpen={activeMenuAlbumId === album.id}
+                        onToggle={(/** @type {boolean} */ open) =>
+                            (activeMenuAlbumId = open ? album.id : null)}
+                    />
                 {/each}
             </div>
         {:else}
