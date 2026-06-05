@@ -2,30 +2,27 @@
     import {
         Heart,
         Clock,
-        Disc,
         Music,
-        User,
         Calendar,
         ArrowUp,
         ArrowDown,
     } from "lucide-svelte";
-    import {
-        getCoverArtUrl,
-        starAlbum,
-        unstarAlbum,
-        getAlbumCount,
-    } from "../subsonic.js";
-    import { playQueue, playQueueShuffled } from "../player.js";
+    import { getCoverArtUrl, starAlbum, unstarAlbum } from "../subsonic.js";
     import { resolve } from "$app/paths";
     import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
     let { albums = $bindable([]), context = "" } = $props();
 
+    // --- DEVICE DETECTORS MAP TO SONGLIST ---
+    let isDesktop = $state(!isMobileDevice());
+    let containerWidth = $state(1024);
+    let isMobile = $derived(containerWidth < 768);
+
     // --- SORTING STATE ---
     let sortField = $state("original");
     let sortDirection = $state("asc");
 
-    // Columns Configuration
+    // Unified Columns Configuration
     const ALL_COLUMNS = [
         { id: "cover", label: "", alwaysVisible: true, sortable: false },
         { id: "title", label: "Album", alwaysVisible: true, sortable: true },
@@ -60,9 +57,6 @@
         },
     ];
 
-    let containerWidth = $state(1024);
-    let isMobile = $derived(containerWidth < 768);
-
     /**
      * @param {string} id
      */
@@ -72,25 +66,26 @@
             id === "title" ||
             id === "starred" ||
             id === "duration"
-        )
+        ) {
             return true;
+        }
         if (isMobile) return false;
         return true;
     }
 
-    // Grid Template
+    // Array Builder avoids token breakdown or comment corruption in CSS custom variables
     let desktopGridColumns = $derived(
-        `
-        40px /* Cover */
-        minmax(200px, 3fr) /* Title */
-        ${isColumnVisible("artist") ? "minmax(150px, 2fr)" : ""}
-        ${isColumnVisible("songCount") ? "80px" : ""}
-        ${isColumnVisible("year") ? "60px" : ""}
-        ${isColumnVisible("duration") ? "80px" : ""}
-        40px /* Heart */
-    `
-            .replace(/\s+/g, " ")
-            .trim(),
+        [
+            "40px",
+            isMobile ? "minmax(0, 1fr)" : "minmax(200px, 3fr)",
+            isColumnVisible("artist") ? "minmax(150px, 2fr)" : "",
+            isColumnVisible("songCount") ? "70px" : "",
+            isColumnVisible("year") ? "60px" : "",
+            isColumnVisible("starred") ? "2rem" : "",
+            isColumnVisible("duration") ? "auto" : "",
+        ]
+            .filter(Boolean)
+            .join(" "),
     );
 
     // Sorting Logic
@@ -99,7 +94,6 @@
      */
     function handleSort(field) {
         if (!ALL_COLUMNS.find((c) => c.id === field)?.sortable) return;
-
         if (sortField === field) {
             if (sortDirection === "asc") sortDirection = "desc";
             else {
@@ -122,7 +116,8 @@
 
                     if (sortField === "starred") valA = a.starred ? 1 : 0;
                     if (sortField === "starred") valB = b.starred ? 1 : 0;
-                    if (sortField === "title") valA = a.title || a.name; // Handle title/name alias if needed
+
+                    if (sortField === "title") valA = a.title || a.name;
                     if (sortField === "title") valB = b.title || b.name;
 
                     if (typeof valA === "string") valA = valA.toLowerCase();
@@ -145,11 +140,9 @@
         event.preventDefault();
         event.stopPropagation();
 
-        // Optimistic UI Update
         const originalStarred = album.starred;
         const isStarred = !!album.starred;
 
-        // Update local state immediately
         const index = albums.findIndex((a) => a.id === album.id);
         if (index !== -1) {
             albums[index] = {
@@ -166,7 +159,6 @@
             }
         } catch (error) {
             console.error("Failed to toggle album favorite:", error);
-            // Revert on error
             if (index !== -1) {
                 albums[index] = { ...album, starred: originalStarred };
             }
@@ -188,23 +180,23 @@
     bind:clientWidth={containerWidth}
     class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl overflow-x-auto border border-[var(--border-primary)]"
 >
-    {#if !isMobileDevice()}
-        <!-- Header -->
+    {#if isDesktop}
         <div
-            class="grid gap-4 px-4 py-3 text-xs text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center font-semibold bg-[var(--bg-card)]/50 select-none"
-            style="grid-template-columns: {desktopGridColumns};"
+            class="album-grid gap-4 px-4 py-3 text-xs text-[var(--text-secondary)] border-b border-[var(--border-primary)] uppercase tracking-wider items-center font-semibold bg-[var(--bg-card)]/50 select-none"
+            style="--desktop-cols: {desktopGridColumns};"
         >
             {#each ALL_COLUMNS as col}
                 {#if isColumnVisible(col.id)}
                     <div
-                        class="flex items-center gap-1 {col.id === 'duration' ||
+                        class="flex items-center gap-1
+                        {col.id === 'duration' ||
                         col.id === 'songCount' ||
                         col.id === 'year'
                             ? 'justify-end'
-                            : ''} {col.id === 'starred'
-                            ? 'justify-center'
-                            : ''} {col.sortable
-                            ? 'cursor-pointer hover:text-[var(--text-primary)]'
+                            : ''} 
+                        {col.id === 'starred' ? 'justify-center' : ''} 
+                        {col.sortable
+                            ? 'cursor-pointer hover:text-[var(--text-primary)] transition-colors'
                             : ''}"
                         onclick={() => handleSort(col.id)}
                         role="button"
@@ -239,69 +231,68 @@
         </div>
     {/if}
 
-    <!-- Rows -->
     <div class="flex flex-col">
         {#each processedAlbums as album (album.id)}
             <a
                 href={resolve(`/album/${album.id}`)}
-                class="grid gap-4 px-4 py-2.5 text-sm items-center hover:bg-[var(--bg-hover)] group transition-colors border-b border-[var(--border-secondary)]/50 last:border-0 text-[var(--text-secondary)]"
-                style="grid-template-columns: {desktopGridColumns};"
+                class="album-grid gap-4 px-4 py-2.5 text-sm items-center hover:bg-[var(--bg-hover)] group transition-colors border-b border-[var(--border-secondary)]/50 last:border-0 text-[var(--text-secondary)]"
+                style="--desktop-cols: {desktopGridColumns};"
             >
-                <!-- Cover -->
                 <div
-                    class="w-10 h-10 rounded overflow-hidden bg-[var(--bg-card)] shrink-0"
+                    class="w-10 h-10 rounded overflow-hidden bg-[var(--bg-card)] shrink-0 shadow-sm"
                 >
                     <img
                         src={getCoverArtUrl(album.id, 100)}
                         alt=""
-                        class="w-full h-full object-cover"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                     />
                 </div>
 
-                <!-- Title -->
                 <div
                     class="font-medium text-base text-[var(--text-primary)] truncate"
                 >
-                    {album.title}
+                    <span
+                        class="group-hover:text-[var(--accent)] transition-colors"
+                        >{album.title}</span
+                    >
                     {#if isMobile}
                         <div
-                            class="text-xs text-[var(--text-muted)] truncate mt-0.5"
+                            class="text-xs text-[var(--text-muted)] truncate mt-0.5 font-normal"
                         >
                             {album.artist}
                         </div>
                     {/if}
                 </div>
 
-                <!-- Artist -->
                 {#if isColumnVisible("artist")}
-                    <div class="truncate hover:text-white transition-colors">
+                    <div
+                        class="truncate hover:text-[var(--text-primary)] transition-colors"
+                    >
                         {album.artist}
                     </div>
                 {/if}
 
-                <!-- Tracks -->
                 {#if isColumnVisible("songCount")}
                     <div class="text-right tabular-nums">
                         {album.songCount || "-"}
                     </div>
                 {/if}
 
-                <!-- Year -->
                 {#if isColumnVisible("year")}
                     <div class="text-right tabular-nums">
                         {album.year || "-"}
                     </div>
                 {/if}
 
-                <!-- Starred -->
                 {#if isColumnVisible("starred")}
-                    <div class="flex justify-center">
+                    <div class="flex justify-center z-10">
                         <button
                             onclick={(e) => toggleAlbumFavorite(album, e)}
-                            class="p-1.5 rounded-full hover:bg-[var(--text-primary)]/10 transition-colors {album.starred
+                            class="p-1.5 rounded-full hover:bg-[var(--text-primary)]/10 transition-all {album.starred
                                 ? 'opacity-100'
                                 : 'opacity-0 group-hover:opacity-100'}"
+                            aria-label="Toggle favorite"
                         >
                             <Heart
                                 size={16}
@@ -313,9 +304,8 @@
                     </div>
                 {/if}
 
-                <!-- Duration -->
                 {#if isColumnVisible("duration")}
-                    <div class="text-center tabular-nums">
+                    <div class="text-right tabular-nums">
                         {formatDuration(album.duration)}
                     </div>
                 {/if}
@@ -323,3 +313,18 @@
         {/each}
     </div>
 </div>
+
+<style>
+    .album-grid {
+        display: grid;
+        grid-template-columns: var(--desktop-cols);
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    @media (min-width: 768px) {
+        .album-grid {
+            gap: 1rem;
+        }
+    }
+</style>
