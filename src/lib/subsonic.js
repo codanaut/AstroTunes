@@ -279,7 +279,10 @@ export async function reorderPlaylist(playlistId, newSongIds) {
     if (!current?.playlist?.entry) return;
 
     const songs = current.playlist.entry;
-    const indexesToRemove = songs.map((s, i) => i);
+    /** @type {any[]} */
+    const indexesToRemove = songs.map(
+        (/** @type {any} */ s, /** @type {number} */ i) => i
+    );
 
     // 2. Clear playlist
     // We can't do this in one go reliably with just updatePlaylist for reordering, 
@@ -310,4 +313,18 @@ export async function reorderPlaylist(playlistId, newSongIds) {
  */
 export async function getMusicFolders() {
     return await subsonicFetch('getMusicFolders');
+}
+
+/**
+ * Fetches info for a song, album, or artist
+ * @param {string} type - 'song', 'album', or 'artist'
+ * @param {string} id - ID of the song, album, or artist
+ */
+export async function getInfo(type, id) {
+    if (type === 'song') {
+        return await subsonicFetch('getSong', `&id=${id}`);
+    }
+    if (type === 'album') {
+        return await subsonicFetch('getAlbum', `&id=${id}`);
+    }
 }

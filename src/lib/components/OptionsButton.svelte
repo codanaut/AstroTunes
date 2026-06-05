@@ -2,6 +2,7 @@
     import { addToQueue } from "$lib/player.js";
     import { updatePlaylist, subsonicFetch } from "$lib/subsonic.js";
     import AddToPlaylistModal from "$lib/components/AddToPlaylistModal.svelte";
+    import InfoModal from "$lib/components/InfoModal.svelte";
     import {
         MoreVertical,
         ListPlus,
@@ -9,6 +10,7 @@
         Trash2,
         User,
         Album,
+        Info,
     } from "lucide-svelte";
     import { scale } from "svelte/transition";
     import { portal } from "$lib/utils/portal";
@@ -40,6 +42,7 @@
     let menuPosition = $state({ x: 0, y: 0 });
     /** @type {any[]} */
     let songsToProcess = $state([]);
+    let showInfoModal = $state(false);
 
     /** @param {MouseEvent} event */
     function openMenu(event) {
@@ -123,8 +126,8 @@
     async function handleAddToQueue(event) {
         event.preventDefault();
         event.stopPropagation();
+        /** @type {any[]} */
         const songs = await getSongsForItem();
-        /** @param {any} song */
         songs.forEach((song) => addToQueue(song));
         closeMenu();
     }
@@ -230,5 +233,33 @@
                 <Album size={16} /> Go to Album
             </a>
         {/if}
+        <div class="h-px bg-[var(--border-secondary)] my-1"></div>
+        <button
+            class="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-hover)] text-[var(--text-primary)] flex items-center gap-2"
+            onclick={() => {
+                showInfoModal = true;
+            }}
+        >
+            <Info size={16} />
+            {itemType === "song"
+                ? "Song"
+                : itemType === "album"
+                  ? "Album"
+                  : "Artist"} Info
+        </button>
     </div>
+{/if}
+
+{#if showInfoModal}
+    <InfoModal
+        isOpen={showInfoModal}
+        type={itemType}
+        id={item.id}
+        onclose={() => {
+            showInfoModal = false;
+        }}
+        onsuccess={() => {
+            // Optional: show toast or success message
+        }}
+    />
 {/if}
