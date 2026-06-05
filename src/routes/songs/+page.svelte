@@ -68,7 +68,7 @@
     }
 </script>
 
-<div class="w-full mx-auto p-4 md:p-8 pb-32">
+<div class="w-full mx-auto md:p-8 pb-32">
     <div
         class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4"
     >
@@ -130,12 +130,14 @@
             <p class="text-lg">No songs found in library.</p>
         </div>
     {:else}
-        <SongList
-            {songs}
-            context="songs"
-            contextId="library"
-            contextName={`Library (Page ${currentPage})`}
-        />
+        <div class="flex flex-col -mx-4 md:mx-0">
+            <SongList
+                {songs}
+                context="songs"
+                contextId="library"
+                contextName={`Library (Page ${currentPage})`}
+            />
+        </div>
 
         <div class="flex justify-center gap-2 mt-8">
             <button
