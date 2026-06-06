@@ -1,5 +1,5 @@
 
-import { writable, get } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 // @ts-ignore - Ignores missing type definitions for blueimp-md5
 import md5 from 'blueimp-md5';

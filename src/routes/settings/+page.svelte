@@ -1,26 +1,9 @@
 <script>
-    import {
-        Moon,
-        Sun,
-        Check,
-        Zap,
-        CloudRain,
-        Coffee,
-        Rocket,
-        Trees,
-    } from "lucide-svelte";
+    import { Moon, Sun, Rocket, Trees } from "lucide-svelte";
     import { auth } from "$lib/auth";
     import { theme } from "$lib/stores/theme";
     import { subsonicFetch } from "$lib/subsonic";
-    import { goto } from "$app/navigation";
-    import {
-        Loader2,
-        Server,
-        Music,
-        Settings,
-        Palette,
-        Play,
-    } from "lucide-svelte";
+    import { Loader2, Server, Music, Settings, Palette } from "lucide-svelte";
     import AccentColorPicker from "$lib/components/AccentColorPicker.svelte";
     import { crossfadeDuration } from "$lib/player";
 

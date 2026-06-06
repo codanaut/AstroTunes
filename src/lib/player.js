@@ -574,8 +574,7 @@ export function shuffleCurrentQueue() {
 
     if (q.length <= 1) return;
 
-    let startIndex = 0;
-    let playingTrack = null;
+
 
     if (curr) {
         const index = curr.queueId

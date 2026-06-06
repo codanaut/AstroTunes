@@ -281,7 +281,7 @@ export async function reorderPlaylist(playlistId, newSongIds) {
     const songs = current.playlist.entry;
     /** @type {any[]} */
     const indexesToRemove = songs.map(
-        (/** @type {any} */ s, /** @type {number} */ i) => i
+        (/** @type {any} */ _, /** @type {number} */ i) => i
     );
 
     // 2. Clear playlist

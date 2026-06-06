@@ -31,17 +31,14 @@
         Repeat1,
         ListMusic,
         ChevronDown,
-        Disc,
-        Mic2,
         X,
         Trash2,
         Music,
     } from "lucide-svelte";
     import BackButton from "../../lib/components/BackButton.svelte";
     import QueueList from "../../lib/components/QueueList.svelte";
-    import { fade, slide } from "svelte/transition";
+    import { slide } from "svelte/transition";
     import { parseArtistString } from "../../lib/utils/artistUtils";
-    import { reorderPlaylist } from "../../lib/subsonic";
     import { resolve } from "$app/paths";
 
     let showQueuePanel = $state(false);
@@ -312,7 +309,9 @@
                 transition:slide={{ axis: "y", duration: 300 }}
                 style="padding-top: env(safe-area-inset-top, 0px);"
             >
-                <div class="p-4 flex justify-between items-center relative border-b border-[var(--border-primary)] shrink-0">
+                <div
+                    class="p-4 flex justify-between items-center relative border-b border-[var(--border-primary)] shrink-0"
+                >
                     <div class="flex flex-col">
                         <h2 class="font-bold text-lg">Queue</h2>
                         <p class="text-xs text-[var(--text-secondary)]">
