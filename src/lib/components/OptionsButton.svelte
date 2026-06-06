@@ -280,8 +280,5 @@
         onclose={() => {
             showInfoModal = false;
         }}
-        onsuccess={() => {
-            // Optional: show toast or success message
-        }}
     />
 {/if}

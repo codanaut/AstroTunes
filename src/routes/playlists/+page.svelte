@@ -25,9 +25,7 @@
         Check,
         Download,
         Upload,
-        X,
     } from "lucide-svelte";
-    import { fade } from "svelte/transition";
     import { formatDuration } from "$lib/utils/formatDuration.js";
     import { page } from "$app/stores";
 
@@ -231,6 +229,7 @@
         if (!target || !target.files || target.files.length === 0) return;
 
         const file = target.files[0];
+        if (!file) return;
         const reader = new FileReader();
 
         reader.onload = async (e) => {

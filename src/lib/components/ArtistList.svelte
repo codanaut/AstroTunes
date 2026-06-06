@@ -2,7 +2,6 @@
     import { Heart, Disc, ArrowUp, ArrowDown } from "lucide-svelte";
     import { getCoverArtUrl, subsonicFetch } from "../subsonic.js";
     import { resolve } from "$app/paths";
-    import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
     let { artists = $bindable([]) } = $props();
 
@@ -29,14 +28,6 @@
             sortable: true,
         },
     ];
-
-    let containerWidth = $state(1024);
-    let isMobile = $derived(containerWidth < 768);
-
-    /** @param {string} id */
-    function isColumnVisible(id) {
-        return true;
-    }
 
     // Grid Template
     let desktopGridColumns = $derived(
@@ -134,7 +125,6 @@
 </script>
 
 <div
-    bind:clientWidth={containerWidth}
     class="w-full flex flex-col relative backdrop-blur-xl shadow-xl bg-[var(--bg-sidebar)]/80 rounded-xl overflow-x-auto border border-[var(--border-primary)]"
 >
     <!-- Header -->

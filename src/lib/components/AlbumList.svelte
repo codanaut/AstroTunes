@@ -11,7 +11,7 @@
     import { resolve } from "$app/paths";
     import { isMobileDevice } from "$lib/utils/deviceUtils.js";
 
-    let { albums = $bindable([]), context = "" } = $props();
+    let { albums = $bindable([]) } = $props();
 
     // --- DEVICE DETECTORS MAP TO SONGLIST ---
     let isDesktop = $state(!isMobileDevice());

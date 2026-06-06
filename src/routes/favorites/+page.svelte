@@ -2,7 +2,7 @@
     import { onMount, onDestroy } from "svelte";
     import { subsonicFetch } from "../../lib/subsonic.js";
     import { playQueue, playQueueShuffled } from "../../lib/player.js";
-    import { Play, Shuffle, Music, Disc, Mic2 } from "lucide-svelte";
+    import { Play, Shuffle } from "lucide-svelte";
     import ShowAllButton from "../../lib/components/ShowAllButton.svelte";
     import SongList from "../../lib/components/SongList.svelte";
     import AlbumCard from "../../lib/components/AlbumCard.svelte";
@@ -40,6 +40,8 @@
             favoriteArtists = starred.starred.artist ?? [];
         }
     }
+
+    let activeMenuAlbumId = $state(null);
 
     // Re-fetch when library selection changes
     $effect(() => {
@@ -145,7 +147,12 @@
 
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-12">
         {#each favoriteAlbums.slice(0, 10) as album (album.id)}
-            <AlbumCard {album} />
+            <AlbumCard
+                {album}
+                isOpen={activeMenuAlbumId === album.id}
+                onToggle={(/** @type {boolean} */ open) =>
+                    (activeMenuAlbumId = open ? album.id : null)}
+            />
         {/each}
         {#if favoriteAlbums.length === 0}
             <div

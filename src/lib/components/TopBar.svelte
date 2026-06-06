@@ -24,16 +24,6 @@
             goto(resolve("/search") + `?q=${encodeURIComponent(searchQuery)}`);
         }
     }
-
-    let isMobileMenuOpen = $state(false);
-
-    function toggleMobileMenu() {
-        isMobileMenuOpen = !isMobileMenuOpen;
-    }
-
-    function closeMobileMenu() {
-        isMobileMenuOpen = false;
-    }
 </script>
 
 <!-- TOP BAR -->

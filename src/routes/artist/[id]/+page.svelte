@@ -4,20 +4,13 @@
   import {
     subsonicFetch,
     getCoverArtUrl,
-    starTrack,
-    unstarTrack,
     starAlbum,
     unstarAlbum,
     getTopSongs,
     search,
     getArtistInfo,
   } from "../../../lib/subsonic.js";
-  import {
-    playQueue,
-    playQueueShuffled,
-    currentTrack,
-    isPlaying,
-  } from "../../../lib/player.js";
+  import { playQueue, playQueueShuffled } from "../../../lib/player.js";
   import { Play, Shuffle, Heart, Mic2 } from "lucide-svelte";
   import BackButton from "../../../lib/components/BackButton.svelte";
   import SongList from "../../../lib/components/SongList.svelte";
@@ -298,15 +291,6 @@
     if (topSongs.length > 0) {
       playQueueShuffled(topSongs);
     }
-  }
-
-  /**
-   * Toggle starred status for the album
-   * @param {any} albumToToggle
-   * @param {Event} event
-   */
-  async function toggleAlbumFavorite(albumToToggle, event) {
-    if (event) event.stopPropagation();
   }
 
   /**

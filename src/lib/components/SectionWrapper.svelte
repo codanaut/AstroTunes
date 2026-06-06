@@ -2,10 +2,6 @@
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
     import { LayoutGrid, List, ChevronLeft, ChevronRight } from "lucide-svelte";
-    import AlbumCard from "./AlbumCard.svelte";
-    import ArtistCard from "./ArtistCard.svelte";
-    import AlbumList from "./AlbumList.svelte";
-    import ArtistList from "./ArtistList.svelte";
     import ShowAllButton from "./ShowAllButton.svelte";
     import { goto } from "$app/navigation";
     import FeaturedLayout from "./layouts/FeaturedLayout.svelte";
@@ -29,7 +25,7 @@
 
     // View State
     let viewMode = $state("grid");
-    const storageKey = `section-view-mode-${type}`;
+    const storageKey = $derived(`section-view-mode-${type}`);
 
     onMount(() => {
         if (browser && enableViewToggle) {
@@ -52,14 +48,16 @@
 
     function nextPage() {
         if (!baseUrl) return;
-        const url = new URL(resolve(baseUrl), window.location.origin);
+        const resolveRoute = /** @type {any} */ (resolve);
+        const url = new URL(resolve(resolveRoute), window.location.origin);
         url.searchParams.set("page", String(currentPage + 1));
         goto(url.pathname + url.search);
     }
 
     function prevPage() {
         if (!baseUrl || currentPage <= 1) return;
-        const url = new URL(resolve(baseUrl), window.location.origin);
+        const resolveRoute = /** @type {any} */ (resolve);
+        const url = new URL(resolve(resolveRoute), window.location.origin);
         url.searchParams.set("page", String(currentPage - 1));
         goto(url.pathname + url.search);
     }
@@ -74,13 +72,19 @@
         <div class="flex items-center gap-2">
             <h1 class="text-2xl font-bold text-[var(--text-primary)]">
                 {#if showAllLink}
-                    <a href={showAllLink} class="hover:text-[var(--accent)] transition-colors">{title}</a>
+                    <a
+                        href={showAllLink}
+                        class="hover:text-[var(--accent)] transition-colors"
+                        >{title}</a
+                    >
                 {:else}
                     {title}
                 {/if}
             </h1>
             {#if totalItems > 0 && !showAllLink}
-                <span class="text-[var(--text-muted)] text-sm font-normal self-end mb-1">
+                <span
+                    class="text-[var(--text-muted)] text-sm font-normal self-end mb-1"
+                >
                     {totalItems} items
                 </span>
             {/if}

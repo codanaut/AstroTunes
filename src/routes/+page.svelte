@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from "svelte";
   import { subsonicFetch } from "../lib/subsonic.js";
-  import { PlugZap, Disc, Mic2, Music, ListMusic } from "lucide-svelte";
+  import { PlugZap, Disc, Mic2, Music } from "lucide-svelte";
   import { auth } from "../lib/auth";
   import SectionWrapper from "../lib/components/SectionWrapper.svelte";
   import AlbumList from "../lib/components/AlbumList.svelte";

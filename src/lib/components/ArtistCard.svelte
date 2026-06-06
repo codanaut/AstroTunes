@@ -43,10 +43,9 @@
     }
 
     /**
-     * @param {any} artistToToggle
      * @param {Event} event
      */
-    async function toggleArtistFavorite(artistToToggle, event) {
+    async function toggleArtistFavorite(event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -104,7 +103,7 @@
 
         <!-- Favorite Button (Top Right of circle) -->
         <button
-            onclick={(e) => toggleArtistFavorite(artist, e)}
+            onclick={(e) => toggleArtistFavorite(e)}
             class="absolute top-2 right-2 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 {artist.starred
                 ? 'opacity-100 !bg-[var(--accent)]/20 text-[var(--accent)]'
                 : ''} cursor-pointer border-none z-10 pointer-events-auto lg:pointer-events-none lg:group-hover:pointer-events-auto"

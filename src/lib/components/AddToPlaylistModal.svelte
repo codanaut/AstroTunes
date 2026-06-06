@@ -1,6 +1,11 @@
 <script>
-    import { getPlaylists, getPlaylist, createPlaylist, updatePlaylist } from "../subsonic";
-    import { X, Loader2, Plus, ListMusic, Check } from "lucide-svelte";
+    import {
+        getPlaylists,
+        getPlaylist,
+        createPlaylist,
+        updatePlaylist,
+    } from "../subsonic";
+    import { X, Loader2, Plus, ListMusic } from "lucide-svelte";
     import { fade, scale } from "svelte/transition";
     import { portal } from "../utils/portal";
 
@@ -176,6 +181,11 @@
                 <h2 class="text-lg font-bold text-[var(--text-primary)]">
                     Add to Playlist
                 </h2>
+                {#if isScanningDuplicates}
+                    <span class="text-xs text-amber-500 animate-pulse"
+                        >(checking duplicates...)</span
+                    >
+                {/if}
                 <button
                     onclick={close}
                     class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
@@ -269,7 +279,9 @@
                             >
                                 <ListMusic size={16} />
                             </div>
-                            <div class="flex flex-col overflow-hidden min-w-0 flex-1">
+                            <div
+                                class="flex flex-col overflow-hidden min-w-0 flex-1"
+                            >
                                 <span
                                     class="font-medium text-[var(--text-primary)] truncate"
                                     >{playlist.name}</span
@@ -279,8 +291,12 @@
                                 >
                             </div>
                             {#if hasDuplicate(playlist.id)}
-                                {@const dupCount = getDuplicateCount(playlist.id)}
-                                <div class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 flex-shrink-0">
+                                {@const dupCount = getDuplicateCount(
+                                    playlist.id,
+                                )}
+                                <div
+                                    class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 flex-shrink-0"
+                                >
                                     {#if songs.length === 1}
                                         Already present
                                     {:else if dupCount === songs.length}

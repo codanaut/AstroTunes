@@ -4,7 +4,7 @@
     import { portal } from "../utils/portal";
     import { fade, scale } from "svelte/transition";
 
-    let { isOpen = false, onclose, onsuccess, type, id } = $props();
+    let { isOpen = false, onclose, type, id } = $props();
     function close() {
         isOpen = false;
         onclose?.();

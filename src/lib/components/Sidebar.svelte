@@ -1,9 +1,6 @@
 <script>
     import {
-        Menu,
-        Search,
         Home,
-        Library,
         Settings,
         Heart,
         Mic2,
@@ -11,8 +8,7 @@
         Music,
         ListMusic,
     } from "lucide-svelte";
-    import { goto } from "$app/navigation";
-    import { page, navigating } from "$app/stores";
+    import { page } from "$app/stores";
     import { auth } from "../../lib/auth";
     import { resolve } from "$app/paths";
     import { ui } from "../../lib/stores/ui";

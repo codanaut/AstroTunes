@@ -4,9 +4,8 @@
         currentTrack,
         isPlaying,
         isFavorite,
-        addToQueue,
     } from "../player.js";
-    import { starTrack, unstarTrack, updatePlaylist } from "../subsonic.js";
+    import { starTrack, unstarTrack } from "../subsonic.js";
     import OptionsButton from "./OptionsButton.svelte";
     import {
         Heart,
@@ -21,9 +20,8 @@
         ArrowDown,
         Search,
     } from "lucide-svelte";
-    import { slide, fade, scale } from "svelte/transition";
+    import { slide } from "svelte/transition";
     import { untrack } from "svelte";
-    import { parseArtistString } from "../utils/artistUtils.js";
     import { dragHandleZone, dragHandle } from "svelte-dnd-action";
     import { flip } from "svelte/animate";
     import { reorderPlaylist } from "../subsonic.js";
