@@ -19,7 +19,7 @@ function createUiStore() {
         }
     }
 
-    const { subscribe, set, update } = writable(initialValue);
+    const { subscribe, update } = writable(initialValue);
 
     return {
         subscribe,

@@ -44,6 +44,9 @@
         // No loadArtists here — the $effect below handles initial load
     });
 
+    /**
+     * @param {string} mode
+     */
     function setViewMode(mode) {
         viewMode = mode;
         if (browser) {

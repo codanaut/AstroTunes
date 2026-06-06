@@ -1,16 +1,7 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import {
-        subsonicFetch,
-        starTrack,
-        unstarTrack,
-    } from "../../../lib/subsonic.js";
-    import {
-        playQueue,
-        playQueueShuffled,
-        currentTrack,
-        isPlaying,
-    } from "../../../lib/player.js";
+    import { subsonicFetch } from "../../../lib/subsonic.js";
+    import { playQueue, playQueueShuffled } from "../../../lib/player.js";
     import { Play, Shuffle, Music } from "lucide-svelte";
     import BackButton from "../../../lib/components/BackButton.svelte";
     import SongList from "../../../lib/components/SongList.svelte";

@@ -4,18 +4,10 @@
   import {
     subsonicFetch,
     getCoverArtUrl,
-    starTrack,
-    unstarTrack,
     starAlbum,
     unstarAlbum,
   } from "../../../lib/subsonic.js";
-  import {
-    playQueue,
-    playQueueShuffled,
-    currentTrack,
-    isPlaying,
-    togglePlay,
-  } from "../../../lib/player.js";
+  import { playQueue, playQueueShuffled } from "../../../lib/player.js";
   import { Play, Shuffle, Heart, Disc } from "lucide-svelte";
   import BackButton from "../../../lib/components/BackButton.svelte";
   import SongList from "../../../lib/components/SongList.svelte";
@@ -118,27 +110,6 @@
       .filter((/** @type {any} */ g) => g && typeof g === "string")
       .slice(0, 3);
   });
-
-  let groupedSongs = $derived(
-    songs.reduce(
-      (
-        /** @type {any[]} */ acc,
-        /** @type {any} */ song,
-        /** @type {number} */ index,
-      ) => {
-        song.globalIndex = index;
-        const disc = song.discNumber || 1;
-        let lastGroup = acc[acc.length - 1];
-        if (!lastGroup || lastGroup.disc !== disc) {
-          lastGroup = { disc, songs: [] };
-          acc.push(lastGroup);
-        }
-        lastGroup.songs.push(song);
-        return acc;
-      },
-      [],
-    ),
-  );
 
   function playAlbum() {
     if (songs && songs.length > 0) {

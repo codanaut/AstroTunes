@@ -1,7 +1,6 @@
 <script>
     import { onMount, onDestroy } from "svelte";
     import { subsonicFetch, getCoverArtUrl } from "../../../lib/subsonic.js";
-    import { ArrowLeft } from "lucide-svelte";
     import BackButton from "../../../lib/components/BackButton.svelte";
     import { resolve } from "$app/paths";
 

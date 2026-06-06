@@ -15,12 +15,6 @@
     } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import { browser } from "$app/environment";
-    import {
-        libraryStore,
-        musicFolderParam,
-    } from "../../../lib/stores/library.js";
-    import { untrack } from "svelte";
-
     /** @type {any[]} */
     let allFavorites = $state([]);
     /** @type {any[]} */

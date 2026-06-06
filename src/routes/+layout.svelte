@@ -6,14 +6,9 @@
     togglePlay,
     playNext,
     playPrev,
-    duration,
-    seek,
-    volume,
-    setVolume,
     showQueue,
   } from "../lib/player.js";
   import { getCoverArtUrl } from "../lib/subsonic.js";
-  import { goto } from "$app/navigation";
   import { auth } from "../lib/auth";
   import { onMount } from "svelte";
   import { subsonicFetch } from "../lib/subsonic";
@@ -24,7 +19,6 @@
   import Sidebar from "../lib/components/Sidebar.svelte";
   import { resolve } from "$app/paths";
   import { libraryStore } from "../lib/stores/library.js";
-  import { theme } from "../lib/stores/theme.js";
 
   let isSidebarOpen = $state(false);
 
@@ -38,125 +32,6 @@
 
   let playerRef = $state();
   let { children } = $props();
-
-  /**
-   * @param {{ currentTarget: any; clientX: number; }} e
-   */
-  function handleSeek(e) {
-    const bar = e.currentTarget;
-    const rect = bar.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = x / rect.width;
-    seek(percentage * $duration);
-  }
-
-  /**
-   * @param {{ currentTarget: any; clientX: number; }} e
-   */
-  function handleVolumeChange(e) {
-    const bar = e.currentTarget;
-    const rect = bar.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, x / rect.width));
-    setVolume(percentage);
-  }
-
-  let isDraggingVolume = $state(false);
-  let isMuted = $state(false);
-  let previousVolume = $state(1.0);
-
-  /**
-   * @param {{ currentTarget: any; clientX: number; }} e
-   */
-  function handleVolumeMouseDown(e) {
-    isDraggingVolume = true;
-    handleVolumeChange(e);
-  }
-
-  /**
-   * @param {{ clientX: number; }} e
-   */
-  function handleVolumeMouseMove(e) {
-    if (isDraggingVolume) {
-      const bar = document.querySelector(".volume-slider");
-      if (bar) {
-        const rect = bar.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const percentage = Math.max(0, Math.min(1, x / rect.width));
-        setVolume(percentage);
-      }
-    }
-  }
-
-  function handleVolumeMouseUp() {
-    isDraggingVolume = false;
-  }
-
-  /**
-   * @param {{ deltaY: number; preventDefault: () => void; }} e
-   */
-  function handleVolumeWheel(e) {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    const newVolume = Math.max(0, Math.min(1, $volume + delta));
-    setVolume(newVolume);
-    if (newVolume > 0 && isMuted) {
-      isMuted = false;
-    }
-  }
-
-  function toggleMute() {
-    if (isMuted) {
-      setVolume(previousVolume);
-      isMuted = false;
-    } else {
-      previousVolume = $volume;
-      setVolume(0);
-      isMuted = true;
-    }
-  }
-
-  /**
-   * Format sample rate to human readable format
-   * @param {number} rate - Sample rate in Hz
-   */
-  function formatSampleRate(rate) {
-    if (!rate) return "";
-    if (rate >= 1000) {
-      return (rate / 1000).toFixed(1) + " kHz";
-    }
-    return rate + " Hz";
-  }
-
-  /**
-   * Format bit depth
-   * @param {number} depth - Bit depth
-   */
-  function formatBitDepth(depth) {
-    if (!depth) return "";
-    return depth + "bit";
-  }
-
-  let searchQuery = $state("");
-
-  /**
-   * @param {KeyboardEvent} e
-   */
-  function handleSearch(e) {
-    if (e.key === "Enter" && searchQuery.trim()) {
-      goto(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  }
-
-  let isMobileMenuOpen = $state(false);
-
-  function toggleMobileMenu() {
-    isMobileMenuOpen = !isMobileMenuOpen;
-  }
-
-  function closeMobileMenu() {
-    isMobileMenuOpen = false;
-  }
 
   let isNowPlayingPage = $derived(
     $page.url.pathname === resolve("/now-playing"),
@@ -230,11 +105,6 @@
   });
 </script>
 
-<svelte:body
-  onmousemove={handleVolumeMouseMove}
-  onmouseup={handleVolumeMouseUp}
-/>
-
 <div
   class="h-full flex bg-[var(--bg-main)] text-[var(--text-primary)] overflow-hidden relative"
   style="height: 100dvh;"
@@ -253,10 +123,10 @@
 
     <!-- MAIN CONTENT AREA -->
     <main
-      class="flex-1 overflow-y-auto {isNowPlayingPage
-        ? ''
-        : 'p-4 md:p-8'}"
-      style={isNowPlayingPage ? '' : 'padding-bottom: calc(6rem + env(safe-area-inset-bottom));'}
+      class="flex-1 overflow-y-auto {isNowPlayingPage ? '' : 'p-4 md:p-8'}"
+      style={isNowPlayingPage
+        ? ""
+        : "padding-bottom: calc(6rem + env(safe-area-inset-bottom));"}
     >
       {@render children()}
     </main>
