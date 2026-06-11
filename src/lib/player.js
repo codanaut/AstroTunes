@@ -338,7 +338,7 @@ function setupSoundHandlers(h, track) {
     h.on('load', handleMetadata);
 
     h.on('play', () => {
-        // Force volume sync on play event to combat HTML5 audio resets
+        isPlaying.set(true);
         h.volume(1.0);
         Howler.volume(get(volume));
 
@@ -354,6 +354,7 @@ function setupSoundHandlers(h, track) {
     });
 
     h.on('pause', () => {
+        isPlaying.set(false);
         if (typeof navigator !== 'undefined' && navigator.mediaSession) {
             navigator.mediaSession.playbackState = 'paused';
         }

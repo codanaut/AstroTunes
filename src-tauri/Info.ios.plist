@@ -10,5 +10,10 @@
 
     <key>NSLocalNetworkUsageDescription</key>
     <string>AstroTunes requires local network access to discover, connect, and stream music from your local Navidrome or Subsonic server.</string>
+
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+    </array>
 </dict>
 </plist>
