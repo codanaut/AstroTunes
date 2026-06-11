@@ -12,8 +12,6 @@
   /** @type {any[]} */
   let albums = $state([]);
   /** @type {any[]} */
-  let favlist = $state([]);
-  /** @type {any[]} */
   let recentlyAddedAlbums = $state([]);
   /** @type {any[]} */
   let topAlbums = $state([]);
@@ -34,14 +32,12 @@
   async function loadAllSections(folderParam = "") {
     const [
       data,
-      favs,
       recentlyAddedAlbumsData,
       topAlbumsData,
       albums2026Data,
       starredData,
     ] = await Promise.all([
       subsonicFetch("getAlbumList", `&type=random&size=5${folderParam}`),
-      subsonicFetch("getAlbumList", `&type=starred&size=5${folderParam}`),
       subsonicFetch("getAlbumList", `&type=newest&size=5${folderParam}`),
       subsonicFetch("getAlbumList", `&type=frequent&size=5${folderParam}`),
       subsonicFetch(
@@ -52,7 +48,6 @@
     ]);
 
     if (data?.albumList?.album) albums = data.albumList.album;
-    if (favs?.albumList?.album) favlist = favs.albumList.album;
     if (recentlyAddedAlbumsData?.albumList?.album)
       recentlyAddedAlbums = recentlyAddedAlbumsData.albumList.album;
     if (topAlbumsData?.albumList?.album)
@@ -86,15 +81,6 @@
     if (syncInterval) clearInterval(syncInterval);
     syncInterval = setInterval(async () => {
       const folderParam = musicFolderParam($libraryStore.selectedId);
-
-      // Sync Favorites
-      const favs = await subsonicFetch(
-        "getAlbumList",
-        `&type=starred&size=5${folderParam}`,
-      );
-      if (favs && favs.albumList && favs.albumList.album) {
-        favlist = favs.albumList.album;
-      }
 
       // Sync Recently Added Albums
       const recentlyAddedAlbumsData = await subsonicFetch(

@@ -80,6 +80,23 @@ let progressInterval = null;
 /** @type {any} */
 let starredCheckInterval = null;
 
+/** @type {Howl | null} */
+let pendingCleanupSound = null;
+
+/**
+ * Clean up the old sound queued for destruction
+ */
+function cleanupOldSound() {
+    if (pendingCleanupSound) {
+        try {
+            pendingCleanupSound.unload();
+        } catch (e) {
+            console.error("Failed to unload old sound:", e);
+        }
+        pendingCleanupSound = null;
+    }
+}
+
 // Helper to save state
 function saveState() {
     if (!browser) return;
@@ -148,8 +165,13 @@ function updateMediaSession(track) {
  * Cleans up existing audio and intervals
  */
 function cleanup() {
+    cleanupOldSound();
     if (sound) {
-        sound.unload();
+        sound.off();
+        if (sound.playing()) {
+            sound.volume(0);
+        }
+        pendingCleanupSound = sound;
         sound = null;
     }
     if (fadingSound) {
@@ -249,7 +271,14 @@ function playTrack(track) {
     if (nextSound && nextTrackMetadata && nextTrackMetadata.id === track.id) {
         // We have it prebuffered!
         // Swap currently playing
-        if (sound) sound.unload();
+        if (sound) {
+            sound.off();
+            if (sound.playing()) {
+                sound.volume(0);
+            }
+            cleanupOldSound();
+            pendingCleanupSound = sound;
+        }
         sound = nextSound;
         nextSound = null;
         nextTrackMetadata = null;
@@ -338,6 +367,7 @@ function setupSoundHandlers(h, track) {
     h.on('load', handleMetadata);
 
     h.on('play', () => {
+        cleanupOldSound();
         isPlaying.set(true);
         h.volume(1.0);
         Howler.volume(get(volume));
@@ -347,6 +377,20 @@ function setupSoundHandlers(h, track) {
         startStarredCheckLoop();
         if (typeof navigator !== 'undefined' && navigator.mediaSession) {
             navigator.mediaSession.playbackState = 'playing';
+
+            // Update position state initially
+            const totalDuration = h.duration();
+            if (totalDuration > 0 && navigator.mediaSession.setPositionState) {
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: totalDuration,
+                        playbackRate: 1.0,
+                        position: h.seek() || 0
+                    });
+                } catch (e) {
+                    console.error("Failed to set MediaSession position state on play:", e);
+                }
+            }
         }
         import('./subsonic.js').then(({ scrobble }) => {
             scrobble(track.id, false).catch(e => console.error("Failed to set Now Playing:", e));
@@ -381,6 +425,7 @@ function setupSoundHandlers(h, track) {
 
     h.on('loaderror', (/** @type {any} */ _id, /** @type {any} */ err) => {
         console.error("Howler load error:", err);
+        cleanupOldSound();
         // Automatically try next if this one failed
         playNext();
     });
@@ -611,11 +656,25 @@ function startProgressLoop() {
     progressInterval = setInterval(() => {
         if (sound && sound.playing()) {
             // @ts-ignore
-            progress.set(sound.seek());
+            const currentTime = sound.seek();
+            progress.set(currentTime);
+
+            const totalDuration = sound.duration();
+            
+            // Update mediaSession position state if supported
+            if (typeof navigator !== 'undefined' && navigator.mediaSession && navigator.mediaSession.setPositionState && totalDuration > 0) {
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: totalDuration,
+                        playbackRate: 1.0,
+                        position: currentTime
+                    });
+                } catch (e) {
+                    console.error("Failed to set MediaSession position state", e);
+                }
+            }
 
             // Trigger prebuffering if we are at 90% or 10 seconds remaining
-            const currentTime = sound.seek();
-            const totalDuration = sound.duration();
             const crossfade = get(crossfadeDuration);
 
             // Handle Crossfade trigger
@@ -727,6 +786,7 @@ function startStarredCheckLoop() {
 }
 
 export function stop() {
+    cleanupOldSound();
     if (sound) {
         sound.stop();
         sound.unload();

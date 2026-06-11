@@ -30,7 +30,6 @@
     isSidebarOpen = false;
   }
 
-  let playerRef = $state();
   let { children } = $props();
 
   let isNowPlayingPage = $derived(
@@ -133,7 +132,7 @@
 
     <!-- PLAYER BAR -->
     {#if $currentTrack}
-      <PlayerBar bind:this={playerRef} />
+      <PlayerBar />
     {/if}
   </div>
 
