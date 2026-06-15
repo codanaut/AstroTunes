@@ -44,7 +44,7 @@
         "getAlbumList",
         `&type=byYear&fromYear=2026&toYear=2026&size=5${folderParam}`,
       ),
-      subsonicFetch("getStarred"),
+      subsonicFetch("getStarred", folderParam),
     ]);
 
     if (data?.albumList?.album) albums = data.albumList.album;

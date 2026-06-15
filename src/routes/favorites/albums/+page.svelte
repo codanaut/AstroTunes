@@ -15,6 +15,13 @@
     } from "lucide-svelte";
     import { resolve } from "$app/paths";
     import { browser } from "$app/environment";
+
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../../lib/stores/library.js";
+    import { untrack } from "svelte";
+
     /** @type {any[]} */
     let allFavorites = $state([]);
     /** @type {any[]} */
@@ -38,7 +45,8 @@
                 viewMode = saved;
             }
         }
-        await loadFavorites();
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        await loadFavorites(folderParam);
     });
 
     /** @param {'grid' | 'list'} mode */
@@ -49,11 +57,14 @@
         }
     }
 
-    async function loadFavorites() {
+    /**
+     * @param {string} folderParam
+     */
+    async function loadFavorites(folderParam = "") {
         loading = true;
         try {
             // Fetch ALL favorites to get correct count and data
-            const starred = await subsonicFetch("getStarred");
+            const starred = await subsonicFetch("getStarred", folderParam);
             if (starred && starred.starred && starred.starred.album) {
                 allFavorites = starred.starred.album;
             } else {
@@ -72,6 +83,11 @@
         const end = start + limit;
         displayedAlbums =
             allFavorites.length > 0 ? allFavorites.slice(start, end) : [];
+    });
+
+    $effect(() => {
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        untrack(() => loadFavorites(folderParam));
     });
 
     function nextPage() {

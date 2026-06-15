@@ -3,12 +3,16 @@
     import { subsonicFetch, getCoverArtUrl } from "../../../lib/subsonic.js";
     import BackButton from "../../../lib/components/BackButton.svelte";
     import { resolve } from "$app/paths";
+    import { untrack } from "svelte";
+    import {
+        libraryStore,
+        musicFolderParam,
+    } from "../../../lib/stores/library.js";
 
     /** @type {any[]} */
-    let favoriteArtists = [];
+    let favoriteArtists = $state([]);
 
     onMount(async () => {
-        await loadFavorites();
         startSyncLoop();
     });
 
@@ -16,12 +20,21 @@
         if (syncInterval) clearInterval(syncInterval);
     });
 
-    async function loadFavorites() {
-        const starred = await subsonicFetch("getStarred");
+    /**
+     * @param {string} folderParam
+     */
+    async function loadFavorites(folderParam = "") {
+        const starred = await subsonicFetch("getStarred", folderParam);
         if (starred && starred.starred && starred.starred.artist) {
             favoriteArtists = starred.starred.artist;
         }
     }
+
+    // Re-fetch when library selection changes
+    $effect(() => {
+        const folderParam = musicFolderParam($libraryStore.selectedId);
+        untrack(() => loadFavorites(folderParam));
+    });
 
     /** @type {any} */
     let syncInterval;
@@ -29,7 +42,8 @@
     function startSyncLoop() {
         if (syncInterval) clearInterval(syncInterval);
         syncInterval = setInterval(async () => {
-            await loadFavorites();
+            const folderParam = musicFolderParam($libraryStore.selectedId);
+            await loadFavorites(folderParam);
         }, 10000);
     }
 </script>
